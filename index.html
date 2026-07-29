@@ -332,8 +332,86 @@
             { id: 'p17', name: '水潤淨化精華', bv: 2238 }, { id: 'p18', name: '小橘瓶', bv: 1857 }
         ];
 
+        // ==========================================
+        // 🛠️ UI 介面切換與輔助功能 (系統核心引擎)
+        // ==========================================
+        let leaderboardCategory = 'leads';
+        let currentActiveContactId = null;
+
+        window.switchTab = function(tabId) {
+            document.getElementById('sect-my-list').classList.add('hidden');
+            document.getElementById('sect-tree').classList.add('hidden');
+            document.getElementById('sect-leaderboard').classList.add('hidden');
+            document.getElementById('sect-' + tabId).classList.remove('hidden');
+            
+            ['my-list', 'tree', 'leaderboard'].forEach(id => {
+                const btn = document.getElementById('tab-' + id);
+                if(btn) {
+                    if(id === tabId) {
+                        btn.classList.add('bg-indigo-600', 'text-white', 'shadow');
+                        btn.classList.remove('theme-muted');
+                    } else {
+                        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+                        btn.classList.add('theme-muted');
+                    }
+                }
+            });
+            if(tabId === 'tree') renderTree();
+            if(tabId === 'leaderboard') renderLeaderboard();
+        };
+
+        window.toggleSection = function(boxId, iconId) {
+            const box = document.getElementById(boxId);
+            const icon = document.getElementById(iconId);
+            if (box && icon) {
+                box.classList.toggle('hidden');
+                icon.textContent = box.classList.contains('hidden') ? '▼' : '▲';
+            }
+        };
+
+        window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); };
+        window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
+        
+        window.toggleDrawer = function() {
+            document.getElementById('left-drawer').classList.toggle('-translate-x-full');
+            document.getElementById('drawer-overlay').classList.toggle('hidden');
+        };
+
+        let confirmCallback = null;
+        window.openConfirmModal = function(msg, callback) {
+            document.getElementById('confirm-msg').textContent = msg;
+            confirmCallback = callback;
+            window.openModal('confirm-modal');
+        };
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const confirmBtn = document.getElementById('confirm-execute-btn');
+            if(confirmBtn) {
+                confirmBtn.addEventListener('click', () => {
+                    if(confirmCallback) confirmCallback();
+                    window.closeModal('confirm-modal');
+                });
+            }
+        });
+
+        window.showToast = function(msg) {
+            const c = document.getElementById('toast-container');
+            if(!c) return;
+            const t = document.createElement('div');
+            t.className = 'bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl font-bold flex items-center gap-3 animate-bounce';
+            t.innerHTML = `<span>${msg}</span>`;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        };
+
+        window.changeTheme = function(t) { applyTheme(t); state.theme = t; };
+        window.changeFontSize = function(s) { applyFontSize(s); state.fontSize = s; };
+
+        // ==========================================
+        // 📡 初始化連線
+        // ==========================================
         document.addEventListener('DOMContentLoaded', async () => {
-            if(SUPABASE_URL && SUPABASE_URL !== '請替換成您的Project_URL') {
+            if(SUPABASE_URL && SUPABASE_URL !== '已遮蔽') {
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session) { await startApp(session.user); } 
