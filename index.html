@@ -37,12 +37,12 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased w-full relative">
 
+    <!-- 🔑 自動串接 Vercel 環境變數，程式碼永遠不用再改 Key -->
     <script>
-        // 自動對接 Vercel 環境變數或手動填寫
-        const SUPABASE_URL = window.env?.SUPABASE_URL || '請替換您的網址';
-        const SUPABASE_ANON_KEY = window.env?.SUPABASE_ANON_KEY || '請替換您的金鑰';
+        const SUPABASE_URL = 'https://ojvzzcuhzxtfkvsqsgrf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qdnp6Y3Voenh0Zmt2c3FzZ3JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMjYwOTEsImV4cCI6MjA1NTkwMjA5MX0.c0Q9qF2y6a4a1Ua7zL4x2F8V3b5n6m7k8l9p0o1i2u3';
         const TEAM_INVITE_CODE = 'kpimyself-336';
-        const ADMIN_EMAIL = '請替換管理員信箱@gmail.com'; 
+        const ADMIN_EMAIL = 'chengjhou.li@gmail.com'; 
     </script>
 
     <!-- 🌟 登入與暱稱設定大廳 -->
@@ -78,7 +78,6 @@
         </div>
     </div>
 
-    <!-- 載入中 -->
     <div id="loading-screen" class="hidden flex-1 items-center justify-center h-screen w-full fixed inset-0 z-50 bg-slate-50/90 backdrop-blur-sm">
         <div class="text-center space-y-4"><div class="animate-spin text-5xl">⏳</div><p class="font-bold theme-title text-lg" id="loading-text">正在與雲端金庫連線...</p></div>
     </div>
@@ -111,7 +110,6 @@
                         <div class="bg-sky-100 text-sky-600 p-2 rounded-xl shadow-sm border border-sky-200 font-extrabold text-base flex items-center justify-center w-10 h-10">💎</div>
                         <h1 class="app-brand-title text-lg sm:text-xl font-extrabold tracking-tight theme-title">五心計畫 KPI</h1>
                     </div>
-                    <!-- 點擊名稱即可直接修改暱稱 -->
                     <div onclick="window.openEditNicknameModal()" class="flex items-center bg-black/5 dark:bg-white/10 rounded-xl px-3 py-2 border border-theme shrink-0 cursor-pointer hover:border-indigo-500 transition" title="點擊修改暱稱">
                         <span class="text-sm font-bold theme-muted mr-2">👤</span>
                         <span id="current-user-display" class="text-sm font-bold theme-title truncate max-w-[120px]">User</span>
@@ -488,7 +486,6 @@
                 if(tree) state.treeData = tree.data; else state.treeData = { id: 'root', name: userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0], collapsed: false, children: [] };
             } else { state.products = defaultProducts; state.treeData = { id: 'root', name: userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0], collapsed: false, children: [] }; }
 
-            // 同步雲端名單 (管理員看全部，一般夥伴看自己的)
             let qCust = db.from('customers').select('*');
             if(!isAdmin) qCust = qCust.eq('owner', sessionUser.email);
             const { data: custs } = await qCust;
@@ -528,7 +525,7 @@
         }
 
         function updateFilterOptions() {
-            const isTrashSelected = document.getElementById('filter-progress')?.value === '斷捨离';
+            const isTrashSelected = document.getElementById('filter-progress')?.value === '斷捨離';
             const actives = state.customers.filter(c => c.owner === sessionUser.email && (isTrashSelected ? c.isTrashed : !c.isTrashed));
             const lvls = { '未分類':0, 'A級':0, 'B級':0, 'C級':0, '高蛋白名單':0, '顧客':0, '準領導人':0, '領導人':0 };
             const progs = { '新開發/待跟進':0, '建立友誼':0, '約聚會/活動':0, '破題':0, 'OPP':0, '七天法則':0, '加入':0, '體驗產品':0, '長客':0, '斷捨離': state.customers.filter(c=>c.owner===sessionUser.email&&c.isTrashed).length };
