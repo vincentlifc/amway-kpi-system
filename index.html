@@ -312,7 +312,7 @@
     <!-- 🚀 核心邏輯與 Supabase 雲端資料庫串接 -->
     <!-- ========================================== -->
     <script>
-        let supabase;
+        let db;
         let sessionUser = null;
         let isAdmin = false;
         let isLoginMode = true;
@@ -412,8 +412,8 @@
         // ==========================================
         document.addEventListener('DOMContentLoaded', async () => {
             if(SUPABASE_URL && SUPABASE_URL !== '已遮蔽') {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                const { data: { session } } = await supabase.auth.getSession();
+                db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                const { data: { session } } = await db.auth.getSession();
                 if (session) { await startApp(session.user); } 
                 else { document.getElementById('auth-screen').classList.remove('hidden'); }
             } else {
@@ -439,13 +439,13 @@
             document.getElementById('loading-screen').classList.remove('hidden');
 
             if (isLoginMode) {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                const { data, error } = await db.auth.signInWithPassword({ email, password });
                 if (error) { alert('登入失敗：' + error.message); document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('loading-screen').classList.add('hidden'); } 
                 else { await startApp(data.user); }
             } else {
                 const inviteCode = document.getElementById('auth-invite-code').value;
                 if (inviteCode !== TEAM_INVITE_CODE) { alert('🚨 團隊邀請碼錯誤！'); document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('loading-screen').classList.add('hidden'); return; }
-                const { data, error } = await supabase.auth.signUp({ email, password });
+                const { data, error } = await db.auth.signUp({ email, password });
                 if (error) { alert('註冊失敗：' + error.message); } 
                 else { alert('✅ 註冊成功！請去您的信箱點擊驗證信，然後回來登入。'); toggleAuthMode(); }
                 document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('loading-screen').classList.add('hidden');
@@ -453,7 +453,7 @@
         }
 
         async function logout() {
-            if(confirm('確定要登出系統嗎？')) { await supabase.auth.signOut(); window.location.reload(); }
+            if(confirm('確定要登出系統嗎？')) { await db.auth.signOut(); window.location.reload(); }
         }
 
         /* --- 啟動與雲端資料載入 --- */
@@ -481,7 +481,7 @@
 
         async function loadCloudData() {
             // 載入設定 (產品與標籤)
-            const { data: sets } = await supabase.from('system_settings').select('*');
+            const { data: sets } = await db.from('system_settings').select('*');
             if(sets && sets.length>0) {
                 const p = sets.find(x=>x.id==='products'); if(p) state.products = p.data; else state.products = defaultProducts;
                 const t = sets.find(x=>x.id==='tags'); if(t) state.tags = t.data;
@@ -490,25 +490,25 @@
             } else { state.products = defaultProducts; state.treeData = { id: 'root', name: sessionUser.email.split('@')[0], collapsed: false, children: [] }; }
 
             // 載入名單 (管理員看全部，一般組員看自己的)
-            let qCust = supabase.from('customers').select('*');
+            let qCust = db.from('customers').select('*');
             if(!isAdmin) qCust = qCust.eq('owner', sessionUser.email);
             const { data: custs } = await qCust;
             state.customers = custs || [];
 
             // 載入日誌與補登長客
-            let qLog = supabase.from('checkin_logs').select('*');
-            let qSub = supabase.from('sub_group_loyalties').select('*');
+            let qLog = db.from('checkin_logs').select('*');
+            let qSub = db.from('sub_group_loyalties').select('*');
             if(!isAdmin) { qLog = qLog.eq('user_name', sessionUser.email); }
             // 為了方便計算，補登長客先全部載下來讓前端依照名字算 (或未來優化 RLS)
-            const [resLog, resFeed, resSub] = await Promise.all([qLog, supabase.from('feeds').select('*').order('created_at',{ascending:true}), qSub]);
+            const [resLog, resFeed, resSub] = await Promise.all([qLog, db.from('feeds').select('*').order('created_at',{ascending:true}), qSub]);
             state.checkinLogs = resLog.data || [];
             state.feeds = resFeed.data || [];
             state.subGroupLoyalties = resSub.data || [];
         }
 
         /* --- 雲端同步函數 --- */
-        async function cloudUpsert(table, data) { await supabase.from(table).upsert(data); }
-        async function cloudDelete(table, id) { await supabase.from(table).delete().eq('id', id); }
+        async function cloudUpsert(table, data) { await db.from(table).upsert(data); }
+        async function cloudDelete(table, id) { await db.from(table).delete().eq('id', id); }
         async function saveSystemSettings() {
             await cloudUpsert('system_settings', { id: 'products', setting_type: 'global', data: state.products });
             await cloudUpsert('system_settings', { id: 'tags', setting_type: 'global', data: state.tags });
@@ -618,7 +618,7 @@
         window.bulkTrash = function() {
             const checked = document.querySelectorAll('.contact-checkbox:checked'); if(!checked.length) return window.showToast('ℹ️ 請先勾選名單');
             window.openConfirmModal(`確定將勾選的 ${checked.length} 筆名單移至斷捨離區？`, async () => {
-                for(let cb of checked) { const c = state.customers.find(x=>x.id===cb.value); if(c) { c.isTrashed = true; await cloudUpsert('customers', c); } }
+                for(let cb of checked) { const c = state.customers.find(x=>x.id===cb.value); if(c) { c.isTrashed = true; await db.from('customers').upsert(c); } }
                 renderAll(); window.showToast('📦 已批次移至斷捨離暫存區');
             });
         }
