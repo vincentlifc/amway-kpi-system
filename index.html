@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>五心計畫 KPI - 雲端版</title>
+    <!-- 手機加入主畫面時的 PWA 應用設定與鑽石圖示 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/0284c7/white?text=💎">
+    <title>五心計畫 KPI - 雲端完全體</title>
     <!-- 引入 TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 Supabase 雲端連線套件 -->
@@ -14,7 +18,7 @@
         html, body { overflow-x: hidden; max-width: 100vw; }
         body { font-family: 'Inter', sans-serif; transition: background-color 0.25s, color 0.25s, font-size 0.25s; }
 
-        /* 動態字體縮放 (全面調大基礎數值) */
+        /* 動態字體縮放 */
         html[data-font-size="small"] { font-size: 14px; }
         html[data-font-size="medium"] { font-size: 16px; }
         html[data-font-size="large"] { font-size: 19.5px; }
@@ -37,108 +41,87 @@
         .border-theme { border-color: var(--border-color) !important; }
         option { background-color: var(--bg-card) !important; color: var(--text-title) !important; }
 
-        #drawer-overlay.active { display: block; }
-        #left-drawer.active { transform: translateX(0); }
         .tag-chip { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; background: var(--bg-subcard); color: var(--accent); border: 1px solid var(--accent); margin-right: 0.25rem; margin-bottom: 0.25rem;}
         .tag-chip button { margin-left: 0.25rem; color: #ef4444; }
         
-        /* 隱藏主系統，直到登入成功 */
         #main-app { display: none; }
+        .tree-action-btn { background: transparent !important; color: inherit !important; border: 1.5px solid currentColor !important; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased w-full relative">
 
     <!-- ========================================== -->
-    <!-- 🔑 系統設定區：請填入您的金鑰與信箱 -->
+    <!-- 🔑 系統設定區 -->
     <!-- ========================================== -->
     <script>
-        // 1. 請填入 Supabase URL (記得保留單引號)
         const SUPABASE_URL = 'https://ojvzzhzrbvmdtogxokwr.supabase.co';
-        // 2. 請填入 Supabase API Key (記得保留單引號)
         const SUPABASE_ANON_KEY = 'sb_publishable_Oy9tndWgGKhUXaL51fOvaQ_zmoUGdJI';
-        
-        // 3. 團隊註冊邀請碼
         const TEAM_INVITE_CODE = 'kpimyself-336';
-        // 4. 管理員信箱 (用此信箱登入，會解鎖全團隊報表權限！)
         const ADMIN_EMAIL = 'chengjhou.li@gmail.com'; 
     </script>
     <!-- ========================================== -->
 
-
-    <!-- 🌟 登入與註冊大廳 -->
+    <!-- 🌟 登入與暱稱設定大廳 -->
     <div id="auth-screen" class="flex flex-1 items-center justify-center p-4 h-screen w-full fixed inset-0 z-50 bg-slate-50/90 backdrop-blur-sm">
-        <div class="theme-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-6">
+        <!-- 登入表單 -->
+        <div id="login-card-box" class="theme-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
                 <div class="bg-sky-100 text-sky-600 p-3 rounded-2xl shadow-sm border border-sky-200 font-extrabold text-2xl inline-flex items-center justify-center w-14 h-14 mx-auto mb-2">💎</div>
                 <h1 class="text-2xl font-extrabold theme-title">五心計畫 KPI</h1>
                 <p class="text-sm font-bold theme-muted">團隊專屬行動儀表板</p>
             </div>
             <form id="login-form" class="space-y-4" onsubmit="handleAuth(event)">
-                <div>
-                    <label class="block text-sm font-bold theme-title mb-1">電子郵件 (Email)</label>
-                    <input type="email" id="auth-email" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="name@example.com">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold theme-title mb-1">密碼</label>
-                    <input type="password" id="auth-password" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="••••••••">
-                </div>
-                <div id="invite-code-group" class="hidden">
-                    <label class="block text-sm font-bold theme-title mb-1">團隊邀請碼</label>
-                    <input type="text" id="auth-invite-code" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="輸入通關密語">
-                </div>
-                <button type="submit" id="auth-submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black text-lg py-3 rounded-xl shadow-lg transition-transform active:scale-95">登入系統</button>
+                <div><label class="block text-sm font-bold theme-title mb-1">電子郵件 (Email)</label><input type="email" id="auth-email" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="name@example.com"></div>
+                <div><label class="block text-sm font-bold theme-title mb-1">密碼</label><input type="password" id="auth-password" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="••••••••"></div>
+                <div id="invite-code-group" class="hidden"><label class="block text-sm font-bold theme-title mb-1">團隊邀請碼</label><input type="text" id="auth-invite-code" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="輸入通關密語"></div>
+                <button type="submit" id="auth-submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black text-lg py-3 rounded-xl shadow-lg">登入系統</button>
             </form>
-            <div class="text-center text-sm font-bold">
+            <div class="flex justify-between items-center text-sm font-bold pt-2">
                 <button type="button" onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-indigo-600 hover:underline">還沒有帳號？點此註冊</button>
+                <button type="button" onclick="triggerForgotPassword()" class="theme-muted hover:underline">忘記密碼？</button>
+            </div>
+        </div>
+
+        <!-- 首次登入設定暱稱卡片 -->
+        <div id="nickname-card-box" class="theme-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-6 hidden">
+            <div class="text-center space-y-2">
+                <div class="bg-emerald-100 text-emerald-600 p-3 rounded-2xl shadow-sm border border-emerald-200 font-extrabold text-2xl inline-flex items-center justify-center w-14 h-14 mx-auto mb-2">👤</div>
+                <h1 class="text-2xl font-extrabold theme-title">設定您的顯示暱稱</h1>
+                <p class="text-sm font-bold theme-muted">讓團隊夥伴一眼就能認出您</p>
+            </div>
+            <div class="space-y-4">
+                <div><label class="block text-sm font-bold theme-title mb-1">您的專屬暱稱</label><input type="text" id="setup-nickname-input" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="例如：Vincent"></div>
+                <button type="button" onclick="saveNicknameAndEnter()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg py-3 rounded-xl shadow-lg">進入系統 🚀</button>
             </div>
         </div>
     </div>
 
     <!-- 系統載入中畫面 -->
     <div id="loading-screen" class="hidden flex-1 items-center justify-center h-screen w-full fixed inset-0 z-50 bg-slate-50/90 backdrop-blur-sm">
-        <div class="text-center space-y-4">
-            <div class="animate-spin text-5xl">⏳</div>
-            <p class="font-bold theme-title text-lg" id="loading-text">正在與雲端金庫連線...</p>
-        </div>
+        <div class="text-center space-y-4"><div class="animate-spin text-5xl">⏳</div><p class="font-bold theme-title text-lg" id="loading-text">正在與雲端金庫連線...</p></div>
     </div>
 
-    <!-- 🌟 主系統介面 (滿版設計) -->
+    <!-- 🌟 主系統介面 -->
     <div id="main-app" class="flex-col w-full min-h-screen">
-        <!-- 抽屜選單 -->
         <div id="drawer-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity" onclick="window.toggleDrawer()"></div>
         <div id="left-drawer" class="fixed inset-y-0 left-0 w-72 theme-card shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col">
-            <div class="p-4 border-b border-theme flex justify-between items-center">
-                <h2 class="font-extrabold theme-title text-lg">💎 進階功能</h2>
-                <button onclick="window.toggleDrawer()" class="theme-muted hover:theme-title text-2xl">&times;</button>
-            </div>
+            <div class="p-4 border-b border-theme flex justify-between items-center"><h2 class="font-extrabold theme-title text-lg">💎 進階功能</h2><button onclick="window.toggleDrawer()" class="theme-muted hover:theme-title text-2xl">&times;</button></div>
             <div class="flex-1 overflow-y-auto p-4 space-y-3 text-sm font-bold">
-                <button onclick="window.openModal('bv-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">
-                    📦 小組長客與 BV 統計
-                </button>
-                <button onclick="window.openModal('tag-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">
-                    🏷️ 自訂標籤大廳
-                </button>
-                <button onclick="window.openModal('product-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">
-                    🛍️ 產品與 BV 設定
-                </button>
-                <button onclick="window.openModal('trash-modal'); window.toggleDrawer()" id="drawer-trash-btn" class="w-full text-left p-3 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500/20 transition flex items-center gap-3">
-                    📦 斷捨離暫存區 (0)
-                </button>
+                <button onclick="window.openModal('bv-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📦 小組長客與 BV 統計</button>
+                <button onclick="window.openModal('tag-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🏷️ 自訂標籤大廳</button>
+                <button onclick="window.openModal('product-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🛍️ 產品與 BV 設定</button>
+                <button onclick="window.openModal('trash-modal'); window.toggleDrawer()" id="drawer-trash-btn" class="w-full text-left p-3 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500/20 transition flex items-center gap-3">📦 斷捨離暫存區 (0)</button>
                 <div class="border-t border-theme pt-3 mt-3 space-y-3">
-                    <button onclick="window.exportExcel()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">
-                        📊 匯出 Excel (CSV)
-                    </button>
-                    <button onclick="window.openModal('settings-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">
-                        ⚙️ 系統與視覺設定
-                    </button>
+                    <button onclick="window.exportExcel()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📊 匯出 Excel (CSV)</button>
+                    <label class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3 cursor-pointer">📥 匯入 Excel (CSV)<input type="file" accept=".csv" onchange="window.importExcel(event)" class="hidden"></label>
+                    <button onclick="window.exportJSON()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">💾 備份 JSON 檔案</button>
+                    <label class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3 cursor-pointer">📂 還原 JSON 備份<input type="file" accept=".json" onchange="window.importJSON(event)" class="hidden"></label>
+                    <button onclick="window.openModal('settings-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">⚙️ 系統與視覺設定</button>
                 </div>
             </div>
-            <div class="p-4 border-t border-theme">
-                <button onclick="logout()" class="w-full bg-slate-200 text-slate-700 hover:bg-slate-300 py-3 rounded-xl font-bold text-sm transition">登出帳號</button>
-            </div>
+            <div class="p-4 border-t border-theme"><button onclick="logout()" class="w-full bg-slate-200 text-slate-700 hover:bg-slate-300 py-3 rounded-xl font-bold text-sm transition">登出帳號</button></div>
         </div>
 
-        <!-- 頂部導覽列 (滿版) -->
         <header class="header-box sticky top-0 z-30 border-b shadow-sm w-full no-print">
             <div class="w-full px-4 py-3 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
                 <div class="flex items-center justify-between gap-3 w-full sm:w-auto">
@@ -146,13 +129,11 @@
                         <div class="bg-sky-100 text-sky-600 p-2 rounded-xl shadow-sm border border-sky-200 font-extrabold text-base flex items-center justify-center w-10 h-10">💎</div>
                         <h1 class="app-brand-title text-lg sm:text-xl font-extrabold tracking-tight theme-title">五心計畫 KPI</h1>
                     </div>
-                    <!-- 移除身分切換，改為顯示當前登入帳號 -->
                     <div class="flex items-center bg-black/5 dark:bg-white/10 rounded-xl px-3 py-2 border border-theme shrink-0">
                         <span class="text-sm font-bold theme-muted mr-2">👤</span>
                         <span id="current-user-display" class="text-sm font-bold theme-title truncate max-w-[120px]">User</span>
                     </div>
                 </div>
-
                 <nav class="flex w-full sm:w-auto bg-black/5 dark:bg-white/10 p-1.5 rounded-xl border border-theme text-center">
                     <button id="tab-my-list" onclick="window.switchTab('my-list')" class="flex-1 sm:flex-none px-5 py-2 rounded-lg text-sm font-bold transition bg-indigo-600 text-white shadow">📁 我的名單</button>
                     <button id="tab-tree" onclick="window.switchTab('tree')" class="flex-1 sm:flex-none px-5 py-2 rounded-lg text-sm font-bold transition theme-muted hover:theme-title">💎 五心計畫</button>
@@ -161,13 +142,9 @@
             </div>
         </header>
 
-        <!-- 主內容區 (滿版) -->
         <main class="flex-1 w-full px-4 py-4 space-y-4">
-            
             <section id="sect-my-list" class="space-y-4 w-full block">
                 <div id="followup-banner-container"></div>
-
-                <!-- 每日打卡 (支援收合) -->
                 <div class="theme-card rounded-2xl p-4 shadow border border-theme w-full">
                     <div class="flex flex-col space-y-3">
                         <div class="flex justify-between items-center cursor-pointer" onclick="window.toggleSection('checkin-content-box', 'checkin-toggle-icon')">
@@ -183,7 +160,6 @@
                     </div>
                 </div>
 
-                <!-- KPI 指標 -->
                 <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-3 w-full">
                     <div class="flex justify-between items-center border-b border-theme pb-3">
                         <div class="flex items-center gap-2"><span class="text-xl">📊</span><h2 class="text-base font-bold theme-title">KPI 指標</h2></div>
@@ -201,7 +177,6 @@
                     </div>
                 </div>
 
-                <!-- 搜尋與篩選 -->
                 <div class="theme-card p-4 rounded-2xl border-theme border shadow space-y-4 w-full">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-3 flex-1 mr-3"><span class="text-lg">🔍</span><input type="text" id="search-input" oninput="window.renderList()" placeholder="搜尋姓名、備註、年份月份(如 2026-07)..." class="w-full bg-transparent text-base theme-title focus:outline-none"></div>
@@ -223,7 +198,6 @@
                     </div>
                 </div>
 
-                <!-- 名單列表 -->
                 <div class="theme-card rounded-2xl border-theme border shadow overflow-hidden w-full">
                     <div class="hidden md:block overflow-x-auto no-scrollbar">
                         <table class="w-full text-left border-collapse">
@@ -249,11 +223,10 @@
                     <div class="theme-card rounded-2xl p-5 shadow border-theme border flex flex-col h-[600px]"><h3 class="font-bold theme-title text-base border-b border-theme pb-3 mb-3">🔥 戰功捷報</h3><div class="flex-1 overflow-y-auto space-y-3 no-scrollbar" id="feed-container"></div></div>
                 </div>
             </section>
-
         </main>
     </div>
 
-    <!-- ==================== Modals 大廳 ==================== -->
+    <!-- Modals 大廳 -->
     <div id="todo-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[80vh] flex flex-col">
             <div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">🚨 今日待跟進任務清單</h3><button onclick="window.closeModal('todo-modal')" class="theme-muted text-2xl">&times;</button></div>
@@ -283,39 +256,46 @@
     </div>
 
     <!-- 打卡 Modals -->
-    <div id="checkin-opp-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
-        <div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🗣️ 講 336 / OPP 打卡</h3><form onsubmit="window.submitOppCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="opp-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">講述日期 *</label><input type="date" id="opp-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">講述備註</label><textarea id="opp-checkin-notes" rows="2" placeholder="備註細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></textarea></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-opp-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl font-bold">送出打卡</button></div></form></div>
-    </div>
-    <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
-        <div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="block font-bold theme-title mb-1.5">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div>
-    </div>
-    <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
-        <div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[85vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客打卡</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="loyalty-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">長客備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認長客打卡</button></div></form></div>
-    </div>
+    <div id="checkin-opp-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🗣️ 講 336 / OPP 打卡</h3><form onsubmit="window.submitOppCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="opp-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">講述日期 *</label><input type="date" id="opp-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">講述備註</label><textarea id="opp-checkin-notes" rows="2" placeholder="備註細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></textarea></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-opp-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl font-bold">送出打卡</button></div></form></div></div>
+    <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="block font-bold theme-title mb-1.5">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div></div>
+    <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[85vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客打卡</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="loyalty-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">長客備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認長客打卡</button></div></form></div></div>
 
-    <!-- 抽屜 Modal: 長客、標籤、產品、斷捨離、設定、軌跡... -->
-    <div id="bv-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
-        <div class="theme-card w-full max-w-3xl rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[90vh]"><div class="flex justify-between border-b border-theme pb-4 shrink-0"><div class="flex items-center gap-4"><h3 class="font-bold theme-title text-lg">📦 小組長客與 BV 統計</h3><select id="bv-month-select" onchange="window.renderBVReport()" class="theme-subcard border-theme border text-sm font-bold rounded-xl px-4 py-2 theme-title outline-none"></select></div><button onclick="window.closeModal('bv-modal')" class="theme-muted text-3xl hover:text-rose-500">&times;</button></div><div class="overflow-y-auto flex-1 space-y-5 no-scrollbar py-4 text-base"><div class="grid grid-cols-2 gap-5"><div class="bg-emerald-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月長客總組數</p><div class="text-4xl font-black mt-2" id="total-loyalty-qty-display">0 組</div></div><div class="bg-indigo-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月小組總 BV 積分</p><div class="text-4xl font-black mt-2" id="total-bv-display">0</div></div></div><div class="theme-subcard border-theme border rounded-2xl p-5 space-y-4"><span class="font-bold theme-title text-sm block">➕ 補登小組夥伴長客 (非直轄名單)</span><div class="flex flex-wrap gap-3"><input type="text" id="sub-partner-name" placeholder="夥伴名字 (例如：張小華)" class="flex-1 min-w-[140px] theme-card border-theme border rounded-xl p-3 text-sm theme-title"><select id="sub-prod-select" class="flex-1 min-w-[160px] theme-card border-theme border rounded-xl p-3 text-sm theme-title"></select><input type="number" id="sub-prod-qty" min="1" value="1" class="w-20 theme-card border-theme border rounded-xl p-3 text-sm theme-title font-bold"><button onclick="window.addManualSubLoyalty()" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-bold">補登</button></div></div><div><h4 class="font-bold theme-title mb-4 text-lg">📊 小組夥伴長客明細</h4><div id="bv-report-container" class="space-y-4"></div></div></div></div>
-    </div>
+    <div id="bv-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-3xl rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[90vh]"><div class="flex justify-between border-b border-theme pb-4 shrink-0"><div class="flex items-center gap-4"><h3 class="font-bold theme-title text-lg">📦 小組長客與 BV 統計</h3><select id="bv-month-select" onchange="window.renderBVReport()" class="theme-subcard border-theme border text-sm font-bold rounded-xl px-4 py-2 theme-title outline-none"></select></div><button onclick="window.closeModal('bv-modal')" class="theme-muted text-3xl hover:text-rose-500">&times;</button></div><div class="overflow-y-auto flex-1 space-y-5 no-scrollbar py-4 text-base"><div class="grid grid-cols-2 gap-5"><div class="bg-emerald-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月長客總組數</p><div class="text-4xl font-black mt-2" id="total-loyalty-qty-display">0 組</div></div><div class="bg-indigo-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月小組總 BV 積分</p><div class="text-4xl font-black mt-2" id="total-bv-display">0</div></div></div><div class="theme-subcard border-theme border rounded-2xl p-5 space-y-4"><span class="font-bold theme-title text-sm block">➕ 補登小組夥伴長客 (非直轄名單)</span><div class="flex flex-wrap gap-3"><input type="text" id="sub-partner-name" placeholder="夥伴名字 (例如：張小華)" class="flex-1 min-w-[140px] theme-card border-theme border rounded-xl p-3 text-sm theme-title"><select id="sub-prod-select" class="flex-1 min-w-[160px] theme-card border-theme border rounded-xl p-3 text-sm theme-title"></select><input type="number" id="sub-prod-qty" min="1" value="1" class="w-20 theme-card border-theme border rounded-xl p-3 text-sm theme-title font-bold"><button onclick="window.addManualSubLoyalty()" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-bold">補登</button></div></div><div><h4 class="font-bold theme-title mb-4 text-lg">📊 小組夥伴長客明細</h4><div id="bv-report-container" class="space-y-4"></div></div></div></div></div>
     <div id="tag-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[80vh]"><div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">🏷️ 自訂標籤大廳</h3><button onclick="window.closeModal('tag-modal')" class="theme-muted text-2xl">&times;</button></div><div class="py-4 flex gap-3"><input type="text" id="new-tag-input" placeholder="新標籤" class="flex-1 theme-subcard border-theme border rounded-xl p-3 text-sm theme-title outline-none"><button onclick="window.createGlobalTag()" class="bg-indigo-600 text-white px-5 rounded-xl text-sm font-bold">新增</button></div><div class="overflow-y-auto flex-1 no-scrollbar pt-3 border-t border-theme"><div id="global-tags-container" class="flex flex-wrap gap-2"></div></div></div></div>
     <div id="product-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[80vh]"><div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">🛍️ 產品與 BV 設定</h3><button onclick="window.closeModal('product-modal')" class="theme-muted text-2xl">&times;</button></div><div class="py-4 flex gap-3 text-sm"><input type="hidden" id="edit-prod-id"><input type="text" id="new-prod-name" placeholder="品名" class="flex-1 theme-subcard border-theme border rounded-xl p-3 theme-title outline-none"><input type="number" id="new-prod-bv" placeholder="BV" class="w-24 theme-subcard border-theme border rounded-xl p-3 theme-title outline-none"><button onclick="window.saveProduct()" id="save-prod-btn" class="bg-emerald-600 text-white px-5 rounded-xl font-bold">新增</button></div><div class="overflow-y-auto flex-1 no-scrollbar space-y-3 mt-3" id="products-container"></div></div></div>
     <div id="trash-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[80vh]"><div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">📦 斷捨離暫存區</h3><button onclick="window.closeModal('trash-modal')" class="theme-muted text-2xl">&times;</button></div><div class="overflow-y-auto flex-1 no-scrollbar py-4 space-y-3" id="trash-list-container"></div></div></div>
-    <div id="settings-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 text-base"><div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">⚙️ 系統與視覺設定</h3><button onclick="window.closeModal('settings-modal')" class="theme-muted text-2xl">&times;</button></div><div class="space-y-3"><label class="block font-bold theme-title">🎨 主題色調</label><div class="grid grid-cols-2 gap-3"><button onclick="window.changeTheme('blue-white')" class="p-3 rounded-xl border theme-subcard border-theme theme-title font-bold">藍白 (安麗風)</button><button onclick="window.changeTheme('navy')" class="p-3 rounded-xl border border-amber-500/30 bg-slate-900 text-amber-400 font-bold">藍金王者</button><button onclick="window.changeTheme('white')" class="p-3 rounded-xl border border-slate-300 bg-slate-100 text-slate-900 font-bold">霧白極簡</button><button onclick="window.changeTheme('pink')" class="p-3 rounded-xl border border-rose-300 bg-rose-50 text-rose-900 font-bold">櫻花粉金</button></div></div><div class="space-y-3 border-t border-theme pt-4"><label class="block font-bold theme-title">🔤 字體呈現大小</label><div class="grid grid-cols-3 gap-3"><button onclick="window.changeFontSize('small')" id="font-btn-small" class="py-3 rounded-xl border theme-subcard border-theme theme-title font-bold">標準</button><button onclick="window.changeFontSize('medium')" id="font-btn-medium" class="py-3 rounded-xl border bg-indigo-600 text-white font-bold shadow-md">中等</button><button onclick="window.changeFontSize('large')" id="font-btn-large" class="py-3 rounded-xl border theme-subcard border-theme theme-title font-bold">放大</button></div></div><div class="flex justify-end pt-4"><button onclick="window.closeModal('settings-modal')" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-md">完成</button></div></div></div>
     
+    <!-- 系統設定 Modal (包含修改密碼專區) -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 text-base max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">⚙️ 系統與視覺設定</h3><button onclick="window.closeModal('settings-modal')" class="theme-muted text-2xl">&times;</button></div>
+            
+            <div class="space-y-3"><label class="block font-bold theme-title">🎨 主題色調</label><div class="grid grid-cols-2 gap-3" id="theme-buttons-container"></div></div>
+            <div class="space-y-3 border-t border-theme pt-4"><label class="block font-bold theme-title">🔤 字體呈現大小</label><div class="grid grid-cols-3 gap-3" id="font-buttons-container"></div></div>
+            
+            <div class="space-y-3 border-t border-theme pt-4">
+                <label class="block font-bold theme-title">🔑 修改登入密碼</label>
+                <input type="password" id="new-password-input" placeholder="請輸入新密碼 (至少6碼)" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none text-sm font-bold">
+                <button onclick="updatePassword()" class="w-full bg-slate-800 text-white py-2.5 rounded-xl text-sm font-bold shadow">確認修改密碼</button>
+            </div>
+
+            <div class="flex justify-end pt-4"><button onclick="window.closeModal('settings-modal')" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-md">完成</button></div>
+        </div>
+    </div>
+
     <div id="opp-history-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[80vh] flex flex-col"><div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">🗣️ 講 336 / OPP 日誌</h3><button onclick="window.closeModal('opp-history-modal')" class="theme-muted text-2xl">&times;</button></div><div class="overflow-y-auto flex-1 space-y-3 no-scrollbar text-base" id="opp-history-container"></div></div></div>
     <div id="timeline-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[80vh] flex flex-col"><div class="flex justify-between border-b border-theme pb-3"><h3 id="timeline-title" class="font-bold theme-title text-lg">📜 時間軸</h3><button onclick="window.closeModal('timeline-modal')" class="theme-muted text-2xl">&times;</button></div><div class="overflow-y-auto flex-1 space-y-5 no-scrollbar"><div class="theme-subcard p-4 rounded-xl border-theme border space-y-3"><textarea id="timeline-new-note" rows="2" placeholder="新增帶線筆記..." class="w-full bg-transparent text-base theme-title outline-none"></textarea><div class="text-right"><button onclick="window.addTimelineNote()" class="bg-indigo-600 text-white text-sm px-5 py-2 rounded-xl font-bold shadow">寫入</button></div></div><div id="timeline-items-container" class="space-y-4 pl-5 border-l-2 border-indigo-500/30"></div></div></div></div>
     <div id="tree-add-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-4"><h3 class="font-bold theme-title text-lg border-b border-theme pb-3">💎 新增五心團隊夥伴</h3><form onsubmit="window.submitAddTreeNode(event)" class="space-y-4 text-sm"><input type="hidden" id="tree-parent-id"><select id="tree-contact-select" onchange="document.getElementById('tree-node-name').value=this.value" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select><input type="text" id="tree-node-name" required placeholder="或手動輸入姓名" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><div class="flex justify-end gap-3"><button type="button" onclick="window.closeModal('tree-add-modal')" class="theme-subcard border-theme border px-4 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow">加入</button></div></form></div></div>
     <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card max-w-sm w-full rounded-2xl p-6 border-theme border shadow-2xl text-base space-y-5"><h4 class="theme-title font-bold text-lg">⚠️ 確認操作</h4><p id="confirm-msg" class="theme-muted font-medium">確定執行此操作？</p><div class="flex justify-end gap-3"><button onclick="window.closeModal('confirm-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button id="confirm-execute-btn" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold shadow">確定</button></div></div></div>
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
-    <!-- ========================================== -->
-    <!-- 🚀 核心邏輯與 Supabase 雲端資料庫串接 -->
-    <!-- ========================================== -->
+    <!-- 🚀 核心邏輯引擎 -->
     <script>
         let db;
         let sessionUser = null;
         let isAdmin = false;
         let isLoginMode = true;
+        let userProfilesMap = {}; // 紀錄 email 對應的暱稱
 
         let state = {
             theme: 'blue-white', fontSize: 'medium',
@@ -332,9 +312,6 @@
             { id: 'p17', name: '水潤淨化精華', bv: 2238 }, { id: 'p18', name: '小橘瓶', bv: 1857 }
         ];
 
-        // ==========================================
-        // 🛠️ UI 介面切換與輔助功能 (系統核心引擎)
-        // ==========================================
         let leaderboardCategory = 'leads';
         let currentActiveContactId = null;
 
@@ -343,17 +320,11 @@
             document.getElementById('sect-tree').classList.add('hidden');
             document.getElementById('sect-leaderboard').classList.add('hidden');
             document.getElementById('sect-' + tabId).classList.remove('hidden');
-            
             ['my-list', 'tree', 'leaderboard'].forEach(id => {
                 const btn = document.getElementById('tab-' + id);
                 if(btn) {
-                    if(id === tabId) {
-                        btn.classList.add('bg-indigo-600', 'text-white', 'shadow');
-                        btn.classList.remove('theme-muted');
-                    } else {
-                        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
-                        btn.classList.add('theme-muted');
-                    }
+                    if(id === tabId) { btn.classList.add('bg-indigo-600', 'text-white', 'shadow'); btn.classList.remove('theme-muted'); }
+                    else { btn.classList.remove('bg-indigo-600', 'text-white', 'shadow'); btn.classList.add('theme-muted'); }
                 }
             });
             if(tabId === 'tree') renderTree();
@@ -361,67 +332,51 @@
         };
 
         window.toggleSection = function(boxId, iconId) {
-            const box = document.getElementById(boxId);
-            const icon = document.getElementById(iconId);
-            if (box && icon) {
-                box.classList.toggle('hidden');
-                icon.textContent = box.classList.contains('hidden') ? '▼' : '▲';
-            }
+            const box = document.getElementById(boxId); const icon = document.getElementById(iconId);
+            if (box && icon) { box.classList.toggle('hidden'); icon.textContent = box.classList.contains('hidden') ? '▼' : '▲'; }
         };
 
         window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); };
         window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
-        
-        window.toggleDrawer = function() {
-            document.getElementById('left-drawer').classList.toggle('-translate-x-full');
-            document.getElementById('drawer-overlay').classList.toggle('hidden');
-        };
+        window.toggleDrawer = function() { document.getElementById('left-drawer').classList.toggle('-translate-x-full'); document.getElementById('drawer-overlay').classList.toggle('hidden'); };
 
         let confirmCallback = null;
-        window.openConfirmModal = function(msg, callback) {
-            document.getElementById('confirm-msg').textContent = msg;
-            confirmCallback = callback;
-            window.openModal('confirm-modal');
-        };
-        
+        window.openConfirmModal = function(msg, callback) { document.getElementById('confirm-msg').textContent = msg; confirmCallback = callback; window.openModal('confirm-modal'); };
         document.addEventListener('DOMContentLoaded', () => {
             const confirmBtn = document.getElementById('confirm-execute-btn');
-            if(confirmBtn) {
-                confirmBtn.addEventListener('click', () => {
-                    if(confirmCallback) confirmCallback();
-                    window.closeModal('confirm-modal');
-                });
-            }
+            if(confirmBtn) { confirmBtn.addEventListener('click', () => { if(confirmCallback) confirmCallback(); window.closeModal('confirm-modal'); }); }
         });
 
         window.showToast = function(msg) {
-            const c = document.getElementById('toast-container');
-            if(!c) return;
-            const t = document.createElement('div');
-            t.className = 'bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl font-bold flex items-center gap-3 animate-bounce';
-            t.innerHTML = `<span>${msg}</span>`;
-            c.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
+            const c = document.getElementById('toast-container'); if(!c) return;
+            const t = document.createElement('div'); t.className = 'bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl font-bold flex items-center gap-3 animate-bounce';
+            t.innerHTML = `<span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 3000);
         };
 
-        window.changeTheme = function(t) { applyTheme(t); state.theme = t; };
-        window.changeFontSize = function(s) { applyFontSize(s); state.fontSize = s; };
+        // 視覺按鈕高亮修正
+        window.changeTheme = function(t) { applyTheme(t); state.theme = t; renderSettingsButtons(); };
+        window.changeFontSize = function(s) { applyFontSize(s); state.fontSize = s; renderSettingsButtons(); };
 
-        // ==========================================
-        // 📡 初始化連線
-        // ==========================================
+        function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+        function applyFontSize(s) { document.documentElement.setAttribute('data-font-size', s); localStorage.setItem('font', s); }
+
+        function renderSettingsButtons() {
+            const themes = [{id:'blue-white', n:'藍白 (安麗風)'}, {id:'navy', n:'藍金王者'}, {id:'white', n:'霧白極簡'}, {id:'pink', n:'櫻花粉金'}];
+            document.getElementById('theme-buttons-container').innerHTML = themes.map(x => `<button onclick="window.changeTheme('${x.id}')" class="p-3 rounded-xl border font-bold ${state.theme===x.id?'bg-indigo-600 text-white shadow':'theme-subcard border-theme theme-title'}">${x.n}</button>`).join('');
+            const fonts = [{id:'small', n:'標準'}, {id:'medium', n:'中等'}, {id:'large', n:'放大'}];
+            document.getElementById('font-buttons-container').innerHTML = fonts.map(x => `<button onclick="window.changeFontSize('${x.id}')" class="py-3 rounded-xl border font-bold ${state.fontSize===x.id?'bg-indigo-600 text-white shadow':'theme-subcard border-theme theme-title'}">${x.n}</button>`).join('');
+        }
+
+        // 初始化
         document.addEventListener('DOMContentLoaded', async () => {
-            if(SUPABASE_URL && SUPABASE_URL !== '已遮蔽') {
+            if(SUPABASE_URL && SUPABASE_URL !== '請替換您的網址') {
                 db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 const { data: { session } } = await db.auth.getSession();
-                if (session) { await startApp(session.user); } 
+                if (session) { await checkUserSession(session.user); } 
                 else { document.getElementById('auth-screen').classList.remove('hidden'); }
-            } else {
-                alert("🚨 請先在程式碼上方填入您的 Supabase URL 與 Key！");
-            }
+            } else { alert("🚨 請先在程式碼上方填入您的 Supabase URL 與 Key！"); }
         });
 
-        /* --- 登入與權限管理 --- */
         function toggleAuthMode() {
             isLoginMode = !isLoginMode;
             document.getElementById('auth-submit-btn').textContent = isLoginMode ? '登入系統' : '註冊帳號';
@@ -441,33 +396,64 @@
             if (isLoginMode) {
                 const { data, error } = await db.auth.signInWithPassword({ email, password });
                 if (error) { alert('登入失敗：' + error.message); document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('loading-screen').classList.add('hidden'); } 
-                else { await startApp(data.user); }
+                else { await checkUserSession(data.user); }
             } else {
                 const inviteCode = document.getElementById('auth-invite-code').value;
                 if (inviteCode !== TEAM_INVITE_CODE) { alert('🚨 團隊邀請碼錯誤！'); document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('loading-screen').classList.add('hidden'); return; }
                 const { data, error } = await db.auth.signUp({ email, password });
-                if (error) { alert('註冊失敗：' + error.message); } 
-                else { alert('✅ 註冊成功！請去您的信箱點擊驗證信，然後回來登入。'); toggleAuthMode(); }
-                document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('loading-screen').classList.add('hidden');
+                if (error) { alert('註冊失敗：' + error.message); document.getElementById('auth-screen').classList.remove('hidden'); } 
+                else { alert('✅ 註冊成功！請直接登入'); isLoginMode=true; toggleAuthMode(); document.getElementById('auth-screen').classList.remove('hidden'); }
+                document.getElementById('loading-screen').classList.add('hidden');
             }
         }
 
-        async function logout() {
-            if(confirm('確定要登出系統嗎？')) { await db.auth.signOut(); window.location.reload(); }
+        async function triggerForgotPassword() {
+            const email = document.getElementById('auth-email').value;
+            if(!email) return alert('請先在上方輸入您的電子郵件 (Email)，再點擊忘記密碼！');
+            const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+            if(error) alert('發送失敗：' + error.message);
+            else alert('✅ 密碼重設信件已發送至您的信箱，請前往收信！');
         }
 
-        /* --- 啟動與雲端資料載入 --- */
-        async function startApp(user) {
-            sessionUser = user;
-            isAdmin = (sessionUser.email === ADMIN_EMAIL);
-            document.getElementById('loading-screen').classList.remove('hidden');
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('current-user-display').textContent = isAdmin ? '👑 Admin' : sessionUser.email.split('@')[0];
+        async function updatePassword() {
+            const newPwd = document.getElementById('new-password-input').value;
+            if(!newPwd || newPwd.length < 6) return alert('密碼長度至少需要 6 碼！');
+            const { error } = await db.auth.updateUser({ password: newPwd });
+            if(error) alert('修改失敗：' + error.message);
+            else { alert('✅ 密碼修改成功！'); document.getElementById('new-password-input').value = ''; window.closeModal('settings-modal'); }
+        }
 
-            // 載入本地設定 (UI)
+        async function checkUserSession(user) {
+            sessionUser = user;
+            // 檢查是否有設定暱稱
+            const { data: profile } = await db.from('profiles').select('*').eq('id', user.id).single();
+            if (!profile || !profile.nickname) {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('login-card-box').classList.add('hidden');
+                document.getElementById('nickname-card-box').classList.remove('hidden');
+            } else {
+                await startApp(user, profile.nickname);
+            }
+        }
+
+        async function saveNicknameAndEnter() {
+            const nickname = document.getElementById('setup-nickname-input').value.trim();
+            if(!nickname) return alert('請輸入暱稱！');
+            await db.from('profiles').upsert({ id: sessionUser.id, email: sessionUser.email, nickname: nickname });
+            await startApp(sessionUser, nickname);
+        }
+
+        async function startApp(user, nickname) {
+            sessionUser = user;
+            isAdmin = (user.email === ADMIN_EMAIL);
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('loading-screen').classList.remove('hidden');
+            document.getElementById('current-user-display').textContent = isAdmin ? '👑 Admin' : nickname;
+
             const localTheme = localStorage.getItem('theme'); if(localTheme) state.theme = localTheme;
             const localFont = localStorage.getItem('font'); if(localFont) state.fontSize = localFont;
-            applyTheme(state.theme); applyFontSize(state.fontSize);
+            applyTheme(state.theme); applyFontSize(state.fontSize); renderSettingsButtons();
 
             await loadCloudData();
             
@@ -476,37 +462,36 @@
             populateAmwayMonthOptions();
             window.switchTab('my-list');
             renderAll();
-            window.showToast(`🎉 登入成功！歡迎回到五心系統`);
+            window.showToast(`🎉 歡迎回來，${nickname}！`);
         }
 
         async function loadCloudData() {
-            // 載入設定 (產品與標籤)
+            // 載入所有人的 profiles 對應表
+            const { data: profiles } = await db.from('profiles').select('*');
+            if(profiles) { profiles.forEach(p => { userProfilesMap[p.email] = p.nickname; }); }
+
             const { data: sets } = await db.from('system_settings').select('*');
             if(sets && sets.length>0) {
                 const p = sets.find(x=>x.id==='products'); if(p) state.products = p.data; else state.products = defaultProducts;
                 const t = sets.find(x=>x.id==='tags'); if(t) state.tags = t.data;
                 const tree = sets.find(x=>x.id===`tree_${sessionUser.email}`); 
-                if(tree) state.treeData = tree.data; else state.treeData = { id: 'root', name: sessionUser.email.split('@')[0], collapsed: false, children: [] };
-            } else { state.products = defaultProducts; state.treeData = { id: 'root', name: sessionUser.email.split('@')[0], collapsed: false, children: [] }; }
+                if(tree) state.treeData = tree.data; else state.treeData = { id: 'root', name: userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0], collapsed: false, children: [] };
+            } else { state.products = defaultProducts; state.treeData = { id: 'root', name: userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0], collapsed: false, children: [] }; }
 
-            // 載入名單 (管理員看全部，一般組員看自己的)
             let qCust = db.from('customers').select('*');
             if(!isAdmin) qCust = qCust.eq('owner', sessionUser.email);
             const { data: custs } = await qCust;
             state.customers = custs || [];
 
-            // 載入日誌與補登長客
             let qLog = db.from('checkin_logs').select('*');
             let qSub = db.from('sub_group_loyalties').select('*');
             if(!isAdmin) { qLog = qLog.eq('user_name', sessionUser.email); }
-            // 為了方便計算，補登長客先全部載下來讓前端依照名字算 (或未來優化 RLS)
             const [resLog, resFeed, resSub] = await Promise.all([qLog, db.from('feeds').select('*').order('created_at',{ascending:true}), qSub]);
             state.checkinLogs = resLog.data || [];
             state.feeds = resFeed.data || [];
             state.subGroupLoyalties = resSub.data || [];
         }
 
-        /* --- 雲端同步函數 --- */
         async function cloudUpsert(table, data) { await db.from(table).upsert(data); }
         async function cloudDelete(table, id) { await db.from(table).delete().eq('id', id); }
         async function saveSystemSettings() {
@@ -515,7 +500,6 @@
             await cloudUpsert('system_settings', { id: `tree_${sessionUser.email}`, setting_type: 'user', data: state.treeData });
         }
 
-        /* ----- 核心渲染 ----- */
         function renderAll() {
             updateFilterOptions(); renderFollowupBanner(); renderDashboard(); renderList();
             renderTrashCount(); renderTagsLobby(); renderProductsLobby(); renderBVReport();
@@ -534,7 +518,6 @@
 
         function updateFilterOptions() {
             const isTrashSelected = document.getElementById('filter-progress')?.value === '斷捨離';
-            // 管理員也只能在「我的名單」篩選自己直轄的名單
             const actives = state.customers.filter(c => c.owner === sessionUser.email && (isTrashSelected ? c.isTrashed : !c.isTrashed));
             const lvls = { '未分類':0, 'A級':0, 'B級':0, 'C級':0, '高蛋白名單':0, '顧客':0, '準領導人':0, '領導人':0 };
             const progs = { '新開發/待跟進':0, '建立友誼':0, '約聚會/活動':0, '破題':0, 'OPP':0, '七天法則':0, '加入':0, '體驗產品':0, '長客':0, '斷捨離': state.customers.filter(c=>c.owner===sessionUser.email&&c.isTrashed).length };
@@ -618,7 +601,7 @@
         window.bulkTrash = function() {
             const checked = document.querySelectorAll('.contact-checkbox:checked'); if(!checked.length) return window.showToast('ℹ️ 請先勾選名單');
             window.openConfirmModal(`確定將勾選的 ${checked.length} 筆名單移至斷捨離區？`, async () => {
-                for(let cb of checked) { const c = state.customers.find(x=>x.id===cb.value); if(c) { c.isTrashed = true; await db.from('customers').upsert(c); } }
+                for(let cb of checked) { const c = state.customers.find(x=>x.id===cb.value); if(c) { c.isTrashed = true; await cloudUpsert('customers', c); } }
                 renderAll(); window.showToast('📦 已批次移至斷捨離暫存區');
             });
         }
@@ -630,11 +613,9 @@
             });
         }
 
-        /* ----- Modal 表單 (與雲端同步) ----- */
+        // Modal 與表單
         let tempTagsForModal = [];
-        window.openAddCustomerModal = function() {
-            document.getElementById('crm-form').reset(); document.getElementById('field-id').value = ''; document.getElementById('field-date').value = new Date().toISOString().split('T')[0]; document.getElementById('modal-title').textContent = '➕ 新增跟進名單'; document.getElementById('delete-in-modal-btn').classList.add('hidden'); tempTagsForModal = []; document.getElementById('loyalty-items-list').innerHTML = ''; renderTagsInModal(); window.openModal('modal');
-        };
+        window.openAddCustomerModal = function() { document.getElementById('crm-form').reset(); document.getElementById('field-id').value = ''; document.getElementById('field-date').value = new Date().toISOString().split('T')[0]; document.getElementById('modal-title').textContent = '➕ 新增跟進名單'; document.getElementById('delete-in-modal-btn').classList.add('hidden'); tempTagsForModal = []; document.getElementById('loyalty-items-list').innerHTML = ''; renderTagsInModal(); window.openModal('modal'); };
         window.editCustomer = function(id) {
             const c = state.customers.find(x=>x.id===id); if(!c) return;
             document.getElementById('modal-title').textContent = '📝 編輯名單'; document.getElementById('field-id').value = c.id; document.getElementById('field-date').value = c.date; document.getElementById('field-name').value = c.name; document.getElementById('field-referrer').value = c.referrer||''; document.getElementById('field-level').value = c.level||'未分類'; document.getElementById('field-progress').value = c.isTrashed ? '斷捨離' : (c.progress||'新開發/待跟進'); document.getElementById('field-member-type').value = c.memberType||'未加入'; document.getElementById('field-ig-link').value = c.ig||''; document.getElementById('field-threads-link').value = c.threads||''; document.getElementById('field-has-line').checked = c.channels&&c.channels.includes('LINE'); document.getElementById('field-other-channel').value = c.otherChannel||''; document.getElementById('field-next-followup').value = c.nextFollowUp||''; document.getElementById('field-notes').value = c.notes||''; document.getElementById('delete-in-modal-btn').classList.remove('hidden');
@@ -644,11 +625,9 @@
         };
         window.deleteCurrentCustomerFromModal = function() {
             const id = document.getElementById('field-id').value; if(!id) return;
-            window.openConfirmModal('確定將此筆名單「永久刪除」？', async () => {
-                await cloudDelete('customers', id); state.customers = state.customers.filter(c => c.id !== id); renderAll(); window.closeModal('modal'); window.showToast('🗑️ 名單已永久刪除');
-            });
+            window.openConfirmModal('確定將此筆名單「永久刪除」？', async () => { await cloudDelete('customers', id); state.customers = state.customers.filter(c => c.id !== id); renderAll(); window.closeModal('modal'); window.showToast('🗑️ 名單已永久刪除'); });
         }
-        window.onProgressChange = function(sel) { if(sel.value === '斷捨離') { window.openConfirmModal('確定要將此名單移至斷捨離區？(歷史紀錄保留，不扣除開發量)', () => {}); } }
+        window.onProgressChange = function(sel) { if(sel.value === '斷捨離') { window.openConfirmModal('確定要將此名單移至斷捨離區？(歷史紀錄保留)', () => {}); } }
         window.handleTagInput = function(e) {
             if(e.key === 'Enter') { e.preventDefault(); const val = e.target.value.trim().replace(/^#/,''); if(val && !tempTagsForModal.includes(val)) { tempTagsForModal.push(val); if(!state.tags.includes(val)) { state.tags.push(val); saveSystemSettings(); } e.target.value = ''; renderTagsInModal(); } }
         };
@@ -668,11 +647,11 @@
                 id: id || 'c_' + Date.now(), owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: document.getElementById('field-referrer').value.trim(), level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: id ? (state.customers.find(x=>x.id===id).timeline||[]) : [{date: document.getElementById('field-date').value, text:'建立名單'}]
             };
             if(id) { const idx = state.customers.findIndex(x=>x.id===id); if(idx>-1) state.customers[idx] = data; } 
-            else { state.customers.unshift(data); const fd = {id:'f_'+Date.now(), user_name:sessionUser.email, action:'新增跟進名單', pts:1, time:new Date().toISOString()}; state.feeds.push(fd); await cloudUpsert('feeds', fd); }
+            else { state.customers.unshift(data); const nickname = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0]; const fd = {id:'f_'+Date.now(), user_name:nickname, action:'新增跟進名單', pts:1, time:new Date().toISOString()}; state.feeds.push(fd); await cloudUpsert('feeds', fd); }
             await cloudUpsert('customers', data); renderAll(); window.closeModal('modal'); window.showToast(isTrashProgress ? '📦 已移至斷捨離區' : '💾 名單已儲存');
         };
 
-        /* ----- 每日打卡 (與雲端同步) ----- */
+        // 打卡相關
         window.openCheckinModal = function(t) {
             const actives = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed);
             const opts = actives.map(c => `<option value="${c.id}">${c.name} ${c.referrer?`(${c.referrer})`:''}</option>`).join(''); const today = new Date().toISOString().split('T')[0];
@@ -690,14 +669,16 @@
             const log = {id:'log_'+Date.now(), type:'opp', user_name:sessionUser.email, partnerName:c.name, date:d, notes:note};
             state.checkinLogs.push(log); await cloudUpsert('checkin_logs', log);
             c.progress = 'OPP'; if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[講336/OPP] ${note}`}); await cloudUpsert('customers', c);
-            const fd = {id:'f_'+Date.now(), user_name:sessionUser.email.split('@')[0], action:'講了一場 336/OPP', pts:5, time:new Date().toISOString()}; state.feeds.push(fd); await cloudUpsert('feeds', fd);
+            const nickname = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
+            const fd = {id:'f_'+Date.now(), user_name:nickname, action:'講了一場 336/OPP', pts:5, time:new Date().toISOString()}; state.feeds.push(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-opp-modal'); window.showToast('🎉 OPP 打卡成功');
         };
         window.submitRecCheckin = async function(e) {
             e.preventDefault(); const cId = document.getElementById('rec-partner-select').value; const c = state.customers.find(x=>x.id===cId); if(!c) return;
             const type = document.getElementById('rec-type-select').value; c.memberType = type; const note = document.getElementById('rec-checkin-notes').value; const d = document.getElementById('rec-checkin-date').value;
             if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[推薦${type}] ${note}`}); await cloudUpsert('customers', c);
-            const pts = type==='直銷商'?10:2; const fd = {id:'f_'+Date.now(), user_name:sessionUser.email.split('@')[0], action:`推薦了${type}`, pts:pts, time:new Date().toISOString()}; state.feeds.push(fd); await cloudUpsert('feeds', fd);
+            const pts = type==='直銷商'?10:2; const nickname = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
+            const fd = {id:'f_'+Date.now(), user_name:nickname, action:`推薦了${type}`, pts:pts, time:new Date().toISOString()}; state.feeds.push(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-rec-modal'); window.showToast('🎉 推薦打卡成功');
         };
         window.submitLoyaltyCheckin = async function(e) {
@@ -706,20 +687,21 @@
             document.querySelectorAll('.checkin-loy-row').forEach(row => { const pId = row.querySelector('.checkin-prod-select').value; const qty = parseInt(row.querySelector('.checkin-qty-input').value)||1; if(pId && qty>0) { c.loyaltyItems.push({productId: pId, qty}); totalAdded += qty; } });
             const note = document.getElementById('loyalty-checkin-notes').value; const d = document.getElementById('loyalty-checkin-date').value;
             if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[新增長客] +${totalAdded}組. ${note}`}); await cloudUpsert('customers', c);
-            const fd = {id:'f_'+Date.now(), user_name:sessionUser.email.split('@')[0], action:`新增了 ${totalAdded} 組長客`, pts:10*totalAdded, time:new Date().toISOString()}; state.feeds.push(fd); await cloudUpsert('feeds', fd);
+            const nickname = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
+            const fd = {id:'f_'+Date.now(), user_name:nickname, action:`新增了 ${totalAdded} 組長客`, pts:10*totalAdded, time:new Date().toISOString()}; state.feeds.push(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-loyalty-modal'); window.showToast(`🎉 長客打卡成功 (+${totalAdded}組)`);
         };
 
-        /* ----- 組織圖 (白底亮色按鈕) ----- */
+        // 組織圖 (動態偵測背景色配 +- 圖案)
         function renderTree() { const container = document.getElementById('tree-root-container'); if (!container) return; container.innerHTML = buildPillTreeHTML(state.treeData, true); }
         function buildPillTreeHTML(node, isRoot = false) {
             const hasChildren = node.children && node.children.length > 0; const coll = node.collapsed; let childHTML = '';
             if (hasChildren && !coll) { childHTML = `<div class="flex pt-6 relative justify-center gap-8 border-t border-theme border-dashed mt-4">${node.children.map(c => buildPillTreeHTML(c, false)).join('')}</div>`; }
             const pillClass = isRoot ? 'bg-amber-100 border-2 border-amber-400 text-amber-950 shadow-md' : 'theme-card border-2 border-theme theme-title shadow-sm';
             return `<div class="flex flex-col items-center relative"><div class="px-6 py-3 rounded-full ${pillClass} min-w-[140px] text-center"><div class="text-base font-black whitespace-nowrap">${node.name}</div><div class="flex justify-center gap-3 mt-2">
-                <button onclick="window.openAddTreeNodeModal('${node.id}')" class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-md">➕</button>
-                ${hasChildren ? `<button onclick="window.toggleTreeNode('${node.id}')" class="w-6 h-6 rounded-full bg-slate-600 text-white flex items-center justify-center text-xs font-bold shadow-md">${coll?'➕':'➖'}</button>`:''}
-                ${!isRoot ? `<button onclick="window.deleteTreeNode('${node.id}')" class="w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs font-bold shadow-md">✖</button>`:''}
+                <button onclick="window.openAddTreeNodeModal('${node.id}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold">＋</button>
+                ${hasChildren ? `<button onclick="window.toggleTreeNode('${node.id}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold">${coll?'＋':'－'}</button>`:''}
+                ${!isRoot ? `<button onclick="window.deleteTreeNode('${node.id}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold">×</button>`:''}
             </div></div>${childHTML}</div>`;
         }
         window.toggleTreeNode = function(id) { const rec=(n)=>{if(n.id===id){n.collapsed=!n.collapsed;return true;}if(n.children){for(let c of n.children)if(rec(c))return true;}return false;}; rec(state.treeData); saveSystemSettings(); renderTree(); }
@@ -727,26 +709,30 @@
         window.submitAddTreeNode = function(e) { e.preventDefault(); const p=document.getElementById('tree-parent-id').value; const n=document.getElementById('tree-node-name').value; const cObj = state.customers.find(x=>x.name===n); const rec=(node)=>{if(node.id===p){if(!node.children)node.children=[]; node.children.push({id:'tn'+Date.now(), name:n, contactId: cObj?cObj.id:'', collapsed:false}); return true;} if(node.children){for(let c of node.children)if(rec(c))return true;} return false;}; rec(state.treeData); saveSystemSettings(); renderTree(); renderList(); window.closeModal('tree-add-modal'); window.showToast('🎉 已加入五心組織圖'); }
         window.deleteTreeNode = function(id) { const rec=(p,t)=>{if(!p.children)return false; const i=p.children.findIndex(x=>x.id===t); if(i>-1){p.children.splice(i,1);return true;} for(let c of p.children)if(rec(c,t))return true; return false;}; rec(state.treeData, id); saveSystemSettings(); renderTree(); renderList(); }
 
-        /* ----- 排行榜 ----- */
+        // 排行榜
+        let leaderboardCategory = 'leads';
         function renderLeaderboard() {
-            // 從 feeds 取出所有不同的使用者，或固定顯示目前載入的資料
-            const usersMap = {}; state.customers.forEach(c=>{ if(!usersMap[c.owner]) usersMap[c.owner]=c.owner.split('@')[0]; }); state.feeds.forEach(f=>{ if(!usersMap[f.user_name]) usersMap[f.user_name]=f.user_name; });
+            const usersMap = { ...userProfilesMap };
+            state.customers.forEach(c=>{ if(!usersMap[c.owner]) usersMap[c.owner]=c.owner.split('@')[0]; });
+            state.feeds.forEach(f=>{ if(!usersMap[f.user_name] && f.user_name.includes('@')) usersMap[f.user_name]=f.user_name.split('@')[0]; });
             const users = Object.keys(usersMap); if(users.length===0) users.push(sessionUser.email);
+            
             const scores = users.map(u => {
-                const mail = u.includes('@') ? u : (Object.keys(usersMap).find(k=>usersMap[k]===u)||u);
-                const c = state.customers.filter(x=>x.owner===mail&&!x.isTrashed);
+                const c = state.customers.filter(x=>x.owner===u&&!x.isTrashed);
                 const leads = c.length || 0;
-                const opps = state.checkinLogs.filter(x=>x.user_name===mail&&x.type==='opp').length || 0;
+                const opps = state.checkinLogs.filter(x=>x.user_name===u&&x.type==='opp').length || 0;
                 const recs = c.filter(x=>x.memberType!=='未加入').length || 0;
                 const loy = c.reduce((s, x) => s + (x.loyaltyItems ? x.loyaltyItems.reduce((sum,i)=>sum+(parseInt(i.qty)||0),0) : 0), 0) || 0;
                 const pts = leads*1 + opps*5 + loy*10 + c.reduce((s,x)=>s+(x.memberType==='直銷商'?10:x.memberType==='生活會員'?2:0),0);
-                return {user:usersMap[mail], leads, opps, recs, loy, pts};
+                return { user: usersMap[u] || u.split('@')[0], leads, opps, recs, loy, pts };
             });
             const top = [...scores].sort((a,b)=>b.pts-a.pts)[0] || {user:'-',pts:0};
             const lb = document.getElementById('leaderboard-container'); if(!lb) return;
             const cats = [{id:'leads', n:'🚀開發王'},{id:'opps', n:'🗣️OPP王'},{id:'recs', n:'🤝推薦王'},{id:'loy', n:'📦長客王'}];
+            
             let html = `<div class="bg-amber-100/80 p-5 rounded-2xl border border-amber-300 flex justify-between items-center shadow-sm"><div class="flex items-center gap-4"><span class="text-4xl">👑</span><div><span class="text-sm font-bold text-amber-800 block">本月總 MVP 王者</span><span class="text-xl font-black text-amber-950">${top.user}</span></div></div><span class="text-3xl font-black text-amber-800">${top.pts} 分</span></div><div class="flex bg-black/5 dark:bg-white/5 p-2 rounded-xl gap-2 overflow-x-auto text-sm font-bold text-center mt-4">`;
             cats.forEach(c => html += `<button onclick="leaderboardCategory='${c.id}'; renderLeaderboard()" class="flex-1 py-2 rounded-lg ${leaderboardCategory===c.id?'bg-indigo-600 text-white shadow':'theme-muted'}">${c.n}</button>`); html += `</div><div class="space-y-3 mt-4">`;
+            
             const rank = [...scores].sort((a,b)=>b[leaderboardCategory]-a[leaderboardCategory]); const unit = leaderboardCategory==='opps'?'次':leaderboardCategory==='loy'?'組':'人';
             rank.forEach((r,i) => { html += `<div class="p-4 rounded-xl theme-subcard border-theme border flex justify-between items-center text-base"><div class="flex gap-4 items-center"><span class="text-xl w-6">${i===0?'🥇':i===1?'🥈':'🥉'}</span><span class="font-bold theme-title">${r.user}</span></div><span class="font-bold text-indigo-600 text-lg">${r[leaderboardCategory] || 0} ${unit}</span></div>`; });
             lb.innerHTML = html + '</div>';
@@ -754,25 +740,22 @@
             const feed = document.getElementById('feed-container'); if(feed) feed.innerHTML = state.feeds.slice().reverse().map(f => `<div class="p-4 border-b border-theme text-sm sm:text-base"><div class="flex justify-between text-xs sm:text-sm theme-muted mb-2"><span class="text-amber-600 font-black">⚡ ${f.user_name}</span><span>${new Date(f.time).toLocaleString()}</span></div><div class="font-bold theme-title">${f.action} <span class="text-emerald-500 float-right font-black">+${f.pts}</span></div></div>`).join('');
         }
 
-        /* ----- 小組長客與 BV 統計 (雲端同步補登) ----- */
+        // 小組長客與 BV 統計
         window.renderBVReport = function() {
             const container = document.getElementById('bv-report-container'); if(!container) return;
             const selectedMonth = document.getElementById('bv-month-select').value; document.getElementById('sub-prod-select').innerHTML = state.products.map(p => `<option value="${p.id}">${p.name} (${p.bv} BV)</option>`).join('');
             const groups = {}; let totalBV = 0; let totalQty = 0;
-            // 直轄名單 (只抓登入者自己的)
             state.customers.filter(c=>!c.isTrashed && c.owner === sessionUser.email && c.loyaltyItems && c.loyaltyItems.length>0).forEach(c => {
                 if (c.date.startsWith(selectedMonth)) {
                     if(!groups[c.name]) groups[c.name] = { items: [], sumBV: 0 };
                     c.loyaltyItems.forEach(item => { const p = state.products.find(x=>x.id===item.productId); if(p) { const rowBV = p.bv * item.qty; groups[c.name].items.push({ type:'main', pName: p.name, qty: item.qty, rowBV }); groups[c.name].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; } });
                 }
             });
-            // 小組補登 (只抓此帳號建立的)
             (state.subGroupLoyalties||[]).filter(item => item.date && item.date.startsWith(selectedMonth)).forEach(item => {
                 if(!groups[item.partnerName]) groups[item.partnerName] = { items: [], sumBV: 0 };
                 const p = state.products.find(x=>x.id===item.productId);
                 if(p) { const rowBV = p.bv * item.qty; groups[item.partnerName].items.push({ type:'sub', subId: item.id, pName: p.name + ' (補登)', qty: item.qty, rowBV }); groups[item.partnerName].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; }
             });
-
             document.getElementById('total-bv-display').textContent = totalBV.toLocaleString(); document.getElementById('total-loyalty-qty-display').textContent = `${totalQty} 組`;
             if(Object.keys(groups).length === 0) { container.innerHTML = '<div class="text-center theme-muted p-6">該月份無長客紀錄</div>'; return; }
             container.innerHTML = Object.keys(groups).map(name => {
@@ -781,45 +764,69 @@
         }
         window.addManualSubLoyalty = async function() {
             const partnerName = document.getElementById('sub-partner-name').value.trim(); const productId = document.getElementById('sub-prod-select').value; const qty = parseInt(document.getElementById('sub-prod-qty').value)||1; const selectedMonth = document.getElementById('bv-month-select').value;
-            if(partnerName && productId) { 
-                const newItem = { id: 'sub_'+Date.now(), partnerName, productId, qty, date: `${selectedMonth}-01` };
-                state.subGroupLoyalties.push(newItem); await cloudUpsert('sub_group_loyalties', newItem);
-                document.getElementById('sub-partner-name').value = ''; renderBVReport(); window.showToast(`🎉 已補登夥伴「${partnerName}」的長客！`);
-            }
+            if(partnerName && productId) { const newItem = { id: 'sub_'+Date.now(), partnerName, productId, qty, date: `${selectedMonth}-01` }; state.subGroupLoyalties.push(newItem); await cloudUpsert('sub_group_loyalties', newItem); document.getElementById('sub-partner-name').value = ''; renderBVReport(); window.showToast(`🎉 已補登夥伴長客！`); }
         }
-        window.editSubLoyalty = async function(subId) {
-            const item = state.subGroupLoyalties.find(x=>x.id===subId); if(!item) return;
-            document.getElementById('sub-partner-name').value = item.partnerName; document.getElementById('sub-prod-select').value = item.productId; document.getElementById('sub-prod-qty').value = item.qty;
-            state.subGroupLoyalties = state.subGroupLoyalties.filter(x=>x.id!==subId); await cloudDelete('sub_group_loyalties', subId); renderBVReport();
-        }
-        window.deleteSubLoyalty = async function(subId) { state.subGroupLoyalties = state.subGroupLoyalties.filter(x=>x.id!==subId); await cloudDelete('sub_group_loyalties', subId); renderBVReport(); window.showToast('🗑️ 已刪除補登資料'); }
+        window.editSubLoyalty = async function(subId) { const item = state.subGroupLoyalties.find(x=>x.id===subId); if(!item) return; document.getElementById('sub-partner-name').value = item.partnerName; document.getElementById('sub-prod-select').value = item.productId; document.getElementById('sub-prod-qty').value = item.qty; state.subGroupLoyalties = state.subGroupLoyalties.filter(x=>x.id!==subId); await cloudDelete('sub_group_loyalties', subId); renderBVReport(); }
+        window.deleteSubLoyalty = async function(subId) { state.subGroupLoyalties = state.subGroupLoyalties.filter(x=>x.id!==subId); await cloudDelete('sub_group_loyalties', subId); renderBVReport(); window.showToast('🗑️ 已刪除'); }
 
-        /* ----- 系統設定同步 ----- */
+        // 標籤與產品
         function renderTagsLobby() { const c = document.getElementById('global-tags-container'); if(c) c.innerHTML = state.tags.map(t => `<span class="tag-chip">#${t} <button onclick="deleteGlobalTag('${t}')">x</button></span>`).join(''); }
         window.createGlobalTag = function() { const v = document.getElementById('new-tag-input').value.trim().replace(/^#/,''); if(v && !state.tags.includes(v)) { state.tags.push(v); document.getElementById('new-tag-input').value=''; saveSystemSettings(); renderAll(); } }
-        window.deleteGlobalTag = function(t) { window.openConfirmModal(`確定刪除標籤 #${t}？`, async () => { state.tags = state.tags.filter(x=>x!==t); for(let c of state.customers){ if(c.tags && c.tags.includes(t)) { c.tags = c.tags.filter(x=>x!==t); await cloudUpsert('customers', c); } } saveSystemSettings(); renderAll(); window.showToast('🏷️ 標籤已刪除'); }); }
+        window.deleteGlobalTag = function(t) { window.openConfirmModal(`確定刪除標籤 #${t}？`, async () => { state.tags = state.tags.filter(x=>x!==t); saveSystemSettings(); renderAll(); window.showToast('🏷️ 已刪除'); }); }
 
         function renderProductsLobby() { const c = document.getElementById('products-container'); if(c) c.innerHTML = state.products.map(p => `<div class="flex justify-between items-center p-4 border-b border-theme text-base theme-title"><span>${p.name}</span><div class="flex gap-4 items-center"><span class="text-indigo-500 font-bold">${p.bv} BV</span><button onclick="editProduct('${p.id}')" class="text-indigo-600 font-bold text-xl">✏️</button><button onclick="deleteProduct('${p.id}')" class="text-rose-500 font-bold text-xl">x</button></div></div>`).join(''); }
         window.editProduct = function(id) { const p = state.products.find(x=>x.id===id); if(!p) return; document.getElementById('edit-prod-id').value = p.id; document.getElementById('new-prod-name').value = p.name; document.getElementById('new-prod-bv').value = p.bv; document.getElementById('save-prod-btn').textContent = '修改'; }
-        window.saveProduct = function() { const id = document.getElementById('edit-prod-id').value; const n = document.getElementById('new-prod-name').value.trim(); const b = parseInt(document.getElementById('new-prod-bv').value)||0; if(n && b) { if(id) { const p = state.products.find(x=>x.id===id); if(p) { p.name = n; p.bv = b; } } else { state.products.push({id:'p'+Date.now(), name:n, bv:b}); } document.getElementById('edit-prod-id').value = ''; document.getElementById('new-prod-name').value = ''; document.getElementById('new-prod-bv').value = ''; document.getElementById('save-prod-btn').textContent = '新增'; saveSystemSettings(); renderAll(); window.showToast('🛍️ 產品已更新'); } }
+        window.saveProduct = function() { const id = document.getElementById('edit-prod-id').value; const n = document.getElementById('new-prod-name').value.trim(); const b = parseInt(document.getElementById('new-prod-bv').value)||0; if(n && b) { if(id) { const p = state.products.find(x=>x.id===id); if(p) { p.name = n; p.bv = b; } } else { state.products.push({id:'p'+Date.now(), name:n, bv:b}); } document.getElementById('edit-prod-id').value=''; document.getElementById('new-prod-name').value=''; document.getElementById('new-prod-bv').value=''; document.getElementById('save-prod-btn').textContent='新增'; saveSystemSettings(); renderAll(); window.showToast('🛍️ 已更新'); } }
         window.deleteProduct = function(id) { state.products = state.products.filter(x=>x.id!==id); saveSystemSettings(); renderAll(); }
 
-        /* ----- 斷捨離與 Excel/JSON 備份 ----- */
+        // 斷捨離與備份還原 (含 JSON)
         function renderTrashCount() { const trashed = state.customers.filter(c => c.isTrashed && c.owner === sessionUser.email); document.getElementById('drawer-trash-btn').innerHTML = `📦 斷捨離暫存區 (${trashed.length})`; document.getElementById('trash-list-container').innerHTML = trashed.map(c=>`<div class="flex justify-between p-4 border-b border-theme text-base"><span class="theme-title font-bold">${c.name}</span><div><button onclick="restoreCustomer('${c.id}')" class="text-indigo-600 font-bold mr-4">復原</button><button onclick="deletePermanently('${c.id}')" class="text-rose-600 font-bold">永久刪除</button></div></div>`).join(''); }
         window.restoreCustomer = async function(id) { const c = state.customers.find(x=>x.id===id); if(c){ c.isTrashed=false; await cloudUpsert('customers', c); renderAll(); } }
-        window.deletePermanently = function(id) { window.openConfirmModal('確定要「永久刪除」此名單？', async ()=>{ state.customers = state.customers.filter(x=>x.id!==id); await cloudDelete('customers', id); renderAll(); window.showToast('🗑️ 已永久刪除'); }); }
+        window.deletePermanently = function(id) { window.openConfirmModal('確定要永久刪除？', async ()=>{ state.customers = state.customers.filter(x=>x.id!==id); await cloudDelete('customers', id); renderAll(); window.showToast('🗑️ 已永久刪除'); }); }
 
-        window.exportExcel = function() { const myC = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed); if (!myC.length) return window.showToast('無資料可匯出'); const headers = ['認識日期', '姓名', '誰的朋友', '等級定位', '跟進進度', '會員類別', 'IG', 'Threads', '活動標籤', '備註']; const rows = myC.map(c => [`"${c.date}"`, `"${c.name}"`, `"${c.referrer||''}"`, `"${c.level}"`, `"${c.progress}"`, `"${c.memberType}"`, `"${c.ig||''}"`, `"${c.threads||''}"`, `"${(c.tags||[]).join(';')}"`, `"${c.notes||''}"`]); const csv = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n'); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `五心名單_${sessionUser.email.split('@')[0]}.csv`; link.click(); }
-        window.importExcel = function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = async function(ev) { const lines = ev.target.result.split('\n').filter(l => l.trim().length > 0); let count = 0; for (let i = 1; i < lines.length; i++) { const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim()); if (cols[1]) { const data = { id: 'c_' + Date.now() + '_' + i, owner: sessionUser.email, date: cols[0] || new Date().toISOString().split('T')[0], name: cols[1], referrer: cols[2]||'', level: cols[3]||'未分類', progress: cols[4]||'新開發/待跟進', memberType: cols[5]||'未加入', ig: cols[6]||'', threads: cols[7]||'', tags: cols[8]?cols[8].split(';'):[], notes: cols[9]||'', isTrashed: false, timeline: [{date: new Date().toISOString().split('T')[0], text: '自 Excel 匯入'}] }; state.customers.unshift(data); await cloudUpsert('customers', data); count++; } } renderAll(); window.showToast(`🎉 成功匯入 ${count} 筆名單`); }; reader.readAsText(file); }
+        window.exportExcel = function() {
+            const myC = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed); if (!myC.length) return window.showToast('無資料可匯出');
+            const headers = ['認識日期', '姓名', '誰的朋友', '等級定位', '跟進進度', '會員類別', 'IG', 'Threads', '活動標籤', '備註'];
+            const rows = myC.map(c => [`"${c.date}"`, `"${c.name}"`, `"${c.referrer||''}"`, `"${c.level}"`, `"${c.progress}"`, `"${c.memberType}"`, `"${c.ig||''}"`, `"${c.threads||''}"`, `"${(c.tags||[]).join(';')}"`, `"${c.notes||''}"`]);
+            const csv = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `五心名單_${sessionUser.email.split('@')[0]}.csv`; link.click();
+        }
+        window.importExcel = function(e) {
+            const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
+            reader.onload = async function(ev) {
+                const lines = ev.target.result.split('\n').filter(l => l.trim().length > 0); let count = 0;
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                    if (cols[1]) {
+                        const data = { id: 'c_' + Date.now() + '_' + i, owner: sessionUser.email, date: cols[0] || new Date().toISOString().split('T')[0], name: cols[1], referrer: cols[2]||'', level: cols[3]||'未分類', progress: cols[4]||'新開發/待跟進', memberType: cols[5]||'未加入', ig: cols[6]||'', threads: cols[7]||'', tags: cols[8]?cols[8].split(';'):[], notes: cols[9]||'', isTrashed: false, timeline: [{date: new Date().toISOString().split('T')[0], text: '自 Excel 匯入'}] };
+                        state.customers.unshift(data); await cloudUpsert('customers', data); count++;
+                    }
+                }
+                renderAll(); window.showToast(`🎉 成功匯入 ${count} 筆名單`);
+            }; reader.readAsText(file);
+        }
+
+        window.exportJSON = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", "five_heart_backup.json"); document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
+        }
+        window.importJSON = function(e) {
+            const file = e.target.files[0]; if(!file) return; const reader = new FileReader();
+            reader.onload = async function(ev) {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    if(imported.customers) { for(let c of imported.customers) { await cloudUpsert('customers', c); } }
+                    window.showToast('✅ 備份還原成功！'); window.location.reload();
+                } catch(err) { alert('格式錯誤'); }
+            }; reader.readAsText(file);
+        }
 
         window.showOppLogHistory = function() { const c = document.getElementById('opp-history-container'); const logs = state.checkinLogs.filter(x=>x.type==='opp'&&x.user_name===sessionUser.email).reverse(); c.innerHTML = logs.length ? logs.map(l=>`<div class="p-4 border-b border-theme text-sm sm:text-base"><div class="flex justify-between theme-muted text-xs sm:text-sm mb-2"><span>${l.date}</span><span>對象: ${l.partnerName}</span></div><div class="theme-title font-bold">${l.notes||'無備註'}</div></div>`).join('') : '<div class="text-center theme-muted p-6">無紀錄</div>'; window.openModal('opp-history-modal'); }
         window.openTimeline = function(id) { currentActiveContactId = id; const c = state.customers.find(x=>x.id===id); document.getElementById('timeline-title').textContent = `📜 ${c.name} 帶線陪伴軌跡`; renderTimelineItems(c); window.openModal('timeline-modal'); }
         function renderTimelineItems(c) { document.getElementById('timeline-items-container').innerHTML = (c.timeline||[]).map(t=>`<div class="relative"><div class="absolute -left-[27px] top-2 w-3 h-3 bg-indigo-500 rounded-full shadow"></div><div class="text-xs theme-muted mb-1">${t.date}</div><div class="text-base theme-title font-bold">${t.text}</div></div>`).join(''); }
-        window.addTimelineNote = async function() { const t = document.getElementById('timeline-new-note').value.trim(); if(!t) return; const c = state.customers.find(x=>x.id===currentActiveContactId); if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:new Date().toISOString().split('T')[0], text:t}); await cloudUpsert('customers', c); renderTimelineItems(c); document.getElementById('timeline-new-note').value=''; window.showToast('📝 筆記已寫入時間軸'); }
+        window.addTimelineNote = async function() { const t = document.getElementById('timeline-new-note').value.trim(); if(!t) return; const c = state.customers.find(x=>x.id===currentActiveContactId); if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:new Date().toISOString().split('T')[0], text:t}); await cloudUpsert('customers', c); renderTimelineItems(c); document.getElementById('timeline-new-note').value=''; window.showToast('📝 筆記已寫入'); }
 
-        /* 備用：視覺設定 localStorage 本地記憶 (使用者偏好) */
-        function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
-        function applyFontSize(s) { document.documentElement.setAttribute('data-font-size', s); localStorage.setItem('font', s); }
+        async function logout() { if(confirm('確定要登出系統嗎？')) { await db.auth.signOut(); window.location.reload(); } }
     </script>
 </body>
 </html>
