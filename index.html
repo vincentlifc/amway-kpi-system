@@ -65,7 +65,6 @@
             </div>
         </div>
 
-        <!-- 備用：若登入時發現無暱稱才跳出 -->
         <div id="nickname-card-box" class="theme-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-6 hidden">
             <div class="text-center space-y-2">
                 <div class="bg-emerald-100 text-emerald-600 p-3 rounded-2xl shadow-sm border border-emerald-200 font-extrabold text-2xl inline-flex items-center justify-center w-14 h-14 mx-auto mb-2">👤</div>
@@ -130,9 +129,9 @@
                 <div id="followup-banner-container"></div>
                 <div class="theme-card rounded-2xl p-4 shadow border border-theme w-full">
                     <div class="flex flex-col space-y-3">
-                        <div class="flex justify-between items-center cursor-pointer" onclick="window.toggleSection('checkin-content-box', 'checkin-toggle-icon')">
+                        <div class="flex justify-between items-center cursor-pointer select-none" onclick="window.toggleSection('checkin-content-box', 'checkin-toggle-icon')">
                             <div class="flex items-center gap-2"><span class="text-amber-500 font-bold text-xl">⚡</span><h2 class="text-base font-extrabold tracking-wide theme-title">每日打卡</h2></div>
-                            <button class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="checkin-toggle-icon">▲</span></button>
+                            <button type="button" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="checkin-toggle-icon">▲</span></button>
                         </div>
                         <div id="checkin-content-box" class="grid grid-cols-2 sm:flex flex-wrap gap-3 w-full">
                             <button onclick="window.openCheckinModal('opp')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow flex items-center justify-center gap-2">🗣️ 講336/OPP</button>
@@ -149,7 +148,7 @@
                         <div class="flex items-center gap-3">
                             <select id="dash-time-range" onchange="window.onDashTimeChange()" class="theme-subcard border-theme border text-sm font-bold rounded-lg px-3 py-1.5 theme-title focus:outline-none"><option value="month">📅 本月</option><option value="year">🗓️ 全年</option><option value="custom">🛠️ 自訂</option></select>
                             <div id="custom-date-picker" class="hidden flex items-center gap-2 text-sm"><input type="date" id="dash-start-date" onchange="window.renderDashboard()" class="theme-subcard border-theme border rounded px-2 py-1 theme-title"><span class="theme-muted">至</span><input type="date" id="dash-end-date" onchange="window.renderDashboard()" class="theme-subcard border-theme border rounded px-2 py-1 theme-title"></div>
-                            <button onclick="window.toggleSection('dash-content-box', 'dash-toggle-icon')" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="dash-toggle-icon">▲</span></button>
+                            <button type="button" onclick="window.toggleSection('dash-content-box', 'dash-toggle-icon')" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="dash-toggle-icon">▲</span></button>
                         </div>
                     </div>
                     <div id="dash-content-box" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -163,7 +162,7 @@
                 <div class="theme-card p-4 rounded-2xl border-theme border shadow space-y-4 w-full">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-3 flex-1 mr-3"><span class="text-lg">🔍</span><input type="text" id="search-input" oninput="window.renderList()" placeholder="搜尋姓名、備註、年份月份(如 2026-07)..." class="w-full bg-transparent text-base theme-title focus:outline-none"></div>
-                        <button onclick="window.toggleSection('filter-content-box', 'filter-toggle-icon')" class="p-1 rounded theme-muted text-sm"><span id="filter-toggle-icon">▲</span></button>
+                        <button type="button" onclick="window.toggleSection('filter-content-box', 'filter-toggle-icon')" class="p-1 rounded theme-muted text-sm"><span id="filter-toggle-icon">▲</span></button>
                     </div>
                     <div id="filter-content-box" class="space-y-4 pt-4 border-t border-theme">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -325,7 +324,10 @@
 
         window.toggleSection = function(boxId, iconId) {
             const box = document.getElementById(boxId); const icon = document.getElementById(iconId);
-            if (box && icon) { box.classList.toggle('hidden'); icon.textContent = box.classList.contains('hidden') ? '▼' : '▲'; }
+            if (box && icon) { 
+                box.classList.toggle('hidden'); 
+                icon.textContent = box.classList.contains('hidden') ? '▼' : '▲'; 
+            }
         };
 
         window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); };
@@ -352,7 +354,7 @@
         function applyFontSize(s) { document.documentElement.setAttribute('data-font-size', s); localStorage.setItem('font', s); }
 
         function renderSettingsButtons() {
-            const themes = [{id:'blue-white', n:'藍白 (安麗風)'}, {id:'navy', n:'藍金王者'}, {id:'white', n:'霧白極簡'}, {id:'pink', n:'櫻花粉金'}];
+            const themes = [{id:'blue-white', n:'經典藍白'}, {id:'navy', n:'藍金王者'}, {id:'white', n:'霧白極簡'}, {id:'pink', n:'櫻花粉金'}];
             const tCont = document.getElementById('theme-buttons-container');
             if(tCont) tCont.innerHTML = themes.map(x => `<button onclick="window.changeTheme('${x.id}')" class="p-3 rounded-xl border font-bold ${state.theme===x.id?'bg-indigo-600 text-white shadow':'theme-subcard border-theme theme-title'}">${x.n}</button>`).join('');
             
@@ -406,7 +408,6 @@
                     alert('註冊失敗：' + error.message); 
                     document.getElementById('auth-screen').classList.remove('hidden'); 
                 } else { 
-                    // 註冊成功後立即寫入 profiles 紀錄，免去登入還要額外填暱稱的怪異流程
                     if (data.user) {
                         await db.from('profiles').upsert({ id: data.user.id, email: email, nickname: nickname });
                     }
@@ -439,7 +440,6 @@
             sessionUser = user;
             const { data: profile } = await db.from('profiles').select('*').eq('id', user.id).single();
             if (!profile || !profile.nickname) {
-                // 若找不到 profile，才顯示手動補填暱稱畫面
                 document.getElementById('loading-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('login-card-box').classList.add('hidden');
@@ -521,7 +521,13 @@
             state.subGroupLoyalties = resSub.data || [];
         }
 
-        async function cloudUpsert(table, data) { await db.from(table).upsert(data); }
+        async function cloudUpsert(table, data) { 
+            const { error } = await db.from(table).upsert(data);
+            if (error) {
+                console.error(`Supabase Upsert Error (${table}):`, error);
+                window.showToast(`⚠️ 雲端同步失敗: ${error.message}`);
+            }
+        }
         async function cloudDelete(table, id) { await db.from(table).delete().eq('id', id); }
         async function saveSystemSettings() {
             await cloudUpsert('system_settings', { id: 'products', setting_type: 'global', data: state.products });
@@ -604,7 +610,7 @@
             const lF = document.getElementById('filter-level').value.split(' ')[0]; const tF = document.getElementById('filter-tag').value;
             state.customers.forEach(c => c.inTree = isNodeInTree(state.treeData, c.id));
             const filtered = state.customers.filter(c => {
-                if(c.owner !== sessionUser.email) return false;
+                if(!isAdmin && c.owner !== sessionUser.email) return false;
                 if(pF === '斷捨離') { if(!c.isTrashed) return false; } else { if(c.isTrashed) return false; }
                 const mK = c.name.toLowerCase().includes(kw) || (c.tags && c.tags.some(t=>t.toLowerCase().includes(kw))) || c.date.includes(kw) || (kw==='長客' && c.loyaltyItems && c.loyaltyItems.length>0) || (kw==='會員' && c.memberType!=='未加入');
                 const mP = pF === 'all' || pF === '斷捨離' || c.progress === pF;
@@ -742,7 +748,6 @@
                 if(!usersMap[f.user_name] && f.user_name.includes('@')) {
                     usersMap[f.user_name]=f.user_name.split('@')[0]; 
                 } else if (!usersMap[f.user_name]) {
-                    // 若 feed 記錄的本來就是暱稱，直接對應
                     usersMap[f.user_name] = f.user_name;
                 }
             });
@@ -756,7 +761,6 @@
                 const loy = c.reduce((s, x) => s + (x.loyaltyItems ? x.loyaltyItems.reduce((sum,i)=>sum+(parseInt(i.qty)||0),0) : 0), 0) || 0;
                 const pts = leads*1 + opps*5 + loy*10 + c.reduce((s,x)=>s+(x.memberType==='直銷商'?10:x.memberType==='生活會員'?2:0),0);
                 
-                // 強制轉換為暱稱呈現，絕不顯示 email
                 let displayName = usersMap[u] || u;
                 if(displayName.includes('@')) {
                     displayName = displayName.split('@')[0];
