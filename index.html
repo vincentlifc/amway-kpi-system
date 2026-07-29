@@ -37,7 +37,6 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased w-full relative">
 
-    <!-- 🔑 真實專案金鑰已內嵌，確保連線 100% 成功[cite: 1] -->
     <script>
         const SUPABASE_URL = 'https://ojvzzhzrbvmdtogxokwr.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_Oy9tndWgGKhUXaL51fOvaQ_zmoUGdJI';
@@ -45,7 +44,7 @@
         const ADMIN_EMAIL = 'chengjhou.li@gmail.com'; 
     </script>
 
-    <!-- 🌟 登入與暱稱設定大廳 -->
+    <!-- 🌟 登入與註冊 / 暱稱設定大廳 -->
     <div id="auth-screen" class="flex flex-1 items-center justify-center p-4 h-screen w-full fixed inset-0 z-50 bg-slate-50/90 backdrop-blur-sm">
         <div id="login-card-box" class="theme-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
@@ -56,6 +55,7 @@
             <form id="login-form" class="space-y-4" onsubmit="window.handleAuth(event)">
                 <div><label class="block text-sm font-bold theme-title mb-1">電子郵件 (Email)</label><input type="email" id="auth-email" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="name@example.com"></div>
                 <div><label class="block text-sm font-bold theme-title mb-1">密碼</label><input type="password" id="auth-password" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="••••••••"></div>
+                <div id="register-nickname-group" class="hidden"><label class="block text-sm font-bold theme-title mb-1">您的專屬暱稱</label><input type="text" id="auth-nickname" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="例如：Vincent"></div>
                 <div id="invite-code-group" class="hidden"><label class="block text-sm font-bold theme-title mb-1">團隊邀請碼</label><input type="text" id="auth-invite-code" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title outline-none font-bold" placeholder="輸入通關密語"></div>
                 <button type="submit" id="auth-submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black text-lg py-3 rounded-xl shadow-lg">登入系統</button>
             </form>
@@ -65,6 +65,7 @@
             </div>
         </div>
 
+        <!-- 備用：若登入時發現無暱稱才跳出 -->
         <div id="nickname-card-box" class="theme-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-6 hidden">
             <div class="text-center space-y-2">
                 <div class="bg-emerald-100 text-emerald-600 p-3 rounded-2xl shadow-sm border border-emerald-200 font-extrabold text-2xl inline-flex items-center justify-center w-14 h-14 mx-auto mb-2">👤</div>
@@ -373,9 +374,15 @@
             isLoginMode = !isLoginMode;
             document.getElementById('auth-submit-btn').textContent = isLoginMode ? '登入系統' : '註冊帳號';
             document.getElementById('auth-toggle-btn').textContent = isLoginMode ? '還沒有帳號？點此註冊' : '已有帳號？返回登入';
+            document.getElementById('register-nickname-group').classList.toggle('hidden', isLoginMode);
             document.getElementById('invite-code-group').classList.toggle('hidden', isLoginMode);
-            if(!isLoginMode) document.getElementById('auth-invite-code').setAttribute('required', 'true');
-            else document.getElementById('auth-invite-code').removeAttribute('required');
+            if(!isLoginMode) {
+                document.getElementById('auth-nickname').setAttribute('required', 'true');
+                document.getElementById('auth-invite-code').setAttribute('required', 'true');
+            } else {
+                document.getElementById('auth-nickname').removeAttribute('required');
+                document.getElementById('auth-invite-code').removeAttribute('required');
+            }
         }
 
         window.handleAuth = async function(e) {
@@ -390,11 +397,24 @@
                 if (error) { alert('登入失敗：' + error.message); document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('loading-screen').classList.add('hidden'); } 
                 else { await checkUserSession(data.user); }
             } else {
+                const nickname = document.getElementById('auth-nickname').value.trim();
                 const inviteCode = document.getElementById('auth-invite-code').value;
                 if (inviteCode !== TEAM_INVITE_CODE) { alert('🚨 團隊邀請碼錯誤！'); document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('loading-screen').classList.add('hidden'); return; }
+                
                 const { data, error } = await db.auth.signUp({ email, password });
-                if (error) { alert('註冊失敗：' + error.message); document.getElementById('auth-screen').classList.remove('hidden'); } 
-                else { alert('✅ 註冊成功！請直接登入'); isLoginMode=true; window.toggleAuthMode(); document.getElementById('auth-screen').classList.remove('hidden'); }
+                if (error) { 
+                    alert('註冊失敗：' + error.message); 
+                    document.getElementById('auth-screen').classList.remove('hidden'); 
+                } else { 
+                    // 註冊成功後立即寫入 profiles 紀錄，免去登入還要額外填暱稱的怪異流程
+                    if (data.user) {
+                        await db.from('profiles').upsert({ id: data.user.id, email: email, nickname: nickname });
+                    }
+                    alert('✅ 註冊成功！請直接登入'); 
+                    isLoginMode = true; 
+                    window.toggleAuthMode(); 
+                    document.getElementById('auth-screen').classList.remove('hidden'); 
+                }
                 document.getElementById('loading-screen').classList.add('hidden');
             }
         }
@@ -419,6 +439,7 @@
             sessionUser = user;
             const { data: profile } = await db.from('profiles').select('*').eq('id', user.id).single();
             if (!profile || !profile.nickname) {
+                // 若找不到 profile，才顯示手動補填暱稱畫面
                 document.getElementById('loading-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('login-card-box').classList.add('hidden');
@@ -432,6 +453,7 @@
             const nickname = document.getElementById('setup-nickname-input').value.trim();
             if(!nickname) return alert('請輸入暱稱！');
             await db.from('profiles').upsert({ id: sessionUser.id, email: sessionUser.email, nickname: nickname });
+            document.getElementById('nickname-card-box').classList.add('hidden');
             await startApp(sessionUser, nickname);
         }
 
@@ -445,6 +467,7 @@
             if(!newName) return alert('暱稱不能為空');
             await db.from('profiles').upsert({ id: sessionUser.id, email: sessionUser.email, nickname: newName });
             document.getElementById('current-user-display').textContent = newName;
+            userProfilesMap[sessionUser.email] = newName;
             window.closeModal('edit-nickname-modal');
             window.showToast('✅ 暱稱修改成功！');
             await loadCloudData();
@@ -715,7 +738,14 @@
         function renderLeaderboard() {
             const usersMap = { ...userProfilesMap };
             state.customers.forEach(c=>{ if(!usersMap[c.owner]) usersMap[c.owner]=c.owner.split('@')[0]; });
-            state.feeds.forEach(f=>{ if(!usersMap[f.user_name] && f.user_name.includes('@')) usersMap[f.user_name]=f.user_name.split('@')[0]; });
+            state.feeds.forEach(f=>{ 
+                if(!usersMap[f.user_name] && f.user_name.includes('@')) {
+                    usersMap[f.user_name]=f.user_name.split('@')[0]; 
+                } else if (!usersMap[f.user_name]) {
+                    // 若 feed 記錄的本來就是暱稱，直接對應
+                    usersMap[f.user_name] = f.user_name;
+                }
+            });
             const users = Object.keys(usersMap); if(users.length===0) users.push(sessionUser.email);
             
             const scores = users.map(u => {
@@ -725,7 +755,14 @@
                 const recs = c.filter(x=>x.memberType!=='未加入').length || 0;
                 const loy = c.reduce((s, x) => s + (x.loyaltyItems ? x.loyaltyItems.reduce((sum,i)=>sum+(parseInt(i.qty)||0),0) : 0), 0) || 0;
                 const pts = leads*1 + opps*5 + loy*10 + c.reduce((s,x)=>s+(x.memberType==='直銷商'?10:x.memberType==='生活會員'?2:0),0);
-                return { user: usersMap[u] || u.split('@')[0], leads, opps, recs, loy, pts };
+                
+                // 強制轉換為暱稱呈現，絕不顯示 email
+                let displayName = usersMap[u] || u;
+                if(displayName.includes('@')) {
+                    displayName = displayName.split('@')[0];
+                }
+
+                return { user: displayName, leads, opps, recs, loy, pts };
             });
             const top = [...scores].sort((a,b)=>b.pts-a.pts)[0] || {user:'-',pts:0};
             const lb = document.getElementById('leaderboard-container'); if(!lb) return;
@@ -738,7 +775,14 @@
             rank.forEach((r,i) => { html += `<div class="p-4 rounded-xl theme-subcard border-theme border flex justify-between items-center text-base"><div class="flex gap-4 items-center"><span class="text-xl w-6">${i===0?'🥇':i===1?'🥈':'🥉'}</span><span class="font-bold theme-title">${r.user}</span></div><span class="font-bold text-indigo-600 text-lg">${r[leaderboardCategory] || 0} ${unit}</span></div>`; });
             lb.innerHTML = html + '</div>';
 
-            const feed = document.getElementById('feed-container'); if(feed) feed.innerHTML = state.feeds.slice().reverse().map(f => `<div class="p-4 border-b border-theme text-sm sm:text-base"><div class="flex justify-between text-xs sm:text-sm theme-muted mb-2"><span class="text-amber-600 font-black">⚡ ${f.user_name}</span><span>${new Date(f.time).toLocaleString()}</span></div><div class="font-bold theme-title">${f.action} <span class="text-emerald-500 float-right font-black">+${f.pts}</span></div></div>`).join('');
+            const feed = document.getElementById('feed-container'); 
+            if(feed) {
+                feed.innerHTML = state.feeds.slice().reverse().map(f => {
+                    let feedUser = userProfilesMap[f.user_name] || f.user_name;
+                    if(feedUser.includes('@')) feedUser = feedUser.split('@')[0];
+                    return `<div class="p-4 border-b border-theme text-sm sm:text-base"><div class="flex justify-between text-xs sm:text-sm theme-muted mb-2"><span class="text-amber-600 font-black">⚡ ${feedUser}</span><span>${new Date(f.time).toLocaleString()}</span></div><div class="font-bold theme-title">${f.action} <span class="text-emerald-500 float-right font-black">+${f.pts}</span></div></div>`;
+                }).join('');
+            }
         }
 
         window.renderBVReport = function() {
