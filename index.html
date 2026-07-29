@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- ✅ 修正 iOS 主頁圖示問題 -->
-    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/192/gem.png">
+    <!-- 強制 iOS 抓取新的立體鑽石圖示 -->
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/192/diamond.png?v=2">
     <title>五心計畫 KPI - 雲端完全體</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -202,10 +202,16 @@
             <section id="sect-leaderboard" class="hidden space-y-4 w-full">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
                     <div class="lg:col-span-2 theme-card rounded-2xl p-5 shadow border-theme border space-y-4">
-                        <!-- ✅ 新增排行榜區間篩選 -->
-                        <div class="flex justify-between items-center border-b border-theme pb-3">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-theme pb-3 gap-3">
                             <h2 class="text-base sm:text-lg font-extrabold theme-title">🏆 戰功排行榜</h2>
-                            <select id="lb-month-select" onchange="window.renderLeaderboard()" class="theme-subcard border-theme border text-sm font-bold rounded-lg px-3 py-1.5 theme-title outline-none"></select>
+                            <div class="flex items-center gap-3">
+                                <select id="lb-month-select" onchange="window.onLbTimeChange()" class="theme-subcard border-theme border text-sm font-bold rounded-lg px-3 py-1.5 theme-title outline-none"></select>
+                                <div id="lb-custom-date-picker" class="hidden flex items-center gap-2 text-sm">
+                                    <input type="date" id="lb-start-date" onchange="window.renderLeaderboard()" class="theme-subcard border-theme border rounded px-2 py-1 theme-title">
+                                    <span class="theme-muted">至</span>
+                                    <input type="date" id="lb-end-date" onchange="window.renderLeaderboard()" class="theme-subcard border-theme border rounded px-2 py-1 theme-title">
+                                </div>
+                            </div>
                         </div>
                         <div id="leaderboard-container" class="space-y-4"></div>
                     </div>
@@ -261,7 +267,7 @@
     <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="block font-bold theme-title mb-1.5">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div></div>
     <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[85vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客打卡</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="loyalty-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">長客備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認長客打卡</button></div></form></div></div>
 
-    <div id="bv-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-3xl rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[90vh]"><div class="flex justify-between border-b border-theme pb-4 shrink-0"><div class="flex items-center gap-4"><h3 class="font-bold theme-title text-lg">📦 小組長客與 BV 統計</h3><select id="bv-month-select" onchange="window.renderBVReport()" class="theme-subcard border-theme border text-sm font-bold rounded-xl px-4 py-2 theme-title outline-none"></select></div><button onclick="window.closeModal('bv-modal')" class="theme-muted text-3xl hover:text-rose-500">&times;</button></div><div class="overflow-y-auto flex-1 space-y-5 no-scrollbar py-4 text-base"><div class="grid grid-cols-2 gap-5"><div class="bg-emerald-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月長客總組數</p><div class="text-4xl font-black mt-2" id="total-loyalty-qty-display">0 組</div></div><div class="bg-indigo-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月小組總 BV 積分</p><div class="text-4xl font-black mt-2" id="total-bv-display">0</div></div></div><div class="theme-subcard border-theme border rounded-2xl p-5 space-y-4"><span class="font-bold theme-title text-sm block">➕ 補登小組夥伴長客 (非直轄名單)</span><div class="flex flex-wrap gap-3"><input type="text" id="sub-partner-name" placeholder="夥伴名字 (例如：張小華)" class="flex-1 min-w-[140px] theme-card border-theme border rounded-xl p-3 text-sm theme-title"><select id="sub-prod-select" class="flex-1 min-w-[160px] theme-card border-theme border rounded-xl p-3 theme-title"></select><input type="number" id="sub-prod-qty" min="1" value="1" class="w-20 theme-card border-theme border rounded-xl p-3 theme-title font-bold"><button onclick="window.addManualSubLoyalty()" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-bold">補登</button></div></div><div><h4 class="font-bold theme-title mb-4 text-lg">📊 小組夥伴長客明細</h4><div id="bv-report-container" class="space-y-4"></div></div></div></div></div>
+    <div id="bv-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-3xl rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[90vh]"><div class="flex justify-between border-b border-theme pb-4 shrink-0"><div class="flex items-center gap-4"><h3 class="font-bold theme-title text-lg">📦 小組長客與 BV 統計</h3><select id="bv-month-select" onchange="window.renderBVReport()" class="theme-subcard border-theme border text-sm font-bold rounded-xl px-4 py-2 theme-title outline-none"></select></div><button onclick="window.closeModal('bv-modal')" class="theme-muted text-3xl hover:text-rose-500">&times;</button></div><div class="overflow-y-auto flex-1 space-y-5 no-scrollbar py-4 text-base"><div class="grid grid-cols-2 gap-5"><div class="bg-emerald-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月長客總組數</p><div class="text-4xl font-black mt-2" id="total-loyalty-qty-display">0 組</div></div><div class="bg-indigo-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月小組總 BV 積分</p><div class="text-4xl font-black mt-2" id="total-bv-display">0</div></div></div><div class="theme-subcard border-theme border rounded-2xl p-5 space-y-4"><span class="font-bold theme-title text-sm block">➕ 補登小組夥伴長客 (非直轄名單)</span><div class="flex flex-wrap gap-3"><input type="text" id="sub-partner-name" placeholder="夥伴名字 (例如：張小華)" class="flex-1 min-w-[140px] theme-card border-theme border rounded-xl p-3 text-sm theme-title"><select id="sub-prod-select" class="flex-1 min-w-[160px] theme-card border-theme border rounded-xl p-3 theme-title"></select><input type="number" id="sub-prod-qty" min="1" value="1" class="w-20 theme-card border-theme border rounded-xl p-3 theme-title font-bold"><button onclick="window.addManualSubLoyalty()" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-bold">補登</button></div></div><div><h4 class="font-bold theme-title mb-4 text-lg">📊 小組夥伴長客明細 (含 6 個月自動展延)</h4><div id="bv-report-container" class="space-y-4"></div></div></div></div></div>
     
     <div id="tag-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[80vh]"><div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">🏷️ 專屬標籤設定</h3><button onclick="window.closeModal('tag-modal')" class="theme-muted text-2xl">&times;</button></div><div class="py-4 flex gap-3"><input type="text" id="new-tag-input" placeholder="新標籤" class="flex-1 theme-subcard border-theme border rounded-xl p-3 text-sm theme-title outline-none"><button onclick="window.createGlobalTag()" class="bg-indigo-600 text-white px-5 rounded-xl text-sm font-bold">新增</button></div><div class="overflow-y-auto flex-1 no-scrollbar pt-3 border-t border-theme"><div id="global-tags-container" class="flex flex-wrap gap-2"></div></div></div></div>
     
@@ -514,11 +520,11 @@
             document.getElementById('main-app').style.display = 'flex';
             populateAmwayMonthOptions();
             
-            // ✅ 產生排行榜月份下拉選單
+            // 產生排行榜月份下拉選單 (含自訂區間選項)
             const lbSelect = document.getElementById('lb-month-select');
             if (lbSelect) {
                 const now = new Date();
-                lbSelect.innerHTML = `<option value="all">🏆 歷史總積分</option>`;
+                lbSelect.innerHTML = `<option value="all">🏆 歷史總積分</option><option value="custom">🛠️ 自訂區間</option>`;
                 for (let i = 0; i < 12; i++) {
                     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                     const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -557,7 +563,6 @@
             let qLog = db.from('checkin_logs').select('*').eq('user_name', sessionUser.email);
             let qSub = db.from('sub_group_loyalties').select('*').eq('owner', sessionUser.email);
             
-            // ✅ 為了排行榜準確，拉取較多 feeds 資料
             const [resLog, resFeed, resSub] = await Promise.all([qLog, db.from('feeds').select('*').order('created_at',{ascending:false}).limit(500), qSub]);
             state.checkinLogs = resLog.data || [];
             
@@ -565,10 +570,10 @@
             state.subGroupLoyalties = resSub.data || [];
         }
 
-        // ✅ 加入資料清洗機制，拔除前端專屬標籤，徹底解決儲存報錯！
+        // ✅ 清洗暫存屬性 (inTree)，完美解決復原斷捨離時的報錯
         async function cloudUpsert(table, data) { 
             const cleanData = { ...data };
-            delete cleanData.inTree; // 清洗暫存屬性
+            delete cleanData.inTree; 
             const { error } = await db.from(table).upsert(cleanData);
             if (error) { window.showToast(`⚠️ 雲端同步失敗: ${error.message}`); }
         }
@@ -712,7 +717,7 @@
             const c = state.customers.find(x=>x.id===id); if(!c) return;
             document.getElementById('modal-title').textContent = '📝 編輯名單'; document.getElementById('field-id').value = c.id; document.getElementById('field-date').value = c.date; document.getElementById('field-name').value = c.name; document.getElementById('field-referrer').value = c.referrer||''; document.getElementById('field-level').value = c.level||'未分類'; document.getElementById('field-progress').value = c.isTrashed ? '斷捨離' : (c.progress||'新開發/待跟進'); document.getElementById('field-member-type').value = c.memberType||'未加入'; document.getElementById('field-ig-link').value = c.ig||''; document.getElementById('field-threads-link').value = c.threads||''; document.getElementById('field-has-line').checked = c.channels&&c.channels.includes('LINE'); document.getElementById('field-other-channel').value = c.otherChannel||''; document.getElementById('field-next-followup').value = c.nextFollowUp||''; document.getElementById('field-notes').value = c.notes||''; document.getElementById('delete-in-modal-btn').classList.remove('hidden');
             tempTagsForModal = [...(c.tags||[])]; renderTagsInModal();
-            const loyList = document.getElementById('loyalty-items-list'); loyList.innerHTML = ''; (c.loyaltyItems||[]).forEach((item) => addLoyaltyItemField(item.productId, item.qty));
+            const loyList = document.getElementById('loyalty-items-list'); loyList.innerHTML = ''; (c.loyaltyItems||[]).forEach((item) => addLoyaltyItemField(item.productId, item.qty, item.date));
             window.openModal('modal');
         };
         window.deleteCurrentCustomerFromModal = function() {
@@ -728,13 +733,13 @@
             const unselected = state.tags.filter(t => !tempTagsForModal.includes(t)); if(unselected.length > 0) { container.innerHTML += `<div class="w-full text-xs font-bold theme-muted mt-2">快速套用: ` + unselected.map(t => `<span onclick="addTagToModal('${t}')" class="cursor-pointer hover:text-indigo-500 mr-2">#${t}</span>`).join('') + `</div>`; }
         }
         window.removeTagFromModal = function(t) { tempTagsForModal = tempTagsForModal.filter(x=>x!==t); renderTagsInModal(); }; window.addTagToModal = function(t) { if(!tempTagsForModal.includes(t)) tempTagsForModal.push(t); renderTagsInModal(); };
-        window.addLoyaltyItemField = function(pId = '', qty = 1) {
+        window.addLoyaltyItemField = function(pId = '', qty = 1, date = '') {
             const div = document.createElement('div'); div.className = "flex gap-3 items-center loyalty-item-row";
-            div.innerHTML = `<select class="flex-1 theme-card border-theme border rounded-lg p-2 text-sm theme-title loy-prod-select"><option value="">選擇長客品項...</option>${state.products.map(p => `<option value="${p.id}" ${p.id===pId?'selected':''}>${p.name} (${p.bv} BV)</option>`).join('')}</select><input type="number" min="1" value="${qty}" class="w-20 theme-card border-theme border rounded-lg p-2 text-sm theme-title loy-qty-input"><button type="button" onclick="this.parentElement.remove()" class="text-rose-500 px-3 text-lg font-bold">x</button>`; document.getElementById('loyalty-items-list').appendChild(div);
+            div.innerHTML = `<select class="flex-1 theme-card border-theme border rounded-lg p-2 text-sm theme-title loy-prod-select"><option value="">選擇長客品項...</option>${state.products.map(p => `<option value="${p.id}" ${p.id===pId?'selected':''}>${p.name} (${p.bv} BV)</option>`).join('')}</select><input type="number" min="1" value="${qty}" class="w-20 theme-card border-theme border rounded-lg p-2 text-sm theme-title loy-qty-input"><input type="hidden" class="loy-date-input" value="${date}"><button type="button" onclick="this.parentElement.remove()" class="text-rose-500 px-3 text-lg font-bold">x</button>`; document.getElementById('loyalty-items-list').appendChild(div);
         }
         window.handleFormSubmit = async function(e) {
             e.preventDefault(); const id = document.getElementById('field-id').value; const isTrashProgress = document.getElementById('field-progress').value === '斷捨離';
-            const loyItems = []; document.querySelectorAll('.loyalty-item-row').forEach(row => { const pid = row.querySelector('.loy-prod-select').value; const qty = parseInt(row.querySelector('.loy-qty-input').value) || 0; if(pid && qty>0) loyItems.push({productId: pid, qty}); });
+            const loyItems = []; document.querySelectorAll('.loyalty-item-row').forEach(row => { const pid = row.querySelector('.loy-prod-select').value; const qty = parseInt(row.querySelector('.loy-qty-input').value) || 0; const date = row.querySelector('.loy-date-input').value || document.getElementById('field-date').value; if(pid && qty>0) loyItems.push({productId: pid, qty, date}); });
             const data = {
                 id: id || 'c_' + Date.now(), owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: document.getElementById('field-referrer').value.trim(), level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: id ? (state.customers.find(x=>x.id===id).timeline||[]) : [{date: document.getElementById('field-date').value, text:'建立名單'}]
             };
@@ -742,20 +747,26 @@
                 const idx = state.customers.findIndex(x=>x.id===id); if(idx>-1) state.customers[idx] = data; 
             } else { 
                 state.customers.unshift(data); 
-                // ✅ Feeds 寫入時，統一綁定 Email 而非暱稱字串，避免改名分散分數
                 const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:'新增跟進名單', pts:1, time:new Date().toISOString()}; 
                 state.feeds.unshift(fd); await cloudUpsert('feeds', fd); 
             }
             await cloudUpsert('customers', data); renderAll(); window.closeModal('modal'); window.showToast(isTrashProgress ? '📦 已移至斷捨離區' : '💾 名單已儲存');
         };
 
+        // ✅ 智能勾選預設功能：如果有打勾名單，點擊打卡時自動帶入該對象
         window.openCheckinModal = function(t) {
+            const checkedBoxes = document.querySelectorAll('.contact-checkbox:checked');
+            const defaultId = checkedBoxes.length > 0 ? checkedBoxes[0].value : '';
+            
             const actives = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed);
-            const opts = actives.map(c => `<option value="${c.id}">${c.name} ${c.referrer?`(${c.referrer})`:''}</option>`).join(''); const today = new Date().toISOString().split('T')[0];
+            const opts = actives.map(c => `<option value="${c.id}" ${c.id === defaultId ? 'selected' : ''}>${c.name} ${c.referrer?`(${c.referrer})`:''}</option>`).join(''); 
+            
+            const today = new Date().toISOString().split('T')[0];
             if(t==='opp') { document.getElementById('opp-partner-select').innerHTML = opts; document.getElementById('opp-checkin-date').value = today; window.openModal('checkin-opp-modal'); } 
             else if(t==='rec') { document.getElementById('rec-partner-select').innerHTML = opts; document.getElementById('rec-checkin-date').value = today; window.openModal('checkin-rec-modal'); } 
             else if(t==='loyalty') { document.getElementById('loyalty-partner-select').innerHTML = opts; document.getElementById('loyalty-checkin-date').value = today; document.getElementById('checkin-loyalty-rows').innerHTML = ''; addCheckinLoyaltyRow(); window.openModal('checkin-loyalty-modal'); }
         };
+        
         window.addCheckinLoyaltyRow = function() {
             const div = document.createElement('div'); div.className = "flex gap-3 items-center checkin-loy-row";
             div.innerHTML = `<select class="flex-1 theme-card border-theme border rounded-lg p-2 text-sm theme-title checkin-prod-select">${state.products.map(p => `<option value="${p.id}">${p.name} (${p.bv} BV)</option>`).join('')}</select><input type="number" min="1" value="1" class="w-20 theme-card border-theme border rounded-lg p-2 text-sm theme-title checkin-qty-input"><button type="button" onclick="this.parentElement.remove()" class="text-rose-500 px-3 font-bold text-lg">x</button>`; document.getElementById('checkin-loyalty-rows').appendChild(div);
@@ -784,9 +795,17 @@
         window.submitLoyaltyCheckin = async function(e) {
             e.preventDefault(); const cId = document.getElementById('loyalty-partner-select').value; const c = state.customers.find(x=>x.id===cId); if(!c) return;
             if(!c.loyaltyItems) c.loyaltyItems = []; let totalAdded = 0;
-            document.querySelectorAll('.checkin-loy-row').forEach(row => { const pId = row.querySelector('.checkin-prod-select').value; const qty = parseInt(row.querySelector('.checkin-qty-input').value)||1; if(pId && qty>0) { c.loyaltyItems.push({productId: pId, qty}); totalAdded += qty; } });
-            const note = document.getElementById('loyalty-checkin-notes').value; const d = document.getElementById('loyalty-checkin-date').value;
-            if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[新增長客] +${totalAdded}組. ${note}`}); await cloudUpsert('customers', c);
+            const checkinDate = document.getElementById('loyalty-checkin-date').value;
+            document.querySelectorAll('.checkin-loy-row').forEach(row => { 
+                const pId = row.querySelector('.checkin-prod-select').value; 
+                const qty = parseInt(row.querySelector('.checkin-qty-input').value)||1; 
+                if(pId && qty>0) { 
+                    c.loyaltyItems.push({productId: pId, qty: qty, date: checkinDate}); // 紀錄長客建立時間
+                    totalAdded += qty; 
+                } 
+            });
+            const note = document.getElementById('loyalty-checkin-notes').value; 
+            if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:checkinDate, text:`[新增長客] +${totalAdded}組. ${note}`}); await cloudUpsert('customers', c);
             
             const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`新增了 ${totalAdded} 組長客`, pts:10*totalAdded, time:new Date().toISOString()}; 
             state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
@@ -809,22 +828,29 @@
         window.submitAddTreeNode = function(e) { e.preventDefault(); const p=document.getElementById('tree-parent-id').value; const n=document.getElementById('tree-node-name').value; const cObj = state.customers.find(x=>x.name===n); const rec=(node)=>{if(node.id===p){if(!node.children)node.children=[]; node.children.push({id:'tn'+Date.now(), name:n, contactId: cObj?cObj.id:'', collapsed:false}); return true;} if(node.children){for(let c of node.children)if(rec(c))return true;} return false;}; rec(state.treeData); saveSystemSettings(); renderTree(); renderList(); window.closeModal('tree-add-modal'); window.showToast('🎉 已加入五心組織圖'); }
         window.deleteTreeNode = function(id) { const rec=(p,t)=>{if(!p.children)return false; const i=p.children.findIndex(x=>x.id===t); if(i>-1){p.children.splice(i,1);return true;} for(let c of p.children)if(rec(c,t))return true; return false;}; rec(state.treeData, id); saveSystemSettings(); renderTree(); renderList(); }
 
-        // ✅ 全新的排行榜邏輯 (完全根據 Feeds 計算 + 支援月份篩選)
+        window.onLbTimeChange = function() {
+            const p = document.getElementById('lb-custom-date-picker');
+            if(document.getElementById('lb-month-select').value === 'custom') p.classList.remove('hidden'); else p.classList.add('hidden');
+            window.renderLeaderboard();
+        }
+
         window.renderLeaderboard = function() {
             const lbSelect = document.getElementById('lb-month-select');
             if(!lbSelect) return;
-            const targetMonth = lbSelect.value;
+            const targetRange = lbSelect.value;
             
-            // 1. 根據所選月份過濾戰功捷報
             let filteredFeeds = state.feeds;
-            if (targetMonth !== 'all') {
-                filteredFeeds = state.feeds.filter(f => f.time.startsWith(targetMonth));
+            if (targetRange === 'custom') {
+                const sd = document.getElementById('lb-start-date').value || '2000-01-01';
+                const ed = document.getElementById('lb-end-date').value || '2099-12-31';
+                filteredFeeds = state.feeds.filter(f => f.time >= sd && f.time <= ed + 'T23:59:59');
+            } else if (targetRange !== 'all') {
+                filteredFeeds = state.feeds.filter(f => f.time.startsWith(targetRange));
             }
             
-            // 2. 計算每位夥伴的分數 (從 feeds 加總)
             const userStats = {};
             filteredFeeds.forEach(f => {
-                const email = f.user_name; // 資料庫現在存的是 email
+                const email = f.user_name;
                 if (!userStats[email]) userStats[email] = { leads: 0, opps: 0, recs: 0, loy: 0, pts: 0 };
                 
                 userStats[email].pts += (f.pts || 0);
@@ -837,13 +863,11 @@
                 }
             });
             
-            // 如果沒有資料，就把自己加進去當 0 分
             if (Object.keys(userStats).length === 0) {
                 userStats[sessionUser.email] = { leads: 0, opps: 0, recs: 0, loy: 0, pts: 0 };
             }
 
             const scores = Object.keys(userStats).map(email => {
-                // 將信箱翻譯成最新暱稱
                 let displayName = userProfilesMap[email] || email.split('@')[0];
                 return { user: displayName, ...userStats[email] };
             });
@@ -861,7 +885,6 @@
             rank.forEach((r,i) => { html += `<div class="p-4 rounded-xl theme-subcard border-theme border flex justify-between items-center text-base"><div class="flex gap-4 items-center"><span class="text-xl w-6">${i===0?'🥇':i===1?'🥈':'🥉'}</span><span class="font-bold theme-title">${r.user}</span></div><span class="font-bold text-indigo-600 text-lg">${r[leaderboardCategory] || 0} ${unit}</span></div>`; });
             lb.innerHTML = html + '</div>';
 
-            // ✅ 戰功捷報跑馬燈牆 (只顯示前 30 筆最新動態，避免卡頓)
             const feedContainer = document.getElementById('feed-container'); 
             if(feedContainer) {
                 const latest30Feeds = state.feeds.slice(0, 30);
@@ -872,21 +895,53 @@
             }
         }
 
+        // ✅ 工具函式：計算兩個日期的「月份差」
+        function getMonthDiff(dateStr1, dateStr2) {
+            const d1 = new Date(dateStr1.substring(0,7) + '-01');
+            const d2 = new Date(dateStr2.substring(0,7) + '-01');
+            return (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+        }
+
+        // ✅ 升級版 BV 統計：支援「長客 6 個月自動展延帶入」邏輯
         window.renderBVReport = function() {
             const container = document.getElementById('bv-report-container'); if(!container) return;
-            const selectedMonth = document.getElementById('bv-month-select').value; document.getElementById('sub-prod-select').innerHTML = state.products.map(p => `<option value="${p.id}">${p.name} (${p.bv} BV)</option>`).join('');
+            const selectedMonth = document.getElementById('bv-month-select').value; 
+            document.getElementById('sub-prod-select').innerHTML = state.products.map(p => `<option value="${p.id}">${p.name} (${p.bv} BV)</option>`).join('');
+            
             const groups = {}; let totalBV = 0; let totalQty = 0;
+            
+            // 處理直轄名單長客 (含 6 個月展延)
             state.customers.filter(c=>!c.isTrashed && c.owner === sessionUser.email && c.loyaltyItems && c.loyaltyItems.length>0).forEach(c => {
-                if (c.date.startsWith(selectedMonth)) {
-                    if(!groups[c.name]) groups[c.name] = { items: [], sumBV: 0 };
-                    c.loyaltyItems.forEach(item => { const p = state.products.find(x=>x.id===item.productId); if(p) { const rowBV = p.bv * item.qty; groups[c.name].items.push({ type:'main', pName: p.name, qty: item.qty, rowBV }); groups[c.name].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; } });
+                c.loyaltyItems.forEach(item => { 
+                    const itemDate = item.date || c.date; // 如果舊資料沒日期，用名單建立日
+                    const diff = getMonthDiff(itemDate, selectedMonth);
+                    // 只要在 0~5 個月內，都自動算入 BV！
+                    if (diff >= 0 && diff <= 5) {
+                        if(!groups[c.name]) groups[c.name] = { items: [], sumBV: 0 };
+                        const p = state.products.find(x=>x.id===item.productId); 
+                        if(p) { 
+                            const rowBV = p.bv * item.qty; 
+                            groups[c.name].items.push({ type:'main', pName: p.name + ` <span class="text-xs opacity-70 ml-2">(第${diff+1}期)</span>`, qty: item.qty, rowBV }); 
+                            groups[c.name].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; 
+                        } 
+                    }
+                });
+            });
+            
+            // 處理補登小組長客 (含 6 個月展延)
+            (state.subGroupLoyalties||[]).forEach(item => {
+                const diff = getMonthDiff(item.date, selectedMonth);
+                if (diff >= 0 && diff <= 5) {
+                    if(!groups[item.partnerName]) groups[item.partnerName] = { items: [], sumBV: 0 };
+                    const p = state.products.find(x=>x.id===item.productId);
+                    if(p) { 
+                        const rowBV = p.bv * item.qty; 
+                        groups[item.partnerName].items.push({ type:'sub', subId: item.id, pName: p.name + ` <span class="text-xs text-amber-600 font-bold ml-2">(補登第${diff+1}期)</span>`, qty: item.qty, rowBV }); 
+                        groups[item.partnerName].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; 
+                    }
                 }
             });
-            (state.subGroupLoyalties||[]).filter(item => item.date && item.date.startsWith(selectedMonth)).forEach(item => {
-                if(!groups[item.partnerName]) groups[item.partnerName] = { items: [], sumBV: 0 };
-                const p = state.products.find(x=>x.id===item.productId);
-                if(p) { const rowBV = p.bv * item.qty; groups[item.partnerName].items.push({ type:'sub', subId: item.id, pName: p.name + ' (補登)', qty: item.qty, rowBV }); groups[item.partnerName].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; }
-            });
+            
             document.getElementById('total-bv-display').textContent = totalBV.toLocaleString(); document.getElementById('total-loyalty-qty-display').textContent = `${totalQty} 組`;
             if(Object.keys(groups).length === 0) { container.innerHTML = '<div class="text-center theme-muted p-6">該月份無長客紀錄</div>'; return; }
             container.innerHTML = Object.keys(groups).map(name => {
