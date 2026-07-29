@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/0*diamond.png">
+    <!-- ✅ 修正 iOS 主頁圖示問題 -->
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/192/gem.png">
     <title>五心計畫 KPI - 雲端完全體</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -200,7 +201,14 @@
 
             <section id="sect-leaderboard" class="hidden space-y-4 w-full">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
-                    <div class="lg:col-span-2 theme-card rounded-2xl p-5 shadow border-theme border space-y-4"><h2 class="text-base sm:text-lg font-extrabold theme-title">🏆 排行榜</h2><div id="leaderboard-container" class="space-y-4"></div></div>
+                    <div class="lg:col-span-2 theme-card rounded-2xl p-5 shadow border-theme border space-y-4">
+                        <!-- ✅ 新增排行榜區間篩選 -->
+                        <div class="flex justify-between items-center border-b border-theme pb-3">
+                            <h2 class="text-base sm:text-lg font-extrabold theme-title">🏆 戰功排行榜</h2>
+                            <select id="lb-month-select" onchange="window.renderLeaderboard()" class="theme-subcard border-theme border text-sm font-bold rounded-lg px-3 py-1.5 theme-title outline-none"></select>
+                        </div>
+                        <div id="leaderboard-container" class="space-y-4"></div>
+                    </div>
                     <div class="theme-card rounded-2xl p-5 shadow border-theme border flex flex-col h-[600px]"><h3 class="font-bold theme-title text-base border-b border-theme pb-3 mb-3">🔥 戰功捷報</h3><div class="flex-1 overflow-y-auto space-y-3 no-scrollbar" id="feed-container"></div></div>
                 </div>
             </section>
@@ -249,7 +257,6 @@
         </div>
     </div>
 
-    <!-- 打卡 Modals -->
     <div id="checkin-opp-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🗣️ 講 336 / OPP 打卡</h3><form onsubmit="window.submitOppCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="opp-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">講述日期 *</label><input type="date" id="opp-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">講述備註</label><textarea id="opp-checkin-notes" rows="2" placeholder="備註細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></textarea></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-opp-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl font-bold">送出打卡</button></div></form></div></div>
     <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="block font-bold theme-title mb-1.5">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div></div>
     <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[85vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客打卡</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="loyalty-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">長客備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認長客打卡</button></div></form></div></div>
@@ -495,7 +502,6 @@
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('loading-screen').classList.remove('hidden');
             
-            // 解除 Admin 強制鎖定，每個人都會顯示自己專屬的暱稱
             document.getElementById('current-user-display').textContent = nickname;
 
             const localTheme = localStorage.getItem('theme'); if(localTheme) state.theme = localTheme;
@@ -507,6 +513,21 @@
             document.getElementById('loading-screen').classList.add('hidden');
             document.getElementById('main-app').style.display = 'flex';
             populateAmwayMonthOptions();
+            
+            // ✅ 產生排行榜月份下拉選單
+            const lbSelect = document.getElementById('lb-month-select');
+            if (lbSelect) {
+                const now = new Date();
+                lbSelect.innerHTML = `<option value="all">🏆 歷史總積分</option>`;
+                for (let i = 0; i < 12; i++) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    lbSelect.innerHTML += `<option value="${ym}">${ym} 月競賽</option>`;
+                }
+                const curMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                lbSelect.value = curMonth;
+            }
+
             window.switchTab('my-list');
             renderAll();
             window.showToast(`🎉 歡迎回來，${nickname}！`);
@@ -516,15 +537,12 @@
             const { data: profiles } = await db.from('profiles').select('*');
             if(profiles) { profiles.forEach(p => { userProfilesMap[p.email] = p.nickname; }); }
 
-            // 產品與標籤改為「各自獨立綁定信箱」
             const { data: sets } = await db.from('system_settings').select('*');
             if(sets && sets.length>0) {
                 const p = sets.find(x=>x.id===`products_${sessionUser.email}`); 
                 if(p) state.products = p.data; else state.products = JSON.parse(JSON.stringify(defaultProducts));
-                
                 const t = sets.find(x=>x.id===`tags_${sessionUser.email}`); 
                 if(t) state.tags = t.data;
-                
                 const tree = sets.find(x=>x.id===`tree_${sessionUser.email}`); 
                 if(tree) state.treeData = tree.data; else state.treeData = { id: 'root', name: userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0], collapsed: false, children: [] };
             } else { 
@@ -532,37 +550,37 @@
                 state.treeData = { id: 'root', name: userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0], collapsed: false, children: [] }; 
             }
 
-            // 抓取名單 (RLS 已經在資料庫端鎖定，只會抓到自己的)
             let qCust = db.from('customers').select('*').eq('owner', sessionUser.email);
             const { data: custs } = await qCust;
             state.customers = custs || [];
 
             let qLog = db.from('checkin_logs').select('*').eq('user_name', sessionUser.email);
-            
-            // 補登長客改為各自獨立
             let qSub = db.from('sub_group_loyalties').select('*').eq('owner', sessionUser.email);
             
-            const [resLog, resFeed, resSub] = await Promise.all([qLog, db.from('feeds').select('*').limit(50).order('created_at',{ascending:false}), qSub]);
+            // ✅ 為了排行榜準確，拉取較多 feeds 資料
+            const [resLog, resFeed, resSub] = await Promise.all([qLog, db.from('feeds').select('*').order('created_at',{ascending:false}).limit(500), qSub]);
             state.checkinLogs = resLog.data || [];
             
-            if (resFeed.data) state.feeds = resFeed.data.reverse(); else state.feeds = [];
+            if (resFeed.data) state.feeds = resFeed.data; else state.feeds = [];
             state.subGroupLoyalties = resSub.data || [];
         }
 
+        // ✅ 加入資料清洗機制，拔除前端專屬標籤，徹底解決儲存報錯！
         async function cloudUpsert(table, data) { 
-            const { error } = await db.from(table).upsert(data);
+            const cleanData = { ...data };
+            delete cleanData.inTree; // 清洗暫存屬性
+            const { error } = await db.from(table).upsert(cleanData);
             if (error) { window.showToast(`⚠️ 雲端同步失敗: ${error.message}`); }
         }
+        
         async function cloudDelete(table, id) { await db.from(table).delete().eq('id', id); }
         
         async function saveSystemSettings() {
-            // 存檔時綁定個人信箱
             await cloudUpsert('system_settings', { id: `products_${sessionUser.email}`, setting_type: 'user', data: state.products });
             await cloudUpsert('system_settings', { id: `tags_${sessionUser.email}`, setting_type: 'user', data: state.tags });
             await cloudUpsert('system_settings', { id: `tree_${sessionUser.email}`, setting_type: 'user', data: state.treeData });
         }
 
-        // 新增「一鍵恢復預設產品菜單」的功能
         window.resetProducts = async function() {
             if(confirm('確定要恢復官方預設產品與 BV 嗎？您自訂的產品將會消失喔！')) {
                 state.products = JSON.parse(JSON.stringify(defaultProducts));
@@ -639,13 +657,16 @@
             document.getElementById('kpi-leads-count').textContent = leads; document.getElementById('kpi-opp-count').textContent = `${opps} 次`; document.getElementById('kpi-loyalty-count').textContent = `${loyalty} 組`; document.getElementById('kpi-rec-count').textContent = `${recs} 人`;
         }
         window.filterDashboardMetric = function(t) { const s = document.getElementById('search-input'); if(t==='leads') s.value = new Date().toISOString().substring(0,7); else if(t==='loyalty') s.value = '長客'; else if(t==='rec') s.value = '會員'; renderList(); }
+        
         function isNodeInTree(node, contactId) { if(node.contactId === contactId) return true; if(node.children) { for(let child of node.children) { if(isNodeInTree(child, contactId)) return true; } } return false; }
         
         window.renderList = function() {
             const kw = document.getElementById('search-input').value.toLowerCase();
             const rawP = document.getElementById('filter-progress').value; const pF = rawP.split(' ')[0];
             const lF = document.getElementById('filter-level').value.split(' ')[0]; const tF = document.getElementById('filter-tag').value;
+            
             state.customers.forEach(c => c.inTree = isNodeInTree(state.treeData, c.id));
+            
             const filtered = state.customers.filter(c => {
                 if(c.owner !== sessionUser.email) return false;
                 if(pF === '斷捨離') { if(!c.isTrashed) return false; } else { if(c.isTrashed) return false; }
@@ -717,8 +738,14 @@
             const data = {
                 id: id || 'c_' + Date.now(), owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: document.getElementById('field-referrer').value.trim(), level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: id ? (state.customers.find(x=>x.id===id).timeline||[]) : [{date: document.getElementById('field-date').value, text:'建立名單'}]
             };
-            if(id) { const idx = state.customers.findIndex(x=>x.id===id); if(idx>-1) state.customers[idx] = data; } 
-            else { state.customers.unshift(data); const nickname = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0]; const fd = {id:'f_'+Date.now(), user_name:nickname, action:'新增跟進名單', pts:1, time:new Date().toISOString()}; state.feeds.unshift(fd); await cloudUpsert('feeds', fd); }
+            if(id) { 
+                const idx = state.customers.findIndex(x=>x.id===id); if(idx>-1) state.customers[idx] = data; 
+            } else { 
+                state.customers.unshift(data); 
+                // ✅ Feeds 寫入時，統一綁定 Email 而非暱稱字串，避免改名分散分數
+                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:'新增跟進名單', pts:1, time:new Date().toISOString()}; 
+                state.feeds.unshift(fd); await cloudUpsert('feeds', fd); 
+            }
             await cloudUpsert('customers', data); renderAll(); window.closeModal('modal'); window.showToast(isTrashProgress ? '📦 已移至斷捨離區' : '💾 名單已儲存');
         };
 
@@ -739,16 +766,19 @@
             const log = {id:'log_'+Date.now(), type:'opp', user_name:sessionUser.email, partnerName:c.name, date:d, notes:note};
             state.checkinLogs.push(log); await cloudUpsert('checkin_logs', log);
             c.progress = 'OPP'; if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[講336/OPP] ${note}`}); await cloudUpsert('customers', c);
-            const nickname = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
-            const fd = {id:'f_'+Date.now(), user_name:nickname, action:'講了一場 336/OPP', pts:5, time:new Date().toISOString()}; state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+            
+            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:'講了一場 336/OPP', pts:5, time:new Date().toISOString()}; 
+            state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-opp-modal'); window.showToast('🎉 OPP 打卡成功');
         };
         window.submitRecCheckin = async function(e) {
             e.preventDefault(); const cId = document.getElementById('rec-partner-select').value; const c = state.customers.find(x=>x.id===cId); if(!c) return;
             const type = document.getElementById('rec-type-select').value; c.memberType = type; const note = document.getElementById('rec-checkin-notes').value; const d = document.getElementById('rec-checkin-date').value;
             if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[推薦${type}] ${note}`}); await cloudUpsert('customers', c);
-            const pts = type==='直銷商'?10:2; const nickname = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
-            const fd = {id:'f_'+Date.now(), user_name:nickname, action:`推薦了${type}`, pts:pts, time:new Date().toISOString()}; state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+            const pts = type==='直銷商'?10:2; 
+            
+            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`推薦了${type}`, pts:pts, time:new Date().toISOString()}; 
+            state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-rec-modal'); window.showToast('🎉 推薦打卡成功');
         };
         window.submitLoyaltyCheckin = async function(e) {
@@ -757,8 +787,9 @@
             document.querySelectorAll('.checkin-loy-row').forEach(row => { const pId = row.querySelector('.checkin-prod-select').value; const qty = parseInt(row.querySelector('.checkin-qty-input').value)||1; if(pId && qty>0) { c.loyaltyItems.push({productId: pId, qty}); totalAdded += qty; } });
             const note = document.getElementById('loyalty-checkin-notes').value; const d = document.getElementById('loyalty-checkin-date').value;
             if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[新增長客] +${totalAdded}組. ${note}`}); await cloudUpsert('customers', c);
-            const nickname = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
-            const fd = {id:'f_'+Date.now(), user_name:nickname, action:`新增了 ${totalAdded} 組長客`, pts:10*totalAdded, time:new Date().toISOString()}; state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+            
+            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`新增了 ${totalAdded} 組長客`, pts:10*totalAdded, time:new Date().toISOString()}; 
+            state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-loyalty-modal'); window.showToast(`🎉 長客打卡成功 (+${totalAdded}組)`);
         };
 
@@ -778,49 +809,64 @@
         window.submitAddTreeNode = function(e) { e.preventDefault(); const p=document.getElementById('tree-parent-id').value; const n=document.getElementById('tree-node-name').value; const cObj = state.customers.find(x=>x.name===n); const rec=(node)=>{if(node.id===p){if(!node.children)node.children=[]; node.children.push({id:'tn'+Date.now(), name:n, contactId: cObj?cObj.id:'', collapsed:false}); return true;} if(node.children){for(let c of node.children)if(rec(c))return true;} return false;}; rec(state.treeData); saveSystemSettings(); renderTree(); renderList(); window.closeModal('tree-add-modal'); window.showToast('🎉 已加入五心組織圖'); }
         window.deleteTreeNode = function(id) { const rec=(p,t)=>{if(!p.children)return false; const i=p.children.findIndex(x=>x.id===t); if(i>-1){p.children.splice(i,1);return true;} for(let c of p.children)if(rec(c,t))return true; return false;}; rec(state.treeData, id); saveSystemSettings(); renderTree(); renderList(); }
 
-        function renderLeaderboard() {
-            const usersMap = { ...userProfilesMap };
-            state.customers.forEach(c=>{ if(!usersMap[c.owner]) usersMap[c.owner]=c.owner.split('@')[0]; });
-            state.feeds.forEach(f=>{ 
-                if(!usersMap[f.user_name] && f.user_name.includes('@')) {
-                    usersMap[f.user_name]=f.user_name.split('@')[0]; 
-                } else if (!usersMap[f.user_name]) {
-                    usersMap[f.user_name] = f.user_name;
-                }
-            });
-            const users = Object.keys(usersMap); if(users.length===0) users.push(sessionUser.email);
+        // ✅ 全新的排行榜邏輯 (完全根據 Feeds 計算 + 支援月份篩選)
+        window.renderLeaderboard = function() {
+            const lbSelect = document.getElementById('lb-month-select');
+            if(!lbSelect) return;
+            const targetMonth = lbSelect.value;
             
-            const scores = users.map(u => {
-                const c = state.customers.filter(x=>x.owner===u&&!x.isTrashed);
-                const leads = c.length || 0;
-                const opps = state.checkinLogs.filter(x=>x.user_name===u&&x.type==='opp').length || 0;
-                const recs = c.filter(x=>x.memberType!=='未加入').length || 0;
-                const loy = c.reduce((s, x) => s + (x.loyaltyItems ? x.loyaltyItems.reduce((sum,i)=>sum+(parseInt(i.qty)||0),0) : 0), 0) || 0;
-                const pts = leads*1 + opps*5 + loy*10 + c.reduce((s,x)=>s+(x.memberType==='直銷商'?10:x.memberType==='生活會員'?2:0),0);
+            // 1. 根據所選月份過濾戰功捷報
+            let filteredFeeds = state.feeds;
+            if (targetMonth !== 'all') {
+                filteredFeeds = state.feeds.filter(f => f.time.startsWith(targetMonth));
+            }
+            
+            // 2. 計算每位夥伴的分數 (從 feeds 加總)
+            const userStats = {};
+            filteredFeeds.forEach(f => {
+                const email = f.user_name; // 資料庫現在存的是 email
+                if (!userStats[email]) userStats[email] = { leads: 0, opps: 0, recs: 0, loy: 0, pts: 0 };
                 
-                let displayName = usersMap[u] || u;
-                if(displayName.includes('@')) {
-                    displayName = displayName.split('@')[0];
+                userStats[email].pts += (f.pts || 0);
+                if (f.action.includes('新增跟進名單')) userStats[email].leads += 1;
+                if (f.action.includes('講了一場')) userStats[email].opps += 1;
+                if (f.action.includes('推薦了')) userStats[email].recs += 1;
+                if (f.action.includes('新增了')) {
+                    const match = f.action.match(/新增了 (\d+) 組/);
+                    if (match) userStats[email].loy += parseInt(match[1]);
                 }
-
-                return { user: displayName, leads, opps, recs, loy, pts };
             });
+            
+            // 如果沒有資料，就把自己加進去當 0 分
+            if (Object.keys(userStats).length === 0) {
+                userStats[sessionUser.email] = { leads: 0, opps: 0, recs: 0, loy: 0, pts: 0 };
+            }
+
+            const scores = Object.keys(userStats).map(email => {
+                // 將信箱翻譯成最新暱稱
+                let displayName = userProfilesMap[email] || email.split('@')[0];
+                return { user: displayName, ...userStats[email] };
+            });
+            
             const top = [...scores].sort((a,b)=>b.pts-a.pts)[0] || {user:'-',pts:0};
-            const lb = document.getElementById('leaderboard-container'); if(!lb) return;
+            const lb = document.getElementById('leaderboard-container'); 
             const cats = [{id:'leads', n:'🚀開發王'},{id:'opps', n:'🗣️OPP王'},{id:'recs', n:'🤝推薦王'},{id:'loy', n:'📦長客王'}];
             
-            let html = `<div class="bg-amber-100/80 p-5 rounded-2xl border border-amber-300 flex justify-between items-center shadow-sm"><div class="flex items-center gap-4"><span class="text-4xl">👑</span><div><span class="text-sm font-bold text-amber-800 block">總 MVP 王者</span><span class="text-xl font-black text-amber-950">${top.user}</span></div></div><span class="text-3xl font-black text-amber-800">${top.pts} 分</span></div><div class="flex bg-black/5 dark:bg-white/5 p-2 rounded-xl gap-2 overflow-x-auto text-sm font-bold text-center mt-4">`;
-            cats.forEach(c => html += `<button onclick="leaderboardCategory='${c.id}'; renderLeaderboard()" class="flex-1 py-2 rounded-lg ${leaderboardCategory===c.id?'bg-indigo-600 text-white shadow':'theme-muted'}">${c.n}</button>`); html += `</div><div class="space-y-3 mt-4">`;
+            let html = `<div class="bg-amber-100/80 p-5 rounded-2xl border border-amber-300 flex justify-between items-center shadow-sm"><div class="flex items-center gap-4"><span class="text-4xl">👑</span><div><span class="text-sm font-bold text-amber-800 block">MVP 王者</span><span class="text-xl font-black text-amber-950">${top.user}</span></div></div><span class="text-3xl font-black text-amber-800">${top.pts} 分</span></div><div class="flex bg-black/5 dark:bg-white/5 p-2 rounded-xl gap-2 overflow-x-auto text-sm font-bold text-center mt-4">`;
+            cats.forEach(c => html += `<button onclick="leaderboardCategory='${c.id}'; window.renderLeaderboard()" class="flex-1 py-2 rounded-lg ${leaderboardCategory===c.id?'bg-indigo-600 text-white shadow':'theme-muted'}">${c.n}</button>`); html += `</div><div class="space-y-3 mt-4">`;
             
-            const rank = [...scores].sort((a,b)=>b[leaderboardCategory]-a[leaderboardCategory]); const unit = leaderboardCategory==='opps'?'次':leaderboardCategory==='loy'?'組':'人';
+            const rank = [...scores].sort((a,b)=>b[leaderboardCategory]-a[leaderboardCategory]); 
+            const unit = leaderboardCategory==='opps'?'次':leaderboardCategory==='loy'?'組':'人';
+            
             rank.forEach((r,i) => { html += `<div class="p-4 rounded-xl theme-subcard border-theme border flex justify-between items-center text-base"><div class="flex gap-4 items-center"><span class="text-xl w-6">${i===0?'🥇':i===1?'🥈':'🥉'}</span><span class="font-bold theme-title">${r.user}</span></div><span class="font-bold text-indigo-600 text-lg">${r[leaderboardCategory] || 0} ${unit}</span></div>`; });
             lb.innerHTML = html + '</div>';
 
-            const feed = document.getElementById('feed-container'); 
-            if(feed) {
-                feed.innerHTML = state.feeds.map(f => {
-                    let feedUser = userProfilesMap[f.user_name] || f.user_name;
-                    if(feedUser.includes('@')) feedUser = feedUser.split('@')[0];
+            // ✅ 戰功捷報跑馬燈牆 (只顯示前 30 筆最新動態，避免卡頓)
+            const feedContainer = document.getElementById('feed-container'); 
+            if(feedContainer) {
+                const latest30Feeds = state.feeds.slice(0, 30);
+                feedContainer.innerHTML = latest30Feeds.map(f => {
+                    let feedUser = userProfilesMap[f.user_name] || f.user_name.split('@')[0];
                     return `<div class="p-4 border-b border-theme text-sm sm:text-base"><div class="flex justify-between text-xs sm:text-sm theme-muted mb-2"><span class="text-amber-600 font-black">⚡ ${feedUser}</span><span>${new Date(f.time).toLocaleString()}</span></div><div class="font-bold theme-title">${f.action} <span class="text-emerald-500 float-right font-black">+${f.pts}</span></div></div>`;
                 }).join('');
             }
@@ -883,7 +929,7 @@
         window.deleteProduct = function(id) { state.products = state.products.filter(x=>x.id!==id); saveSystemSettings(); renderAll(); }
 
         function renderTrashCount() { const trashed = state.customers.filter(c => c.isTrashed && c.owner === sessionUser.email); document.getElementById('drawer-trash-btn').innerHTML = `📦 斷捨離暫存區 (${trashed.length})`; document.getElementById('trash-list-container').innerHTML = trashed.map(c=>`<div class="flex justify-between p-4 border-b border-theme text-base"><span class="theme-title font-bold">${c.name}</span><div><button onclick="window.restoreCustomer('${c.id}')" class="text-indigo-600 font-bold mr-4">復原</button><button onclick="window.deletePermanently('${c.id}')" class="text-rose-600 font-bold">永久刪除</button></div></div>`).join(''); }
-        window.restoreCustomer = async function(id) { const c = state.customers.find(x=>x.id===id); if(c){ c.isTrashed=false; await cloudUpsert('customers', c); renderAll(); } }
+        window.restoreCustomer = async function(id) { const c = state.customers.find(x=>x.id===id); if(c){ c.isTrashed=false; await cloudUpsert('customers', c); renderAll(); window.showToast('✅ 成功從斷捨離區復原'); } }
         window.deletePermanently = function(id) { window.openConfirmModal('確定要永久刪除？', async ()=>{ state.customers = state.customers.filter(x=>x.id!==id); await cloudDelete('customers', id); renderAll(); window.showToast('🗑️ 已永久刪除'); }); }
 
         window.exportExcel = function() {
