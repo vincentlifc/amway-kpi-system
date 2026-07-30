@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- 💎 終極修復版 iOS 鑽石圖示 -->
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/192/2436/2436874.png">
+    <!-- 📱 PWA 手機主畫面圖示設定 (讀取根目錄的 icon.png) -->
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
     <title>五心計畫 KPI - 雲端完全體</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -245,8 +246,9 @@
         </div>
     </div>
 
+    <!-- ✅ 加大寬度為 max-w-3xl 容納更完整的長客資訊 -->
     <div id="modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="theme-card w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl border-theme border flex flex-col max-h-[90vh]">
+        <div class="theme-card w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl border-theme border flex flex-col max-h-[90vh]">
             <div class="px-6 py-4 border-b border-theme flex justify-between items-center theme-subcard shrink-0"><h3 id="modal-title" class="text-base sm:text-lg font-bold theme-title">➕ 新增跟進名單</h3><button onclick="window.closeModal('modal')" class="theme-muted hover:theme-title text-2xl font-bold">&times;</button></div>
             <form id="crm-form" onsubmit="window.handleFormSubmit(event)" class="p-6 space-y-5 text-sm overflow-y-auto flex-1 no-scrollbar">
                 <input type="hidden" id="field-id">
@@ -260,8 +262,11 @@
                 <div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><label class="block font-bold theme-title text-sm">🔗 聯絡方式與跳轉連結</label><div class="flex flex-wrap gap-3 items-center"><label class="flex items-center gap-2 theme-title"><input type="checkbox" id="field-has-line" class="rounded w-5 h-5"> LINE</label><input type="text" id="field-ig-link" placeholder="IG 帳號 (@abc)" class="w-36 theme-card border-theme border rounded-lg p-2 text-sm theme-title"><input type="text" id="field-threads-link" placeholder="Threads" class="w-36 theme-card border-theme border rounded-lg p-2 text-sm theme-title"><input type="text" id="field-other-channel" placeholder="其他管道" class="flex-1 theme-card border-theme border rounded-lg p-2 text-sm theme-title"></div></div>
                 <div><label class="block font-bold theme-title mb-1.5">🏷️ 套用活動標籤 (輸入按 Enter 套用)</label><div class="theme-subcard border-theme border rounded-xl p-3 flex flex-wrap gap-2 items-center" id="field-tags-container"><input type="text" id="field-tag-input" onkeydown="window.handleTagInput(event)" placeholder="輸入標籤..." class="bg-transparent text-sm theme-title outline-none w-36 flex-1"></div><div id="available-tags-chips" class="mt-2 flex flex-wrap gap-2"></div></div>
                 <div><label class="block font-bold theme-title mb-1.5">備註 / 痛點</label><textarea id="field-notes" rows="2" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></textarea></div>
+                
+                <!-- ✅ 名下長客品項擴充 -->
                 <div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="block font-bold theme-title text-sm">📦 名下長客品項</label><button type="button" onclick="window.addLoyaltyItemField()" class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg shadow">+ 新增品項</button></div><div id="loyalty-items-list" class="space-y-3"></div></div>
-                <div class="pt-4 border-t border-theme flex justify-between items-center shrink-0"><button type="button" id="delete-in-modal-btn" onclick="window.deleteCurrentCustomerFromModal()" class="bg-rose-500/10 text-rose-600 border border-rose-500/20 px-5 py-2.5 rounded-xl font-bold">🗑️ 刪除名單</button><div class="flex gap-3"><button type="button" onclick="window.closeModal('modal')" class="theme-subcard border-theme border theme-title font-bold px-5 py-2.5 rounded-xl">取消</button><button type="submit" class="bg-indigo-600 text-white font-bold px-6 py-2.5 rounded-xl shadow">儲存資料</button></div></div>
+                
+                <div class="pt-4 border-t border-theme flex justify-between items-center shrink-0"><button type="button" id="delete-in-modal-btn" onclick="window.deleteCurrentCustomerFromModal()" class="bg-rose-500/10 text-rose-600 border border-rose-500/20 px-5 py-2.5 rounded-xl font-bold">🗑️ 永久刪除名單</button><div class="flex gap-3"><button type="button" onclick="window.closeModal('modal')" class="theme-subcard border-theme border theme-title font-bold px-5 py-2.5 rounded-xl">取消</button><button type="submit" class="bg-indigo-600 text-white font-bold px-6 py-2.5 rounded-xl shadow">儲存資料</button></div></div>
             </form>
         </div>
     </div>
@@ -313,7 +318,7 @@
     
     <div id="timeline-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[80vh] flex flex-col"><div class="flex justify-between border-b border-theme pb-3"><h3 id="timeline-title" class="font-bold theme-title text-lg">📜 時間軸</h3><button onclick="window.closeModal('timeline-modal')" class="theme-muted text-2xl">&times;</button></div><div class="overflow-y-auto flex-1 space-y-5 no-scrollbar"><div class="theme-subcard p-4 rounded-xl border-theme border space-y-3"><textarea id="timeline-new-note" rows="2" placeholder="新增帶線筆記..." class="w-full bg-transparent text-base theme-title outline-none"></textarea><div class="text-right"><button onclick="window.addTimelineNote()" class="bg-indigo-600 text-white text-sm px-5 py-2 rounded-xl font-bold shadow">寫入</button></div></div><div id="timeline-items-container" class="space-y-4 pl-5 border-l-2 border-indigo-500/30"></div></div></div></div>
     <div id="tree-add-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-4"><h3 class="font-bold theme-title text-lg border-b border-theme pb-3">💎 新增五心團隊夥伴</h3><form onsubmit="window.submitAddTreeNode(event)" class="space-y-4 text-sm"><input type="hidden" id="tree-parent-id"><select id="tree-contact-select" onchange="document.getElementById('tree-node-name').value=this.value" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select><input type="text" id="tree-node-name" required placeholder="或手動輸入姓名" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><div class="flex justify-end gap-3"><button type="button" onclick="window.closeModal('tree-add-modal')" class="theme-subcard border-theme border px-4 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow">加入</button></div></form></div></div>
-    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card max-w-sm w-full rounded-2xl p-6 border-theme border shadow-2xl text-base space-y-5"><h4 class="theme-title font-bold text-lg">⚠️ 確認操作</h4><p id="confirm-msg" class="theme-muted font-medium">確定執行此操作？</p><div class="flex justify-end gap-3"><button onclick="window.closeModal('confirm-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button id="confirm-execute-btn" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold shadow">確定</button></div></div></div>
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card max-w-sm w-full rounded-2xl p-6 border-theme border shadow-2xl text-base space-y-5"><h4 class="theme-title font-bold text-lg">⚠️ 確認操作</h4><p id="confirm-msg" class="theme-muted font-medium whitespace-pre-wrap">確定執行此操作？</p><div class="flex justify-end gap-3"><button onclick="window.closeModal('confirm-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button id="confirm-execute-btn" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold shadow">確定</button></div></div></div>
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
     <!-- 🚀 核心邏輯引擎 -->
@@ -513,7 +518,6 @@
             document.getElementById('current-user-display').textContent = newName;
             userProfilesMap[sessionUser.email] = newName;
             
-            // ✅ 動態更新五心計畫圖中央的名字
             if(state.treeData && state.treeData.id === 'root') {
                 state.treeData.name = newName;
                 await saveSystemSettings();
@@ -539,14 +543,12 @@
 
             await loadCloudData();
             
-            // ✅ 強制校正五心圖名字為最新設定
             if(state.treeData && state.treeData.id === 'root') { state.treeData.name = nickname; }
             
             document.getElementById('loading-screen').classList.add('hidden');
             document.getElementById('main-app').style.display = 'flex';
             populateAmwayMonthOptions();
             
-            // 產生排行榜月份下拉選單 (12個月+自訂)
             const lbSelect = document.getElementById('lb-month-select');
             if (lbSelect) {
                 const now = new Date();
@@ -596,7 +598,6 @@
             state.subGroupLoyalties = resSub.data || [];
         }
 
-        // 清洗暫存屬性
         async function cloudUpsert(table, data) { 
             const cleanData = { ...data };
             delete cleanData.inTree; 
@@ -724,34 +725,55 @@
 
         window.bulkTrash = function() {
             const checked = document.querySelectorAll('.contact-checkbox:checked'); if(!checked.length) return window.showToast('ℹ️ 請先勾選名單');
-            window.openConfirmModal(`確定將勾選的 ${checked.length} 筆名單移至封存區？`, async () => {
+            window.openConfirmModal(`確定將勾選的 ${checked.length} 筆名單移至封存區？\n(歷史積分與軌跡將會完整保留)`, async () => {
                 for(let cb of checked) { const c = state.customers.find(x=>x.id===cb.value); if(c) { c.isTrashed = true; await cloudUpsert('customers', c); } }
                 renderAll(); window.showToast('📦 已批次移至名單封存區');
             });
         }
+        
+        // 🚀 連動刪除邏輯
         window.bulkDelete = function() {
             const checked = document.querySelectorAll('.contact-checkbox:checked'); if(!checked.length) return window.showToast('ℹ️ 請先勾選名單');
-            window.openConfirmModal(`⚠️ 確定將勾選的 ${checked.length} 筆名單「永久刪除」？`, async () => {
-                for(let cb of checked) { await cloudDelete('customers', cb.value); state.customers = state.customers.filter(c => c.id !== cb.value); }
-                renderAll(); window.showToast('🗑️ 已批次永久刪除');
+            window.openConfirmModal(`⚠️ 確定將勾選的 ${checked.length} 筆名單「永久刪除」？\n(相關的打卡日誌與捷報積分也將一併清除！)`, async () => {
+                for(let cb of checked) { 
+                    const id = cb.value;
+                    await cloudDelete('customers', id); 
+                    await db.from('feeds').delete().eq('customer_id', id);
+                    await db.from('checkin_logs').delete().eq('customer_id', id);
+                    state.customers = state.customers.filter(c => c.id !== id); 
+                    state.feeds = state.feeds.filter(f => f.customer_id !== id);
+                    state.checkinLogs = state.checkinLogs.filter(l => l.customer_id !== id);
+                }
+                renderAll(); window.showToast('🗑️ 名單與歷史紀錄已徹底刪除');
             });
         }
 
         let tempTagsForModal = [];
         window.openAddCustomerModal = function() { document.getElementById('crm-form').reset(); document.getElementById('field-id').value = ''; document.getElementById('field-date').value = new Date().toISOString().split('T')[0]; document.getElementById('modal-title').textContent = '➕ 新增跟進名單'; document.getElementById('delete-in-modal-btn').classList.add('hidden'); tempTagsForModal = []; document.getElementById('loyalty-items-list').innerHTML = ''; renderTagsInModal(); window.openModal('modal'); };
+        
         window.editCustomer = function(id) {
             const c = state.customers.find(x=>x.id===id); if(!c) return;
             document.getElementById('modal-title').textContent = '📝 編輯名單'; document.getElementById('field-id').value = c.id; document.getElementById('field-date').value = c.date; document.getElementById('field-name').value = c.name; document.getElementById('field-referrer').value = c.referrer||''; document.getElementById('field-level').value = c.level||'未分類'; document.getElementById('field-progress').value = c.isTrashed ? '名單封存(隱藏)' : (c.progress||'新開發/待跟進'); document.getElementById('field-member-type').value = c.memberType||'未加入'; document.getElementById('field-ig-link').value = c.ig||''; document.getElementById('field-threads-link').value = c.threads||''; document.getElementById('field-has-line').checked = c.channels&&c.channels.includes('LINE'); document.getElementById('field-other-channel').value = c.otherChannel||''; document.getElementById('field-next-followup').value = c.nextFollowUp||''; document.getElementById('field-notes').value = c.notes||''; document.getElementById('delete-in-modal-btn').classList.remove('hidden');
             tempTagsForModal = [...(c.tags||[])]; renderTagsInModal();
             const loyList = document.getElementById('loyalty-items-list'); loyList.innerHTML = ''; 
-            // ✅ 長客模組：載入時附加 id 與 endDate
             (c.loyaltyItems||[]).forEach((item) => addLoyaltyItemField(item.id, item.productId, item.qty, item.date, item.endDate));
             window.openModal('modal');
         };
+        
+        // 🚀 連動刪除邏輯
         window.deleteCurrentCustomerFromModal = function() {
             const id = document.getElementById('field-id').value; if(!id) return;
-            window.openConfirmModal('確定將此筆名單「永久刪除」？', async () => { await cloudDelete('customers', id); state.customers = state.customers.filter(c => c.id !== id); renderAll(); window.closeModal('modal'); window.showToast('🗑️ 名單已永久刪除'); });
+            window.openConfirmModal('確定將此筆名單「永久刪除」？\n(相關的打卡日誌與捷報積分也將一併清除！)', async () => { 
+                await cloudDelete('customers', id); 
+                await db.from('feeds').delete().eq('customer_id', id);
+                await db.from('checkin_logs').delete().eq('customer_id', id);
+                state.customers = state.customers.filter(c => c.id !== id); 
+                state.feeds = state.feeds.filter(f => f.customer_id !== id);
+                state.checkinLogs = state.checkinLogs.filter(l => l.customer_id !== id);
+                renderAll(); window.closeModal('modal'); window.showToast('🗑️ 名單與歷史紀錄已徹底刪除'); 
+            });
         }
+
         window.onProgressChange = function(sel) { if(sel.value === '名單封存(隱藏)') { window.openConfirmModal('確定要將此名單移至封存區？(歷史紀錄保留)', () => {}); } }
         window.handleTagInput = function(e) {
             if(e.key === 'Enter') { e.preventDefault(); const val = e.target.value.trim().replace(/^#/,''); if(val && !tempTagsForModal.includes(val)) { tempTagsForModal.push(val); if(!state.tags.includes(val)) { state.tags.push(val); saveSystemSettings(); } e.target.value = ''; renderTagsInModal(); } }
@@ -762,22 +784,34 @@
         }
         window.removeTagFromModal = function(t) { tempTagsForModal = tempTagsForModal.filter(x=>x!==t); renderTagsInModal(); }; window.addTagToModal = function(t) { if(!tempTagsForModal.includes(t)) tempTagsForModal.push(t); renderTagsInModal(); };
         
-        // ✅ 編輯名單的長客欄位 (支援終止與刪除)
+        // ✅ 擴充版名下長客品項欄位 (加入啟動日期)
         window.addLoyaltyItemField = function(loyId = '', pId = '', qty = 1, date = '', endDate = '') {
             const currentId = loyId || 'ly_' + Date.now() + Math.random().toString().substring(2,6);
-            const div = document.createElement('div'); div.className = "flex gap-2 items-center loyalty-item-row bg-black/5 dark:bg-white/5 p-2 rounded-xl";
+            const initDate = date || document.getElementById('field-date').value || new Date().toISOString().split('T')[0];
+            const div = document.createElement('div'); div.className = "flex gap-2 items-center loyalty-item-row bg-black/5 dark:bg-white/5 p-2 rounded-xl flex-wrap sm:flex-nowrap";
             
-            let btnAction = `<button type="button" onclick="window.terminateLoyaltyItem(this)" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold whitespace-nowrap">終止</button>`;
+            let btnAction = `<button type="button" onclick="window.terminateLoyaltyItem(this)" class="text-xs bg-amber-500/20 text-amber-700 px-3 py-1.5 rounded font-bold whitespace-nowrap">終止</button>`;
             if (endDate) btnAction = `<span class="text-xs text-amber-600 font-bold whitespace-nowrap">終止於 ${endDate}</span>`;
 
             div.innerHTML = `
                 <input type="hidden" class="loy-id-input" value="${currentId}">
-                <select class="w-32 theme-card border-theme border rounded-lg p-1.5 text-xs theme-title loy-prod-select"><option value="" disabled selected>選擇品項...</option>${state.products.map(p => `<option value="${p.id}" ${p.id===pId?'selected':''}>${p.name}</option>`).join('')}</select>
-                <input type="number" min="1" value="${qty}" class="w-12 theme-card border-theme border rounded-lg p-1.5 text-xs theme-title loy-qty-input text-center">
-                <input type="hidden" class="loy-date-input" value="${date}">
+                <div class="flex flex-col gap-1 w-full sm:w-36">
+                    <label class="text-[10px] theme-muted font-bold">啟動日期</label>
+                    <input type="date" class="theme-card border-theme border rounded-lg p-1.5 text-xs theme-title loy-date-input" value="${initDate}">
+                </div>
+                <div class="flex flex-col gap-1 flex-1 min-w-[120px]">
+                    <label class="text-[10px] theme-muted font-bold">長客品項</label>
+                    <select class="theme-card border-theme border rounded-lg p-1.5 text-xs theme-title loy-prod-select w-full"><option value="" disabled selected>選擇品項...</option>${state.products.map(p => `<option value="${p.id}" ${p.id===pId?'selected':''}>${p.name}</option>`).join('')}</select>
+                </div>
+                <div class="flex flex-col gap-1 w-16">
+                    <label class="text-[10px] theme-muted font-bold">數量</label>
+                    <input type="number" min="1" value="${qty}" class="theme-card border-theme border rounded-lg p-1.5 text-xs theme-title loy-qty-input text-center">
+                </div>
                 <input type="hidden" class="loy-end-date-input" value="${endDate}">
-                ${btnAction}
-                <button type="button" onclick="window.deleteLoyaltyItem(this)" class="text-xs bg-rose-500/10 text-rose-600 px-2 py-1 rounded font-bold whitespace-nowrap">刪除</button>
+                <div class="flex gap-2 items-end pt-4 sm:pt-0">
+                    ${btnAction}
+                    <button type="button" onclick="window.deleteLoyaltyItem(this)" class="text-xs bg-rose-500/10 text-rose-600 px-3 py-1.5 rounded font-bold whitespace-nowrap">刪除</button>
+                </div>
             `; 
             document.getElementById('loyalty-items-list').appendChild(div);
         }
@@ -788,19 +822,17 @@
             if (targetMonth && targetMonth.match(/^\d{4}-\d{2}$/)) {
                 row.querySelector('.loy-end-date-input').value = targetMonth;
                 btnEl.outerHTML = `<span class="text-xs text-amber-600 font-bold whitespace-nowrap">終止於 ${targetMonth}</span>`;
-            } else if (targetMonth) {
-                alert('格式錯誤，請輸入 YYYY-MM');
-            }
+            } else if (targetMonth) { alert('格式錯誤，請輸入 YYYY-MM'); }
         }
 
         window.deleteLoyaltyItem = async function(btnEl) {
-            if(confirm('確定要刪除此長客紀錄嗎？\n(如果這是當月建檔的長客，將會同步扣除排行榜 10 分)')) {
+            if(confirm('確定要刪除此長客紀錄嗎？\n(如果這是當月建檔的長客，將會同步扣除排行榜積分)')) {
                 const row = btnEl.closest('.loyalty-item-row');
                 const dateVal = row.querySelector('.loy-date-input').value;
                 const qtyVal = parseInt(row.querySelector('.loy-qty-input').value) || 1;
                 const currentMonth = new Date().toISOString().substring(0,7);
                 
-                // 智慧扣分機制
+                // 智慧扣分：當月長客被刪除則產生負分捷報
                 if (dateVal.substring(0,7) === currentMonth) {
                     const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:'刪除建檔錯誤長客', pts: -(10 * qtyVal), time:new Date().toISOString()}; 
                     state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
@@ -820,47 +852,40 @@
                 const endDate = row.querySelector('.loy-end-date-input').value;
                 if(pid && qty>0) loyItems.push({id: loyId, productId: pid, qty, date, endDate}); 
             });
+            const newCustomerId = id || 'c_' + Date.now();
             const data = {
-                id: id || 'c_' + Date.now(), owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: document.getElementById('field-referrer').value.trim(), level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: id ? (state.customers.find(x=>x.id===id).timeline||[]) : [{date: document.getElementById('field-date').value, text:'建立名單'}]
+                id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: document.getElementById('field-referrer').value.trim(), level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: id ? (state.customers.find(x=>x.id===id).timeline||[]) : [{date: document.getElementById('field-date').value, text:'建立名單'}]
             };
+            
             if(id) { 
                 const idx = state.customers.findIndex(x=>x.id===id); if(idx>-1) state.customers[idx] = data; 
             } else { 
+                // 🚀 Combo 計分：新增名單 + 新增長客
                 state.customers.unshift(data); 
-                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:'新增跟進名單', pts:1, time:new Date().toISOString()}; 
-                state.feeds.unshift(fd); await cloudUpsert('feeds', fd); 
+                const fd1 = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: newCustomerId, action:'新增跟進名單', pts:1, time:new Date().toISOString()}; 
+                state.feeds.unshift(fd1); await cloudUpsert('feeds', fd1); 
+                
+                let totalLoyaltyQty = loyItems.reduce((sum, item) => sum + parseInt(item.qty), 0);
+                if (totalLoyaltyQty > 0) {
+                    const fd2 = {id:'f_'+Date.now()+'_l', user_name: sessionUser.email, customer_id: newCustomerId, action:`新增了 ${totalLoyaltyQty} 組長客`, pts:10*totalLoyaltyQty, time:new Date().toISOString()};
+                    state.feeds.unshift(fd2); await cloudUpsert('feeds', fd2);
+                }
             }
             await cloudUpsert('customers', data); renderAll(); window.closeModal('modal'); window.showToast(isTrashProgress ? '📦 已移至封存區' : '💾 資料已維護儲存');
         };
 
-        // ✅ 打卡區強制清空備註與預設勾選帶入
         window.openCheckinModal = function(t) {
             const checkedBoxes = document.querySelectorAll('.contact-checkbox:checked');
             const defaultId = checkedBoxes.length > 0 ? checkedBoxes[0].value : '';
-            
             const actives = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed);
             const opts = actives.map(c => `<option value="${c.id}" ${c.id === defaultId ? 'selected' : ''}>${c.name} ${c.referrer?`(${c.referrer})`:''}</option>`).join(''); 
-            
             const today = new Date().toISOString().split('T')[0];
             if(t==='opp') { 
-                document.getElementById('opp-partner-select').innerHTML = opts; 
-                document.getElementById('opp-checkin-date').value = today; 
-                document.getElementById('opp-checkin-notes').value = ''; 
-                window.openModal('checkin-opp-modal'); 
-            } 
-            else if(t==='rec') { 
-                document.getElementById('rec-partner-select').innerHTML = opts; 
-                document.getElementById('rec-checkin-date').value = today; 
-                document.getElementById('rec-checkin-notes').value = ''; 
-                window.openModal('checkin-rec-modal'); 
-            } 
-            else if(t==='loyalty') { 
-                document.getElementById('loyalty-partner-select').innerHTML = opts; 
-                document.getElementById('loyalty-checkin-date').value = today; 
-                document.getElementById('loyalty-checkin-notes').value = ''; 
-                document.getElementById('checkin-loyalty-rows').innerHTML = ''; 
-                addCheckinLoyaltyRow(); 
-                window.openModal('checkin-loyalty-modal'); 
+                document.getElementById('opp-partner-select').innerHTML = opts; document.getElementById('opp-checkin-date').value = today; document.getElementById('opp-checkin-notes').value = ''; window.openModal('checkin-opp-modal'); 
+            } else if(t==='rec') { 
+                document.getElementById('rec-partner-select').innerHTML = opts; document.getElementById('rec-checkin-date').value = today; document.getElementById('rec-checkin-notes').value = ''; window.openModal('checkin-rec-modal'); 
+            } else if(t==='loyalty') { 
+                document.getElementById('loyalty-partner-select').innerHTML = opts; document.getElementById('loyalty-checkin-date').value = today; document.getElementById('loyalty-checkin-notes').value = ''; document.getElementById('checkin-loyalty-rows').innerHTML = ''; addCheckinLoyaltyRow(); window.openModal('checkin-loyalty-modal'); 
             }
         };
         
@@ -872,11 +897,12 @@
         window.submitOppCheckin = async function(e) {
             e.preventDefault(); const cId = document.getElementById('opp-partner-select').value; const c = state.customers.find(x=>x.id===cId); if(!c) return;
             const note = document.getElementById('opp-checkin-notes').value; const d = document.getElementById('opp-checkin-date').value;
-            const log = {id:'log_'+Date.now(), type:'opp', user_name:sessionUser.email, partnerName:c.name, date:d, notes:note};
+            // 寫入包含 customer_id
+            const log = {id:'log_'+Date.now(), type:'opp', user_name:sessionUser.email, customer_id: cId, partnerName:c.name, date:d, notes:note};
             state.checkinLogs.push(log); await cloudUpsert('checkin_logs', log);
             c.progress = 'OPP'; if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[講336/OPP] ${note}`}); await cloudUpsert('customers', c);
             
-            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:'講了一場 336/OPP', pts:5, time:new Date().toISOString()}; 
+            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: cId, action:'講了一場 336/OPP', pts:5, time:new Date().toISOString()}; 
             state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-opp-modal'); window.showToast('🎉 OPP 打卡成功');
         };
@@ -886,7 +912,7 @@
             if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[推薦${type}] ${note}`}); await cloudUpsert('customers', c);
             const pts = type==='直銷商'?10:2; 
             
-            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`推薦了${type}`, pts:pts, time:new Date().toISOString()}; 
+            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: cId, action:`推薦了${type}`, pts:pts, time:new Date().toISOString()}; 
             state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-rec-modal'); window.showToast('🎉 推薦打卡成功');
         };
@@ -905,7 +931,7 @@
             const note = document.getElementById('loyalty-checkin-notes').value; 
             if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:checkinDate, text:`[新增長客] +${totalAdded}組. ${note}`}); await cloudUpsert('customers', c);
             
-            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`新增了 ${totalAdded} 組長客`, pts:10*totalAdded, time:new Date().toISOString()}; 
+            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: cId, action:`新增了 ${totalAdded} 組長客`, pts:10*totalAdded, time:new Date().toISOString()}; 
             state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-loyalty-modal'); window.showToast(`🎉 長客打卡成功 (+${totalAdded}組)`);
         };
@@ -999,11 +1025,10 @@
             
             const groups = {}; let totalBV = 0; let totalQty = 0;
             
-            // 檢查是否符合展延條件
             const isEligible = (startDate, endDate, targetMonth) => {
                 const s = startDate.substring(0,7);
-                if (targetMonth < s) return false; // 還沒啟動
-                if (endDate && targetMonth >= endDate) return false; // 已終止
+                if (targetMonth < s) return false; 
+                if (endDate && targetMonth >= endDate) return false; 
                 return true;
             };
 
@@ -1015,7 +1040,7 @@
                         const p = state.products.find(x=>x.id===item.productId); 
                         if(p) { 
                             const rowBV = p.bv * item.qty; 
-                            groups[c.name].items.push({ type:'main', pName: p.name, qty: item.qty, rowBV }); 
+                            groups[c.name].items.push({ type:'main', pName: p.name + ` <span class="text-xs text-indigo-500 font-bold ml-1">(啟動: ${itemDate})</span>`, qty: item.qty, rowBV }); 
                             groups[c.name].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; 
                         } 
                     }
@@ -1028,7 +1053,7 @@
                     const p = state.products.find(x=>x.id===item.productId);
                     if(p) { 
                         const rowBV = p.bv * item.qty; 
-                        groups[item.partnerName].items.push({ type:'sub', subId: item.id, pName: p.name + ` <span class="text-xs text-amber-600 font-bold ml-2">(小組補登)</span>`, qty: item.qty, rowBV, endDate: item.endDate }); 
+                        groups[item.partnerName].items.push({ type:'sub', subId: item.id, pName: p.name + ` <span class="text-xs text-amber-600 font-bold ml-1">(小組補登)</span>`, qty: item.qty, rowBV, endDate: item.endDate }); 
                         groups[item.partnerName].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; 
                     }
                 }
@@ -1080,7 +1105,19 @@
 
         function renderTrashCount() { const trashed = state.customers.filter(c => c.isTrashed && c.owner === sessionUser.email); document.getElementById('drawer-trash-btn').innerHTML = `📦 名單封存區 (${trashed.length})`; document.getElementById('trash-list-container').innerHTML = trashed.map(c=>`<div class="flex justify-between p-4 border-b border-theme text-base"><span class="theme-title font-bold">${c.name}</span><div><button onclick="window.restoreCustomer('${c.id}')" class="text-indigo-600 font-bold mr-4">解封</button><button onclick="window.deletePermanently('${c.id}')" class="text-rose-600 font-bold">永久刪除</button></div></div>`).join(''); }
         window.restoreCustomer = async function(id) { const c = state.customers.find(x=>x.id===id); if(c){ c.isTrashed=false; await cloudUpsert('customers', c); renderAll(); window.showToast('✅ 成功解除封存'); } }
-        window.deletePermanently = function(id) { window.openConfirmModal('確定要永久刪除？', async ()=>{ state.customers = state.customers.filter(x=>x.id!==id); await cloudDelete('customers', id); renderAll(); window.showToast('🗑️ 已永久刪除'); }); }
+        
+        // 🚀 連動刪除邏輯 (封存區永久刪除)
+        window.deletePermanently = function(id) { 
+            window.openConfirmModal('確定要永久刪除此名單？\n(相關日誌與捷報積分將一併清除)', async ()=>{ 
+                await cloudDelete('customers', id); 
+                await db.from('feeds').delete().eq('customer_id', id);
+                await db.from('checkin_logs').delete().eq('customer_id', id);
+                state.customers = state.customers.filter(x=>x.id!==id); 
+                state.feeds = state.feeds.filter(f => f.customer_id !== id);
+                state.checkinLogs = state.checkinLogs.filter(l => l.customer_id !== id);
+                renderAll(); window.showToast('🗑️ 已永久刪除'); 
+            }); 
+        }
 
         window.exportExcel = function() {
             const myC = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed); if (!myC.length) return window.showToast('無資料可匯出');
@@ -1119,7 +1156,7 @@
             }; reader.readAsText(file);
         }
 
-        // ✅ 336 OPP 月曆日誌功能
+        // 📅 336 OPP 月曆日誌功能
         window.showOppLogHistory = function() { 
             renderOppCalendar(); 
             window.openModal('opp-history-modal'); 
