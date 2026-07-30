@@ -98,7 +98,8 @@
                 <button onclick="window.openModal('trash-modal'); window.toggleDrawer()" id="drawer-trash-btn" class="w-full text-left p-3 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500/20 transition flex items-center gap-3">📦 名單封存區 (0)</button>
                 <div class="border-t border-theme pt-3 mt-3 space-y-3">
                     <button onclick="window.exportExcel()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📊 匯出 Excel (CSV)</button>
-                    <label class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3 cursor-pointer">📥 匯入 Excel (CSV)<input type="file" accept=".csv" onchange="window.importExcel(event)" class="hidden"></label>
+                    <button onclick="window.downloadCsvTemplate()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📥 下載標準匯入範本</button>
+                    <label class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3 cursor-pointer">📂 匯入 Excel (CSV)<input type="file" accept=".csv" onchange="window.importExcel(event)" class="hidden"></label>
                     <button onclick="window.exportJSON()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">💾 備份 JSON 檔案</button>
                     <label class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3 cursor-pointer">📂 還原 JSON 備份<input type="file" accept=".json" onchange="window.importJSON(event)" class="hidden"></label>
                     <button onclick="window.openModal('settings-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">⚙️ 系統與視覺設定</button>
@@ -718,7 +719,7 @@
 
         function renderAll() {
             updateFilterOptions(); renderFollowupBanner(); renderDashboard(); renderList();
-            renderTrashCount(); renderTagsLobby(); renderProductsLobby(); renderBVReport();
+            renderTrashCount(); renderTagsLobby(); renderProductsLobby(); renderBVReport(); updateReferrerDropdowns();
         }
 
         function populateAmwayMonthOptions() {
@@ -759,7 +760,6 @@
             const tSel = document.getElementById('filter-tag'); if(tSel) { const cur = tSel.value; tSel.innerHTML = `<option value="all">🏷️ 所有活動標籤</option>` + Object.keys(tagMap).map(k => `<option value="${k}">#${k} (${tagMap[k]}人)</option>`).join(''); tSel.value = cur || 'all'; }
         }
 
-        // ✅ 本地時間修正工具 (解決時差造成的待跟進任務跨日誤差)
         function getLocalDateString(d = new Date()) {
             const year = d.getFullYear();
             const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -982,7 +982,6 @@
                 const idx = state.customers.findIndex(x=>x.id===id); if(idx>-1) state.customers[idx] = data; 
             } else { 
                 state.customers.unshift(data); 
-                // ✅ 智慧補登分流：新增名單日期若為當月才計分
                 if (data.date.startsWith(currentMonth)) {
                     const fd1 = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: newCustomerId, action:'新增跟進名單', pts:1, time:new Date().toISOString()}; 
                     state.feeds.unshift(fd1); await cloudUpsert('feeds', fd1); 
@@ -1102,7 +1101,6 @@
             renderAll(); window.closeModal('checkin-loyalty-modal'); window.showToast(`🎉 長客打卡成功 (+${totalAdded}組)`);
         };
 
-        // 🌟 新增 Vincent 個人直轄長客
         window.addMyDirectLoyalty = async function() {
             const date = document.getElementById('my-loyalty-date').value || getLocalDateString();
             const productId = document.getElementById('my-loyalty-prod').value;
@@ -1123,7 +1121,6 @@
             window.showToast('🎉 個人直轄長客新增成功！');
         }
 
-        // 📝 小組夥伴長客補登 (含誰的夥伴欄位)
         window.addManualSubLoyalty = async function() {
             const partnerName = document.getElementById('sub-partner-name').value.trim(); 
             const referrer = document.getElementById('sub-partner-referrer').value;
@@ -1140,7 +1137,6 @@
             }
         }
 
-        // 🛠️ 長客明細直接終止與刪除聯動機制 (刪除抹除軌跡，終止寫入足跡)
         window.terminateDirectLoyaltyItem = async function(custId, loyId) {
             const c = state.customers.find(x=>x.id===custId); if(!c) return;
             const item = (c.loyaltyItems||[]).find(x=>x.id===loyId); if(!item) return;
@@ -1201,7 +1197,6 @@
             updateReferrerDropdowns();
         }
 
-        // 🔄 動態更新補登選單的「誰的夥伴」下拉清單 (包含你自己與所有團隊成員)
         function updateReferrerDropdowns() {
             const refSel = document.getElementById('sub-partner-referrer');
             if(!refSel) return;
@@ -1331,7 +1326,6 @@
             const myName = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
             groups[myName] = { items: [], sumBV: 0 };
 
-            // 1. 個人直轄長客
             (state.myDirectLoyalties||[]).forEach(item => {
                 if (isEligible(item.date, item.endDate, selectedMonth)) {
                     const p = state.products.find(x=>x.id===item.productId);
@@ -1343,7 +1337,6 @@
                 }
             });
 
-            // 2. 直轄名單長客
             state.customers.filter(c=>!c.isTrashed && c.owner === sessionUser.email && c.loyaltyItems && c.loyaltyItems.length>0).forEach(c => {
                 c.loyaltyItems.forEach(item => { 
                     const itemDate = item.date || c.date; 
@@ -1359,7 +1352,6 @@
                 });
             });
             
-            // 3. 小組夥伴補登長客 (含推薦人顯示)
             (state.subGroupLoyalties||[]).forEach(item => {
                 const itemDate = item.date || selectedMonth + '-01';
                 if (isEligible(itemDate, item.endDate, selectedMonth)) {
@@ -1432,18 +1424,59 @@
             const csv = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `五心名單_${sessionUser.email.split('@')[0]}.csv`; link.click();
         }
+
+        // 📥 下載標準匯入範本 (解決匯入格式錯亂與空白問題)
+        window.downloadCsvTemplate = function() {
+            const headers = ['認識日期', '姓名', '誰的朋友', '等級定位', '跟進進度', '會員類別', 'IG', 'Threads', '活動標籤', '備註'];
+            const sampleRow = ['2026-07-31', '王小明', '張小華', 'A級', '新開發/待跟進', '生活會員', 'ming_ig', 'ming_threads', '營養班;交流會', '備註範例文字'];
+            const csv = "\uFEFF" + [headers.join(','), sampleRow.join(',')].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `五心名單_匯入範本.csv`; link.click();
+            window.showToast('📥 標準匯入範本已下載！');
+        }
+
+        // 📂 嚴格防呆校驗的 CSV 匯入機制
         window.importExcel = function(e) {
             const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
             reader.onload = async function(ev) {
-                const lines = ev.target.result.split('\n').filter(l => l.trim().length > 0); let count = 0;
+                const lines = ev.target.result.split('\n').filter(l => l.trim().length > 0); 
+                if(lines.length < 2) return alert('🚨 匯入檔案格式錯誤或無資料！');
+                
+                let count = 0; let errorCount = 0;
                 for (let i = 1; i < lines.length; i++) {
                     const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
-                    if (cols[1]) {
-                        const data = { id: 'c_' + Date.now() + '_' + i, owner: sessionUser.email, date: cols[0] || getLocalDateString(), name: cols[1], referrer: cols[2]||'', level: cols[3]||'未分類', progress: cols[4]||'新開發/待跟進', memberType: cols[5]||'未加入', ig: cols[6]||'', threads: cols[7]||'', tags: cols[8]?cols[8].split(';'):[], notes: cols[9]||'', isTrashed: false, timeline: [{date: getLocalDateString(), text: '自 Excel 匯入'}] };
-                        state.customers.unshift(data); await cloudUpsert('customers', data); count++;
+                    const name = cols[1];
+                    const date = cols[0];
+                    
+                    if (name && date && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const data = { 
+                            id: 'c_' + Date.now() + '_' + i, 
+                            owner: sessionUser.email, 
+                            date: date, 
+                            name: name, 
+                            referrer: cols[2]||'', 
+                            level: cols[3]||'未分類', 
+                            progress: cols[4]||'新開發/待跟進', 
+                            memberType: cols[5]||'未加入', 
+                            ig: cols[6]||'', 
+                            threads: cols[7]||'', 
+                            tags: cols[8]?cols[8].split(';').filter(Boolean):[], 
+                            notes: cols[9]||'', 
+                            isTrashed: false, 
+                            timeline: [{date: getLocalDateString(), text: '自 Excel 匯入'}] 
+                        };
+                        state.customers.unshift(data); 
+                        await cloudUpsert('customers', data); 
+                        count++;
+                    } else {
+                        errorCount++;
                     }
                 }
-                renderAll(); window.showToast(`🎉 成功匯入 ${count} 筆名單`);
+                renderAll(); 
+                if(errorCount > 0) {
+                    window.showToast(`⚠️ 成功匯入 ${count} 筆，略過 ${errorCount} 筆格式不符資料`);
+                } else {
+                    window.showToast(`🎉 成功匯入 ${count} 筆名單！`);
+                }
             }; reader.readAsText(file);
         }
 
@@ -1494,12 +1527,11 @@
 
         window.openTimeline = function(id) { currentActiveContactId = id; const c = state.customers.find(x=>x.id===id); document.getElementById('timeline-title').textContent = `📜 ${c.name} 帶線陪伴軌跡`; renderTimelineItems(c); window.openModal('timeline-modal'); }
         
-        // 📜 軌跡渲染 (支援手動新增筆記的刪除按鈕)
         function renderTimelineItems(c) { 
             document.getElementById('timeline-items-container').innerHTML = (c.timeline||[]).map((t, index)=> {
                 const textContent = typeof t === 'string' ? t : (t.text || t.t || '陪伴紀錄');
                 const dateContent = t.date || '近期';
-                const isManualNote = textContent.startsWith('筆記:'); // 辨識手動新增筆記
+                const isManualNote = textContent.startsWith('筆記:');
                 const deleteBtn = isManualNote ? `<button onclick="window.deleteTimelineNote('${c.id}', ${index})" class="text-rose-500 font-bold text-xs ml-2 hover:underline">刪除</button>` : '';
                 return `<div class="relative"><div class="absolute -left-[27px] top-2 w-3 h-3 bg-indigo-500 rounded-full shadow"></div><div class="flex justify-between items-center text-xs theme-muted mb-1"><span>${dateContent}</span>${deleteBtn}</div><div class="text-base theme-title font-bold">${textContent}</div></div>`;
             }).join(''); 
