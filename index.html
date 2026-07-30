@@ -269,19 +269,87 @@
         </div>
     </div>
 
-    <!-- 打卡 Modals -->
-    <div id="checkin-opp-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🗣️ 講 336 / OPP 打卡</h3><form onsubmit="window.submitOppCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="opp-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">講述日期 *</label><input type="date" id="opp-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">講述備註</label><textarea id="opp-checkin-notes" rows="2" placeholder="備註細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></textarea></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-opp-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl font-bold">送出打卡</button></div></form></div></div>
+    <!-- ✅ 336 打卡支援手動輸入旁線夥伴 -->
+    <div id="checkin-opp-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5">
+            <h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🗣️ 講 336 / OPP 打卡</h3>
+            <form onsubmit="window.submitOppCheckin(event)" class="space-y-4 text-sm">
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="font-bold theme-title">選擇或手動輸入對象 *</label>
+                        <button type="button" onclick="window.toggleOppInputMode()" id="opp-mode-toggle-btn" class="text-xs text-indigo-600 font-bold underline">切換手動輸入</button>
+                    </div>
+                    <select id="opp-partner-select" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select>
+                    <input type="text" id="opp-partner-input" placeholder="輸入旁線或任意夥伴姓名..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title hidden">
+                </div>
+                <div><label class="block font-bold theme-title mb-1.5">講述日期 *</label><input type="date" id="opp-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div>
+                <div><label class="block font-bold theme-title mb-1.5">講述備註</label><textarea id="opp-checkin-notes" rows="2" placeholder="備註細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></textarea></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="window.closeModal('checkin-opp-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button>
+                    <button type="submit" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl font-bold">送出打卡</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="block font-bold theme-title mb-1.5">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div></div>
     <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[85vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客打卡</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="loyalty-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">長客備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認長客打卡</button></div></form></div></div>
 
-    <div id="bv-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-3xl rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[90vh]"><div class="flex justify-between border-b border-theme pb-4 shrink-0"><div class="flex items-center gap-4"><h3 class="font-bold theme-title text-lg">📦 小組長客與 BV 統計</h3><select id="bv-month-select" onchange="window.renderBVReport()" class="theme-subcard border-theme border text-sm font-bold rounded-xl px-4 py-2 theme-title outline-none"></select></div><button onclick="window.closeModal('bv-modal')" class="theme-muted text-3xl hover:text-rose-500">&times;</button></div><div class="overflow-y-auto flex-1 space-y-5 no-scrollbar py-4 text-base"><div class="grid grid-cols-2 gap-5"><div class="bg-emerald-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月長客總組數</p><div class="text-4xl font-black mt-2" id="total-loyalty-qty-display">0 組</div></div><div class="bg-indigo-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月小組總 BV 積分</p><div class="text-4xl font-black mt-2" id="total-bv-display">0</div></div></div><div class="theme-subcard border-theme border rounded-2xl p-5 space-y-4"><span class="font-bold theme-title text-sm block">➕ 補登小組夥伴長客 (非直轄名單)</span><div class="flex flex-wrap gap-3"><input type="text" id="sub-partner-name" placeholder="夥伴名字 (例如：張小華)" class="flex-1 min-w-[140px] theme-card border-theme border rounded-xl p-3 text-sm theme-title"><select id="sub-prod-select" class="flex-1 min-w-[160px] theme-card border-theme border rounded-xl p-3 theme-title"></select><input type="number" id="sub-prod-qty" min="1" value="1" class="w-20 theme-card border-theme border rounded-xl p-3 theme-title font-bold"><button onclick="window.addManualSubLoyalty()" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-bold">補登</button></div></div><div><h4 class="font-bold theme-title mb-4 text-lg">📊 小組夥伴長客明細</h4><div id="bv-report-container" class="space-y-4"></div></div></div></div></div>
+    <!-- ✅ BV 統計視窗 (整合 Vincent 個人直轄長客 + 自由指定月份切換) -->
+    <div id="bv-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-3xl rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between border-b border-theme pb-4 shrink-0 items-center">
+                <div class="flex items-center gap-3">
+                    <h3 class="font-bold theme-title text-lg">📦 小組長客與 BV 統計</h3>
+                    <select id="bv-month-select" onchange="window.onBvMonthChange()" class="theme-subcard border-theme border text-sm font-bold rounded-xl px-3 py-1.5 theme-title outline-none"></select>
+                    <input type="month" id="bv-custom-month-input" onchange="window.renderBVReport()" class="hidden theme-subcard border-theme border text-sm font-bold rounded-xl px-3 py-1.5 theme-title outline-none">
+                </div>
+                <button onclick="window.closeModal('bv-modal')" class="theme-muted text-3xl hover:text-rose-500">&times;</button>
+            </div>
+            
+            <div class="overflow-y-auto flex-1 space-y-5 no-scrollbar py-4 text-base">
+                <div class="grid grid-cols-2 gap-5">
+                    <div class="bg-emerald-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月長客總組數</p><div class="text-4xl font-black mt-2" id="total-loyalty-qty-display">0 組</div></div>
+                    <div class="bg-indigo-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月小組總 BV 積分</p><div class="text-4xl font-black mt-2" id="total-bv-display">0</div></div>
+                </div>
+
+                <!-- 🌟 Vincent 個人直轄長客新增區塊 -->
+                <div class="theme-subcard border-theme border rounded-2xl p-4 space-y-3">
+                    <span class="font-bold theme-title text-sm block">👑 新增我自己的直轄長客</span>
+                    <div class="flex flex-wrap gap-3 items-center">
+                        <input type="date" id="my-loyalty-date" class="theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
+                        <select id="my-loyalty-prod" class="flex-1 min-w-[150px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"></select>
+                        <input type="number" id="my-loyalty-qty" min="1" value="1" class="w-16 theme-card border-theme border rounded-xl p-2.5 text-sm theme-title font-bold text-center">
+                        <button onclick="window.addMyDirectLoyalty()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow">新增直轄</button>
+                    </div>
+                </div>
+
+                <!-- ➕ 補登小組夥伴長客 -->
+                <div class="theme-subcard border-theme border rounded-2xl p-4 space-y-3">
+                    <span class="font-bold theme-title text-sm block">➕ 補登小組夥伴長客 (非直轄名單)</span>
+                    <div class="flex flex-wrap gap-3">
+                        <input type="date" id="sub-partner-date" class="theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
+                        <input type="text" id="sub-partner-name" placeholder="夥伴名字 (例如：張小華)" class="flex-1 min-w-[130px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
+                        <select id="sub-prod-select" class="flex-1 min-w-[150px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"></select>
+                        <input type="number" id="sub-prod-qty" min="1" value="1" class="w-16 theme-card border-theme border rounded-xl p-2.5 text-sm theme-title font-bold text-center">
+                        <button onclick="window.addManualSubLoyalty()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow">補登</button>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-bold theme-title mb-4 text-lg">📊 小組夥伴長客明細</h4>
+                    <div id="bv-report-container" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <div id="tag-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[80vh]"><div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">🏷️ 專屬標籤設定</h3><button onclick="window.closeModal('tag-modal')" class="theme-muted text-2xl">&times;</button></div><div class="py-4 flex gap-3"><input type="text" id="new-tag-input" placeholder="新標籤" class="flex-1 theme-subcard border-theme border rounded-xl p-3 text-sm theme-title outline-none"><button onclick="window.createGlobalTag()" class="bg-indigo-600 text-white px-5 rounded-xl text-sm font-bold">新增</button></div><div class="overflow-y-auto flex-1 no-scrollbar pt-3 border-t border-theme"><div id="global-tags-container" class="flex flex-wrap gap-2"></div></div></div></div>
     
     <div id="product-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[80vh]">
             <div class="flex justify-between border-b border-theme pb-3">
-                <h3 class="font-bold theme-title text-lg">🛍️ 專屬產品與 BV 設定</h3>
+                <h3 class="font-bold theme-title text-lg">🛍️ 產品與 BV 設定</h3>
                 <button onclick="window.closeModal('product-modal')" class="theme-muted text-2xl">&times;</button>
             </div>
             <div class="py-4 flex gap-3 text-sm">
@@ -331,17 +399,60 @@
 
         let state = {
             theme: 'blue-white', fontSize: 'medium',
-            customers: [], checkinLogs: [], feeds: [], subGroupLoyalties: [],
+            customers: [], checkinLogs: [], feeds: [], subGroupLoyalties: [], myDirectLoyalties: [],
             tags: ['春日分享會', '營養班', '交流會'], products: [], treeData: {}
         };
 
-        const defaultProducts = [
-            { id: 'p1', name: '優蛋白', bv: 948 }, { id: 'p2', name: '優蛋白家庭號', bv: 1800 }, { id: 'p3', name: '優蛋白關鍵行動力', bv: 1714 },
-            { id: 'p4', name: 'BK超纖飲', bv: 1524 }, { id: 'p5', name: 'BK減糖超纖飲', bv: 1619 }, { id: 'p6', name: '纖盈錠', bv: 1286 },
-            { id: 'p7', name: 'DX盒裝', bv: 2190 }, { id: 'p8', name: '得力', bv: 571 }, { id: 'p9', name: 'B群', bv: 943 }, { id: 'p10', name: 'C', bv: 881 },
-            { id: 'p11', name: '益生菌(30入)', bv: 1571 }, { id: 'p12', name: '三倍魚油', bv: 1514 }, { id: 'p13', name: '全方位魚油', bv: 2076 },
-            { id: 'p14', name: '晶明+', bv: 2762 }, { id: 'p15', name: '卵磷脂粉', bv: 2048 }, { id: 'p16', name: '大蒜片', bv: 1152 },
-            { id: 'p17', name: '水潤淨化精華', bv: 2238 }, { id: 'p18', name: '小橘瓶', bv: 1857 }
+        // ✅ 完整匯入你提供的安麗官方產品與精準 BV 價格清單
+        const fullAmwayProducts = [
+            { id: 'p1', name: '優蛋白', bv: 948 },
+            { id: 'p2', name: '優蛋白家庭號', bv: 1800 },
+            { id: 'p3', name: '優蛋白關鍵行動力', bv: 1714 },
+            { id: 'p4', name: 'BK超纖飲', bv: 1524 },
+            { id: 'p5', name: 'BK減糖超纖飲', bv: 1619 },
+            { id: 'p6', name: '纖盈錠', bv: 1286 },
+            { id: 'p7', name: '纖巧錠', bv: 1548 },
+            { id: 'p8', name: 'DX盒裝', bv: 2190 },
+            { id: 'p9', name: 'DX補充包', bv: 2095 },
+            { id: 'p10', name: '得力', bv: 571 },
+            { id: 'p11', name: '倍欣', bv: 695 },
+            { id: 'p12', name: 'B群', bv: 943 },
+            { id: 'p13', name: 'C', bv: 881 },
+            { id: 'p14', name: 'E', bv: 1314 },
+            { id: 'p15', name: '加美D', bv: 629 },
+            { id: 'p16', name: '葉酸鐵', bv: 619 },
+            { id: 'p17', name: '益生菌(30入)', bv: 1571 },
+            { id: 'p18', name: '益生菌(90入)', bv: 4471 },
+            { id: 'p19', name: '易孅菌', bv: 1733 },
+            { id: 'p20', name: '活悅益生菌', bv: 1733 },
+            { id: 'p21', name: '女士益生菌', bv: 1733 },
+            { id: 'p22', name: '纖維嚼片', bv: 638 },
+            { id: 'p23', name: '高纖隨身包', bv: 976 },
+            { id: 'p24', name: '三倍魚油', bv: 1514 },
+            { id: 'p25', name: '全方位魚油', bv: 2076 },
+            { id: 'p26', name: '晶明+', bv: 2762 },
+            { id: 'p27', name: '卵磷脂粉', bv: 2048 },
+            { id: 'p28', name: '卵磷脂嚼片', bv: 724 },
+            { id: 'p29', name: '葡萄糖胺', bv: 1095 },
+            { id: 'p30', name: '大蒜片', bv: 1152 },
+            { id: 'p31', name: 'Q10', bv: 1005 },
+            { id: 'p32', name: '消化酵素', bv: 1562 },
+            { id: 'p33', name: '蔚葆飲', bv: 1524 },
+            { id: 'p34', name: '養氣飲', bv: 1524 },
+            { id: 'p35', name: '活妍飲', bv: 1524 },
+            { id: 'p36', name: '養晶飲', bv: 1524 },
+            { id: 'p37', name: '順欣飲', bv: 1619 },
+            { id: 'p38', name: '蘅怡飲', bv: 1619 },
+            { id: 'p39', name: '管花肉蓯蓉', bv: 1714 },
+            { id: 'p40', name: '好甘萃', bv: 1543 },
+            { id: 'p41', name: '薑黃C', bv: 1476 },
+            { id: 'p42', name: '兒童綜合營養片', bv: 714 },
+            { id: 'p43', name: '兒童鐵嚼片', bv: 414 },
+            { id: 'p44', name: '兒童C+益生菌', bv: 1143 },
+            { id: 'p45', name: '卸妝乳', bv: 786 },
+            { id: 'p46', name: '小橘瓶', bv: 1857 },
+            { id: 'p47', name: '水潤淨化精華', bv: 2238 },
+            { id: 'p48', name: '緊緻抗老精華', bv: 2838 }
         ];
 
         let leaderboardCategory = 'leads';
@@ -549,7 +660,6 @@
             document.getElementById('main-app').style.display = 'flex';
             populateAmwayMonthOptions();
             
-            // ✅ 排行榜月份：支援前 12 個月與自訂區間
             const lbSelect = document.getElementById('lb-month-select');
             if (lbSelect) {
                 const now = new Date();
@@ -575,16 +685,15 @@
             const { data: sets } = await db.from('system_settings').select('*');
             if(sets && sets.length>0) {
                 const p = sets.find(x=>x.id===`products_${sessionUser.email}`); 
-                // ✅ 安全防呆：如果雲端有自訂產品則載入，否則保留預設
                 if(p && p.data && p.data.length > 0) state.products = p.data; 
-                else state.products = JSON.parse(JSON.stringify(defaultProducts));
+                else state.products = JSON.parse(JSON.stringify(fullAmwayProducts));
                 
                 const t = sets.find(x=>x.id===`tags_${sessionUser.email}`); 
                 if(t) state.tags = t.data;
                 const tree = sets.find(x=>x.id===`tree_${sessionUser.email}`); 
                 if(tree) state.treeData = tree.data; else state.treeData = { id: 'root', name: userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0], collapsed: false, children: [] };
             } else { 
-                state.products = JSON.parse(JSON.stringify(defaultProducts)); 
+                state.products = JSON.parse(JSON.stringify(fullAmwayProducts)); 
                 state.treeData = { id: 'root', name: userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0], collapsed: false, children: [] }; 
             }
 
@@ -594,12 +703,13 @@
 
             let qLog = db.from('checkin_logs').select('*').eq('user_name', sessionUser.email);
             let qSub = db.from('sub_group_loyalties').select('*').eq('owner', sessionUser.email);
+            let qMyLoyal = db.from('my_direct_loyalties').select('*').eq('owner', sessionUser.email);
             
-            const [resLog, resFeed, resSub] = await Promise.all([qLog, db.from('feeds').select('*').order('created_at',{ascending:false}).limit(500), qSub]);
+            const [resLog, resFeed, resSub, resMyLoyal] = await Promise.all([qLog, db.from('feeds').select('*').order('created_at',{ascending:false}).limit(500), qSub, qMyLoyal]);
             state.checkinLogs = resLog.data || [];
-            
             if (resFeed.data) state.feeds = resFeed.data; else state.feeds = [];
             state.subGroupLoyalties = resSub.data || [];
+            state.myDirectLoyalties = resMyLoyal.data || [];
         }
 
         async function cloudUpsert(table, data) { 
@@ -618,11 +728,11 @@
         }
 
         window.resetProducts = async function() {
-            if(confirm('確定要恢復官方預設產品與 BV 嗎？您自訂的產品將會消失喔！')) {
-                state.products = JSON.parse(JSON.stringify(defaultProducts));
+            if(confirm('確定要恢復官方完整產品與 BV 嗎？')) {
+                state.products = JSON.parse(JSON.stringify(fullAmwayProducts));
                 await saveSystemSettings();
                 renderAll();
-                window.showToast('✅ 已成功恢復預設產品菜單');
+                window.showToast('✅ 已成功載入完整安麗 BV 清單');
             }
         }
 
@@ -631,17 +741,30 @@
             renderTrashCount(); renderTagsLobby(); renderProductsLobby(); renderBVReport();
         }
 
-        // ✅ 長客統計專區月份：改為前 12 個月與自訂區間
+        // ✅ 長客專區：支援「前12個月快速選單 + 自訂年月自由切換」
         function populateAmwayMonthOptions() {
             const select = document.getElementById('bv-month-select'); if(!select) return; select.innerHTML = '';
             const now = new Date();
-            select.innerHTML += `<option value="custom">🛠️ 自訂區間</option>`;
+            select.innerHTML += `<option value="custom">🛠️ 自訂年月</option>`;
             for(let i = 0; i < 12; i++) {
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                 const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
                 const amwayYear = d.getMonth() >= 8 ? d.getFullYear() + 1 : d.getFullYear();
                 select.innerHTML += `<option value="${ym}">📅 ${ym} (AY${amwayYear})</option>`;
             }
+            select.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        window.onBvMonthChange = function() {
+            const sel = document.getElementById('bv-month-select').value;
+            const input = document.getElementById('bv-custom-month-input');
+            if (sel === 'custom') {
+                input.classList.remove('hidden');
+                if(!input.value) input.value = new Date().toISOString().substring(0,7);
+            } else {
+                input.classList.add('hidden');
+            }
+            renderBVReport();
         }
 
         function updateFilterOptions() {
@@ -879,10 +1002,18 @@
             const checkedBoxes = document.querySelectorAll('.contact-checkbox:checked');
             const defaultId = checkedBoxes.length > 0 ? checkedBoxes[0].value : '';
             const actives = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed);
-            const opts = actives.map(c => `<option value="${c.id}" ${c.id === defaultId ? 'selected' : ''}>${c.name} ${c.referrer?`(${c.referrer})`:''}</option>`).join(''); 
+            const opts = actives.map(c => `<option value="${c.name}" ${c.id === defaultId ? 'selected' : ''}>${c.name} ${c.referrer?`(${c.referrer})`:''}</option>`).join(''); 
             const today = new Date().toISOString().split('T')[0];
+            
             if(t==='opp') { 
-                document.getElementById('opp-partner-select').innerHTML = opts; document.getElementById('opp-checkin-date').value = today; document.getElementById('opp-checkin-notes').value = ''; window.openModal('checkin-opp-modal'); 
+                document.getElementById('opp-partner-select').innerHTML = opts; 
+                document.getElementById('opp-partner-input').value = '';
+                document.getElementById('opp-partner-input').classList.add('hidden');
+                document.getElementById('opp-partner-select').classList.remove('hidden');
+                document.getElementById('opp-mode-toggle-btn').textContent = '切換手動輸入';
+                document.getElementById('opp-checkin-date').value = today; 
+                document.getElementById('opp-checkin-notes').value = ''; 
+                window.openModal('checkin-opp-modal'); 
             } else if(t==='rec') { 
                 document.getElementById('rec-partner-select').innerHTML = opts; document.getElementById('rec-checkin-date').value = today; document.getElementById('rec-checkin-notes').value = ''; window.openModal('checkin-rec-modal'); 
             } else if(t==='loyalty') { 
@@ -890,34 +1021,59 @@
             }
         };
         
+        // ✅ 336 OPP 打卡：切換下拉選單與手動輸入模式
+        window.toggleOppInputMode = function() {
+            const sel = document.getElementById('opp-partner-select');
+            const inp = document.getElementById('opp-partner-input');
+            const btn = document.getElementById('opp-mode-toggle-btn');
+            if (sel.classList.contains('hidden')) {
+                sel.classList.remove('hidden'); inp.classList.add('hidden'); btn.textContent = '切換手動輸入';
+            } else {
+                sel.classList.add('hidden'); inp.classList.remove('hidden'); btn.textContent = '從現有名單選擇';
+            }
+        }
+
         window.addCheckinLoyaltyRow = function() {
             const div = document.createElement('div'); div.className = "flex gap-3 items-center checkin-loy-row";
             div.innerHTML = `<select class="flex-1 theme-card border-theme border rounded-lg p-2 text-sm theme-title checkin-prod-select"><option value="" disabled selected>選擇長客品項...</option>${state.products.map(p => `<option value="${p.id}">${p.name} (${p.bv} BV)</option>`).join('')}</select><input type="number" min="1" value="1" class="w-20 theme-card border-theme border rounded-lg p-2 text-sm theme-title checkin-qty-input"><button type="button" onclick="this.parentElement.remove()" class="text-rose-500 px-3 font-bold text-lg">x</button>`; document.getElementById('checkin-loyalty-rows').appendChild(div);
         }
 
         window.submitOppCheckin = async function(e) {
-            e.preventDefault(); const cId = document.getElementById('opp-partner-select').value; const c = state.customers.find(x=>x.id===cId); if(!c) return;
-            const note = document.getElementById('opp-checkin-notes').value; const d = document.getElementById('opp-checkin-date').value;
-            const log = {id:'log_'+Date.now(), type:'opp', user_name:sessionUser.email, customer_id: cId, partnerName:c.name, date:d, notes:note};
-            state.checkinLogs.push(log); await cloudUpsert('checkin_logs', log);
-            c.progress = 'OPP'; if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[講336/OPP] ${note}`}); await cloudUpsert('customers', c);
+            e.preventDefault(); 
+            const isManual = !document.getElementById('opp-partner-input').classList.contains('hidden');
+            const partnerName = isManual ? document.getElementById('opp-partner-input').value.trim() : document.getElementById('opp-partner-select').value;
+            if(!partnerName) return alert('請選擇或輸入夥伴姓名！');
             
-            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: cId, action:'講了一場 336/OPP', pts:5, time:new Date().toISOString()}; 
+            const note = document.getElementById('opp-checkin-notes').value; const d = document.getElementById('opp-checkin-date').value;
+            const log = {id:'log_'+Date.now(), type:'opp', user_name:sessionUser.email, partnerName: partnerName, date:d, notes:note};
+            state.checkinLogs.push(log); await cloudUpsert('checkin_logs', log);
+            
+            const cObj = state.customers.find(x=>x.name === partnerName && x.owner === sessionUser.email);
+            if(cObj) {
+                cObj.progress = 'OPP'; if(!cObj.timeline) cObj.timeline=[]; cObj.timeline.unshift({date:d, text:`[講336/OPP] ${note}`}); await cloudUpsert('customers', cObj);
+            }
+            
+            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`講了一場 336/OPP (${partnerName})`, pts:5, time:new Date().toISOString()}; 
             state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
-            renderAll(); window.closeModal('checkin-opp-modal'); window.showToast('🎉 OPP 打卡成功');
+            renderAll(); window.closeModal('checkin-opp-modal'); window.showToast('🎉 OPP 打卡成功 (+5分)');
         };
+
         window.submitRecCheckin = async function(e) {
-            e.preventDefault(); const cId = document.getElementById('rec-partner-select').value; const c = state.customers.find(x=>x.id===cId); if(!c) return;
-            const type = document.getElementById('rec-type-select').value; c.memberType = type; const note = document.getElementById('rec-checkin-notes').value; const d = document.getElementById('rec-checkin-date').value;
-            if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[推薦${type}] ${note}`}); await cloudUpsert('customers', c);
+            e.preventDefault(); const partnerName = document.getElementById('rec-partner-select').value; 
+            const c = state.customers.find(x=>x.name === partnerName && x.owner === sessionUser.email);
+            const type = document.getElementById('rec-type-select').value; const note = document.getElementById('rec-checkin-notes').value; const d = document.getElementById('rec-checkin-date').value;
+            if(c) { c.memberType = type; if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[推薦${type}] ${note}`}); await cloudUpsert('customers', c); }
             const pts = type==='直銷商'?10:2; 
             
-            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: cId, action:`推薦了${type}`, pts:pts, time:new Date().toISOString()}; 
+            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`推薦了${type} (${partnerName})`, pts:pts, time:new Date().toISOString()}; 
             state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-rec-modal'); window.showToast('🎉 推薦打卡成功');
         };
+
         window.submitLoyaltyCheckin = async function(e) {
-            e.preventDefault(); const cId = document.getElementById('loyalty-partner-select').value; const c = state.customers.find(x=>x.id===cId); if(!c) return;
+            e.preventDefault(); const partnerName = document.getElementById('loyalty-partner-select').value; 
+            const c = state.customers.find(x=>x.name === partnerName && x.owner === sessionUser.email);
+            if(!c) return alert('找不到此夥伴名單');
             if(!c.loyaltyItems) c.loyaltyItems = []; let totalAdded = 0;
             const checkinDate = document.getElementById('loyalty-checkin-date').value;
             document.querySelectorAll('.checkin-loy-row').forEach(row => { 
@@ -931,10 +1087,95 @@
             const note = document.getElementById('loyalty-checkin-notes').value; 
             if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:checkinDate, text:`[新增長客] +${totalAdded}組. ${note}`}); await cloudUpsert('customers', c);
             
-            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: cId, action:`新增了 ${totalAdded} 組長客`, pts:10*totalAdded, time:new Date().toISOString()}; 
+            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`新增了 ${totalAdded} 組長客 (${c.name})`, pts:10*totalAdded, time:new Date().toISOString()}; 
             state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             renderAll(); window.closeModal('checkin-loyalty-modal'); window.showToast(`🎉 長客打卡成功 (+${totalAdded}組)`);
         };
+
+        // 🌟 新增 Vincent 個人直轄長客
+        window.addMyDirectLoyalty = async function() {
+            const date = document.getElementById('my-loyalty-date').value || new Date().toISOString().split('T')[0];
+            const productId = document.getElementById('my-loyalty-prod').value;
+            const qty = parseInt(document.getElementById('my-loyalty-qty').value) || 1;
+            if(!productId) return alert('請選擇長客品項！');
+
+            const item = { id: 'my_ly_' + Date.now(), owner: sessionUser.email, productId, qty, date, endDate: '' };
+            state.myDirectLoyalties.push(item);
+            await cloudUpsert('my_direct_loyalties', item);
+
+            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`新增個人直轄長客 x${qty}`, pts: 10 * qty, time: new Date().toISOString()};
+            state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+
+            renderBVReport();
+            window.showToast('🎉 個人直轄長客新增成功！');
+        }
+
+        // 📝 小組夥伴長客補登
+        window.addManualSubLoyalty = async function() {
+            const partnerName = document.getElementById('sub-partner-name').value.trim(); 
+            const productId = document.getElementById('sub-prod-select').value; 
+            const qty = parseInt(document.getElementById('sub-prod-qty').value)||1; 
+            const date = document.getElementById('sub-partner-date').value || new Date().toISOString().split('T')[0];
+            
+            if(partnerName && productId) { 
+                const newItem = { id: 'sub_'+Date.now(), owner: sessionUser.email, partnerName, productId, qty, date, endDate: '' }; 
+                state.subGroupLoyalties.push(newItem); 
+                await cloudUpsert('sub_group_loyalties', newItem); 
+                document.getElementById('sub-partner-name').value = ''; 
+                renderBVReport(); window.showToast(`🎉 已補登小組長客！`); 
+            }
+        }
+
+        // 🛠️ 長客明細直接終止/刪除聯動機制
+        window.terminateDirectLoyaltyItem = async function(custId, loyId) {
+            const c = state.customers.find(x=>x.id===custId); if(!c) return;
+            const item = (c.loyaltyItems||[]).find(x=>x.id===loyId); if(!item) return;
+            const targetMonth = prompt('請輸入「終止月份」，該月份起將不再統計積分。\n(格式範例：2026-08)', new Date().toISOString().substring(0,7));
+            if (targetMonth && targetMonth.match(/^\d{4}-\d{2}$/)) {
+                item.endDate = targetMonth;
+                await cloudUpsert('customers', c); renderBVReport(); window.showToast('✅ 已設定終止月份');
+            }
+        }
+
+        window.deleteDirectLoyaltyItem = async function(custId, loyId) {
+            if(confirm('確定要刪除此長客品項嗎？')) {
+                const c = state.customers.find(x=>x.id===custId); if(!c) return;
+                c.loyaltyItems = (c.loyaltyItems||[]).filter(x=>x.id!==loyId);
+                await cloudUpsert('customers', c); renderBVReport(); window.showToast('🗑️ 已刪除長客品項');
+            }
+        }
+
+        window.terminateMyLoyalty = async function(myId) {
+            const item = state.myDirectLoyalties.find(x=>x.id===myId); if(!item) return;
+            const targetMonth = prompt('請輸入「終止月份」，該月份起將不再統計積分。\n(格式範例：2026-08)', new Date().toISOString().substring(0,7));
+            if (targetMonth && targetMonth.match(/^\d{4}-\d{2}$/)) {
+                item.endDate = targetMonth;
+                await cloudUpsert('my_direct_loyalties', item); renderBVReport(); window.showToast('✅ 已設定終止月份');
+            }
+        }
+
+        window.deleteMyLoyalty = async function(myId) {
+            if(confirm('確定要刪除此個人直轄長客嗎？')) {
+                state.myDirectLoyalties = state.myDirectLoyalties.filter(x=>x.id!==myId);
+                await cloudDelete('my_direct_loyalties', myId);
+                renderBVReport(); window.showToast('🗑️ 已刪除');
+            }
+        }
+
+        window.terminateSubLoyalty = async function(subId) {
+            const item = state.subGroupLoyalties.find(x=>x.id===subId); if(!item) return;
+            const targetMonth = prompt('請輸入「終止月份」，該月份起將不再統計積分。\n(格式範例：2026-08)', new Date().toISOString().substring(0,7));
+            if (targetMonth && targetMonth.match(/^\d{4}-\d{2}$/)) {
+                item.endDate = targetMonth;
+                await cloudUpsert('sub_group_loyalties', item); renderBVReport(); window.showToast('✅ 已設定終止月份');
+            }
+        }
+
+        window.deleteSubLoyalty = async function(subId) { 
+            if(confirm('確定要永久刪除此補登紀錄嗎？')) {
+                state.subGroupLoyalties = state.subGroupLoyalties.filter(x=>x.id!==subId); await cloudDelete('sub_group_loyalties', subId); renderBVReport(); window.showToast('🗑️ 已刪除'); 
+            }
+        }
 
         function renderTree() { const container = document.getElementById('tree-root-container'); if (!container) return; container.innerHTML = buildPillTreeHTML(state.treeData, true); }
         function buildPillTreeHTML(node, isRoot = false) {
@@ -981,9 +1222,10 @@
                 if (f.action.includes('新增跟進名單')) userStats[email].leads += 1;
                 if (f.action.includes('講了一場')) userStats[email].opps += 1;
                 if (f.action.includes('推薦了')) userStats[email].recs += 1;
-                if (f.action.includes('新增了')) {
-                    const match = f.action.match(/新增了 (\d+) 組/);
-                    if (match) userStats[email].loy += parseInt(match[1]);
+                if (f.action.includes('新增了') || f.action.includes('新增個人直轄')) {
+                    const match = f.action.match(/(?:新增了 (\d+) 組|長客 x(\d+))/);
+                    const count = match ? (parseInt(match[1]) || parseInt(match[2]) || 1) : 1;
+                    userStats[email].loy += count;
                 }
             });
             
@@ -1017,11 +1259,25 @@
             }
         }
 
+        // ✅ BV 統計：支援指定月份自由切換、個人直轄長客、明細直接終止/刪除
         window.renderBVReport = function() {
             const container = document.getElementById('bv-report-container'); if(!container) return;
-            const selectedMonth = document.getElementById('bv-month-select').value; 
-            document.getElementById('sub-prod-select').innerHTML = `<option value="" disabled selected>選擇品項...</option>` + state.products.map(p => `<option value="${p.id}">${p.name} (${p.bv} BV)</option>`).join('');
             
+            const selVal = document.getElementById('bv-month-select').value;
+            const customInputVal = document.getElementById('bv-custom-month-input').value;
+            const selectedMonth = (selVal === 'custom') ? (customInputVal || new Date().toISOString().substring(0,7)) : selVal;
+
+            const prodOpts = `<option value="" disabled selected>選擇品項...</option>` + state.products.map(p => `<option value="${p.id}">${p.name} (${p.bv} BV)</option>`).join('');
+            document.getElementById('sub-prod-select').innerHTML = prodOpts;
+            document.getElementById('my-loyalty-prod').innerHTML = prodOpts;
+            
+            if(!document.getElementById('my-loyalty-date').value) {
+                document.getElementById('my-loyalty-date').value = new Date().toISOString().split('T')[0];
+            }
+            if(!document.getElementById('sub-partner-date').value) {
+                document.getElementById('sub-partner-date').value = new Date().toISOString().split('T')[0];
+            }
+
             const groups = {}; let totalBV = 0; let totalQty = 0;
             
             const isEligible = (startDate, endDate, targetMonth) => {
@@ -1031,6 +1287,22 @@
                 return true;
             };
 
+            const myName = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
+            groups[myName] = { items: [], sumBV: 0 };
+
+            // 1. 個人直轄長客 (Vincent 自己的)
+            (state.myDirectLoyalties||[]).forEach(item => {
+                if (isEligible(item.date, item.endDate, selectedMonth)) {
+                    const p = state.products.find(x=>x.id===item.productId);
+                    if(p) {
+                        const rowBV = p.bv * item.qty;
+                        groups[myName].items.push({ type:'myDirect', id: item.id, pName: p.name + ` <span class="text-xs text-sky-600 font-bold ml-1">(個人直轄 啟動: ${item.date})</span>`, qty: item.qty, rowBV, endDate: item.endDate });
+                        groups[myName].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0;
+                    }
+                }
+            });
+
+            // 2. 直轄名單長客
             state.customers.filter(c=>!c.isTrashed && c.owner === sessionUser.email && c.loyaltyItems && c.loyaltyItems.length>0).forEach(c => {
                 c.loyaltyItems.forEach(item => { 
                     const itemDate = item.date || c.date; 
@@ -1039,58 +1311,52 @@
                         const p = state.products.find(x=>x.id===item.productId); 
                         if(p) { 
                             const rowBV = p.bv * item.qty; 
-                            groups[c.name].items.push({ type:'main', pName: p.name + ` <span class="text-xs text-indigo-500 font-bold ml-1">(啟動: ${itemDate})</span>`, qty: item.qty, rowBV }); 
+                            groups[c.name].items.push({ type:'customer', custId: c.id, loyId: item.id, pName: p.name + ` <span class="text-xs text-indigo-500 font-bold ml-1">(啟動: ${itemDate})</span>`, qty: item.qty, rowBV, endDate: item.endDate }); 
                             groups[c.name].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; 
                         } 
                     }
                 });
             });
             
+            // 3. 小組夥伴補登長客
             (state.subGroupLoyalties||[]).forEach(item => {
-                if (isEligible(item.date, item.endDate, selectedMonth)) {
+                const itemDate = item.date || selectedMonth + '-01';
+                if (isEligible(itemDate, item.endDate, selectedMonth)) {
                     if(!groups[item.partnerName]) groups[item.partnerName] = { items: [], sumBV: 0 };
                     const p = state.products.find(x=>x.id===item.productId);
                     if(p) { 
                         const rowBV = p.bv * item.qty; 
-                        groups[item.partnerName].items.push({ type:'sub', subId: item.id, pName: p.name + ` <span class="text-xs text-amber-600 font-bold ml-1">(小組補登)</span>`, qty: item.qty, rowBV, endDate: item.endDate }); 
+                        groups[item.partnerName].items.push({ type:'sub', subId: item.id, pName: p.name + ` <span class="text-xs text-amber-600 font-bold ml-1">(小組補登 啟動: ${itemDate})</span>`, qty: item.qty, rowBV, endDate: item.endDate }); 
                         groups[item.partnerName].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; 
                     }
                 }
             });
             
-            document.getElementById('total-bv-display').textContent = totalBV.toLocaleString(); document.getElementById('total-loyalty-qty-display').textContent = `${totalQty} 組`;
-            if(Object.keys(groups).length === 0) { container.innerHTML = '<div class="text-center theme-muted p-6">該月份無長客紀錄</div>'; return; }
-            container.innerHTML = Object.keys(groups).map(name => {
-                const g = groups[name]; return `<div class="theme-subcard border-theme border rounded-2xl p-5 shadow-sm"><div class="flex justify-between items-center border-b border-theme pb-3 mb-3"><span class="font-black text-lg theme-title">${name}</span><span class="text-indigo-600 font-extrabold text-base">小計: ${g.sumBV.toLocaleString()} BV</span></div>${g.items.map(i => `<div class="flex justify-between items-center text-sm theme-title py-2 border-b border-slate-300/10"><span>${i.pName} <span class="text-emerald-600 font-bold ml-2">x${i.qty}</span></span><div class="flex gap-4 items-center"><span class="theme-muted font-bold">+${i.rowBV.toLocaleString()} BV</span>${i.type==='sub'? `<button onclick="window.terminateSubLoyalty('${i.subId}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${i.endDate?`已終止(${i.endDate})`:'終止'}</button><button onclick="window.deleteSubLoyalty('${i.subId}')" class="text-rose-500 font-bold text-lg">🗑️</button>`:''}</div></div>`).join('')}</div>`;
-            }).join('');
-        }
-        
-        window.addManualSubLoyalty = async function() {
-            const partnerName = document.getElementById('sub-partner-name').value.trim(); 
-            const productId = document.getElementById('sub-prod-select').value; 
-            const qty = parseInt(document.getElementById('sub-prod-qty').value)||1; 
-            const selectedMonth = document.getElementById('bv-month-select').value;
+            // 清理空的群組
+            Object.keys(groups).forEach(k => { if(groups[k].items.length === 0 && k !== myName) delete groups[k]; });
+
+            document.getElementById('total-bv-display').textContent = totalBV.toLocaleString(); 
+            document.getElementById('total-loyalty-qty-display').textContent = `${totalQty} 組`;
             
-            if(partnerName && productId) { 
-                const newItem = { id: 'sub_'+Date.now(), owner: sessionUser.email, partnerName, productId, qty, date: `${selectedMonth}-01`, endDate: '' }; 
-                state.subGroupLoyalties.push(newItem); 
-                await cloudUpsert('sub_group_loyalties', newItem); 
-                document.getElementById('sub-partner-name').value = ''; 
-                renderBVReport(); window.showToast(`🎉 已補登小組長客！`); 
+            if(Object.keys(groups).length === 0 || (Object.keys(groups).length === 1 && groups[myName].items.length === 0)) { 
+                container.innerHTML = '<div class="text-center theme-muted p-6">該月份無長客紀錄</div>'; return; 
             }
-        }
-        window.terminateSubLoyalty = async function(subId) {
-            const item = state.subGroupLoyalties.find(x=>x.id===subId); if(!item) return;
-            const targetMonth = prompt('請輸入「終止月份」，該月份起將不再統計積分。\n(格式範例：2026-08)', new Date().toISOString().substring(0,7));
-            if (targetMonth && targetMonth.match(/^\d{4}-\d{2}$/)) {
-                item.endDate = targetMonth;
-                await cloudUpsert('sub_group_loyalties', item); renderBVReport(); window.showToast('✅ 已設定終止月份');
-            }
-        }
-        window.deleteSubLoyalty = async function(subId) { 
-            if(confirm('確定要永久刪除此補登紀錄嗎？')) {
-                state.subGroupLoyalties = state.subGroupLoyalties.filter(x=>x.id!==subId); await cloudDelete('sub_group_loyalties', subId); renderBVReport(); window.showToast('🗑️ 已刪除'); 
-            }
+
+            container.innerHTML = Object.keys(groups).map(name => {
+                const g = groups[name];
+                if(g.items.length === 0) return '';
+                return `<div class="theme-subcard border-theme border rounded-2xl p-5 shadow-sm"><div class="flex justify-between items-center border-b border-theme pb-3 mb-3"><span class="font-black text-lg theme-title">${name}</span><span class="text-indigo-600 font-extrabold text-base">小計: ${g.sumBV.toLocaleString()} BV</span></div>${g.items.map(i => {
+                    let actionBtns = '';
+                    if(i.type === 'customer') {
+                        actionBtns = `<button onclick="window.terminateDirectLoyaltyItem('${i.custId}', '${i.loyId}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${i.endDate?`已終止(${i.endDate})`:'終止'}</button><button onclick="window.deleteDirectLoyaltyItem('${i.custId}', '${i.loyId}')" class="text-rose-500 font-bold text-lg ml-2">🗑️</button>`;
+                    } else if(i.type === 'myDirect') {
+                        actionBtns = `<button onclick="window.terminateMyLoyalty('${i.id}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${i.endDate?`已終止(${i.endDate})`:'終止'}</button><button onclick="window.deleteMyLoyalty('${i.id}')" class="text-rose-500 font-bold text-lg ml-2">🗑️</button>`;
+                    } else if(i.type === 'sub') {
+                        actionBtns = `<button onclick="window.terminateSubLoyalty('${i.subId}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${i.endDate?`已終止(${i.endDate})`:'終止'}</button><button onclick="window.deleteSubLoyalty('${i.subId}')" class="text-rose-500 font-bold text-lg ml-2">🗑️</button>`;
+                    }
+                    return `<div class="flex justify-between items-center text-sm theme-title py-2 border-b border-slate-300/10"><span>${i.pName} <span class="text-emerald-600 font-bold ml-2">x${i.qty}</span></span><div class="flex gap-2 items-center"><span class="theme-muted font-bold">+${i.rowBV.toLocaleString()} BV</span>${actionBtns}</div></div>`;
+                }).join('')}</div>`;
+            }).join('');
         }
 
         function renderTagsLobby() { const c = document.getElementById('global-tags-container'); if(c) c.innerHTML = state.tags.map(t => `<span class="tag-chip">#${t} <button onclick="window.deleteGlobalTag('${t}')">x</button></span>`).join(''); }
@@ -1154,7 +1420,6 @@
             }; reader.readAsText(file);
         }
 
-        // 📅 336 OPP 月曆日誌功能
         window.showOppLogHistory = function() { 
             renderOppCalendar(); 
             window.openModal('opp-history-modal'); 
@@ -1182,13 +1447,11 @@
             const logs = state.checkinLogs.filter(x=>x.type==='opp'&&x.user_name===sessionUser.email&&x.date===d);
             const c = document.getElementById('opp-cal-details');
             if(!logs.length) c.innerHTML = `<div class="text-center theme-muted text-sm py-4 font-bold">無日誌紀錄</div>`;
-            // ✅ 防呆修正：確保就算歷史資料有遺漏也能安全顯示文字
             else c.innerHTML = `<div class="text-indigo-600 font-black text-sm mb-2">${d} 日誌：</div>` + logs.map(l=>`<div class="p-3 bg-black/5 dark:bg-white/5 rounded-xl text-sm border-l-4 border-indigo-500"><div class="font-bold theme-title mb-1">對象: ${l.partnerName || '夥伴'}</div><div class="theme-muted">${l.notes || l.text || '無備註'}</div></div>`).join('');
         }
 
         window.openTimeline = function(id) { currentActiveContactId = id; const c = state.customers.find(x=>x.id===id); document.getElementById('timeline-title').textContent = `📜 ${c.name} 帶線陪伴軌跡`; renderTimelineItems(c); window.openModal('timeline-modal'); }
         
-        // ✅ 防呆修正：確保歷史軌跡絕對不會出現 undefined
         function renderTimelineItems(c) { 
             document.getElementById('timeline-items-container').innerHTML = (c.timeline||[]).map(t=> {
                 const textContent = typeof t === 'string' ? t : (t.text || t.t || '陪伴紀錄');
