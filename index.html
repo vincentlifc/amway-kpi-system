@@ -269,7 +269,7 @@
         </div>
     </div>
 
-    <!-- ✅ 336 打卡支援手動輸入旁線夥伴 -->
+    <!-- 打卡 Modals -->
     <div id="checkin-opp-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5">
             <h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🗣️ 講 336 / OPP 打卡</h3>
@@ -295,7 +295,7 @@
     <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="block font-bold theme-title mb-1.5">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div></div>
     <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[85vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客打卡</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="loyalty-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">長客備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認長客打卡</button></div></form></div></div>
 
-    <!-- ✅ BV 統計視窗 (整合 Vincent 個人直轄長客 + 自由指定月份切換) -->
+    <!-- ✅ BV 統計視窗 (整合 Vincent 個人直轄長客 + 小組補登上下線關係 + 智慧補登分流) -->
     <div id="bv-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-3xl rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[90vh]">
             <div class="flex justify-between border-b border-theme pb-4 shrink-0 items-center">
@@ -324,13 +324,14 @@
                     </div>
                 </div>
 
-                <!-- ➕ 補登小組夥伴長客 -->
+                <!-- ➕ 補登小組夥伴長客 (含誰的夥伴欄位) -->
                 <div class="theme-subcard border-theme border rounded-2xl p-4 space-y-3">
                     <span class="font-bold theme-title text-sm block">➕ 補登小組夥伴長客 (非直轄名單)</span>
-                    <div class="flex flex-wrap gap-3">
+                    <div class="flex flex-wrap gap-3 items-center">
                         <input type="date" id="sub-partner-date" class="theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
-                        <input type="text" id="sub-partner-name" placeholder="夥伴名字 (例如：張小華)" class="flex-1 min-w-[130px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
-                        <select id="sub-prod-select" class="flex-1 min-w-[150px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"></select>
+                        <input type="text" id="sub-partner-name" placeholder="夥伴名字 (例如：張小華)" class="flex-1 min-w-[120px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
+                        <select id="sub-partner-referrer" class="w-32 theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"><option value="Vincent">誰的夥伴: 我自己</option></select>
+                        <select id="sub-prod-select" class="flex-1 min-w-[140px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"></select>
                         <input type="number" id="sub-prod-qty" min="1" value="1" class="w-16 theme-card border-theme border rounded-xl p-2.5 text-sm theme-title font-bold text-center">
                         <button onclick="window.addManualSubLoyalty()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow">補登</button>
                     </div>
@@ -382,7 +383,19 @@
     <!-- 📅 336 OPP 月曆日誌 -->
     <div id="opp-history-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[80vh] flex flex-col"><div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">🗣️ 講 336 / OPP 日誌</h3><button onclick="window.closeModal('opp-history-modal')" class="theme-muted text-2xl">&times;</button></div><div class="overflow-y-auto flex-1 space-y-3 no-scrollbar text-base" id="opp-history-container"></div></div></div>
     
-    <div id="timeline-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[80vh] flex flex-col"><div class="flex justify-between border-b border-theme pb-3"><h3 id="timeline-title" class="font-bold theme-title text-lg">📜 時間軸</h3><button onclick="window.closeModal('timeline-modal')" class="theme-muted text-2xl">&times;</button></div><div class="overflow-y-auto flex-1 space-y-5 no-scrollbar"><div class="theme-subcard p-4 rounded-xl border-theme border space-y-3"><textarea id="timeline-new-note" rows="2" placeholder="新增帶線筆記..." class="w-full bg-transparent text-base theme-title outline-none"></textarea><div class="text-right"><button onclick="window.addTimelineNote()" class="bg-indigo-600 text-white text-sm px-5 py-2 rounded-xl font-bold shadow">寫入</button></div></div><div id="timeline-items-container" class="space-y-4 pl-5 border-l-2 border-indigo-500/30"></div></div></div></div>
+    <!-- 📜 帶線陪伴軌跡 (支援手動筆記刪除) -->
+    <div id="timeline-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between border-b border-theme pb-3"><h3 id="timeline-title" class="font-bold theme-title text-lg">📜 時間軸</h3><button onclick="window.closeModal('timeline-modal')" class="theme-muted text-2xl">&times;</button></div>
+            <div class="overflow-y-auto flex-1 space-y-5 no-scrollbar">
+                <div class="theme-subcard p-4 rounded-xl border-theme border space-y-3">
+                    <textarea id="timeline-new-note" rows="2" placeholder="新增帶線筆記..." class="w-full bg-transparent text-base theme-title outline-none"></textarea>
+                    <div class="text-right"><button onclick="window.addTimelineNote()" class="bg-indigo-600 text-white text-sm px-5 py-2 rounded-xl font-bold shadow">寫入</button></div>
+                </div>
+                <div id="timeline-items-container" class="space-y-4 pl-5 border-l-2 border-indigo-500/30"></div>
+            </div>
+        </div>
+    </div>
     
     <div id="tree-add-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-4"><h3 class="font-bold theme-title text-lg border-b border-theme pb-3">💎 新增五心團隊夥伴</h3><form onsubmit="window.submitAddTreeNode(event)" class="space-y-4 text-sm"><input type="hidden" id="tree-parent-id"><select id="tree-contact-select" onchange="document.getElementById('tree-node-name').value=this.value" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select><input type="text" id="tree-node-name" required placeholder="或手動輸入姓名" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><div class="flex justify-end gap-3"><button type="button" onclick="window.closeModal('tree-add-modal')" class="theme-subcard border-theme border px-4 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow">加入</button></div></form></div></div>
     
@@ -403,56 +416,23 @@
             tags: ['春日分享會', '營養班', '交流會'], products: [], treeData: {}
         };
 
-        // ✅ 完整匯入你提供的安麗官方產品與精準 BV 價格清單
         const fullAmwayProducts = [
-            { id: 'p1', name: '優蛋白', bv: 948 },
-            { id: 'p2', name: '優蛋白家庭號', bv: 1800 },
-            { id: 'p3', name: '優蛋白關鍵行動力', bv: 1714 },
-            { id: 'p4', name: 'BK超纖飲', bv: 1524 },
-            { id: 'p5', name: 'BK減糖超纖飲', bv: 1619 },
-            { id: 'p6', name: '纖盈錠', bv: 1286 },
-            { id: 'p7', name: '纖巧錠', bv: 1548 },
-            { id: 'p8', name: 'DX盒裝', bv: 2190 },
-            { id: 'p9', name: 'DX補充包', bv: 2095 },
-            { id: 'p10', name: '得力', bv: 571 },
-            { id: 'p11', name: '倍欣', bv: 695 },
-            { id: 'p12', name: 'B群', bv: 943 },
-            { id: 'p13', name: 'C', bv: 881 },
-            { id: 'p14', name: 'E', bv: 1314 },
-            { id: 'p15', name: '加美D', bv: 629 },
-            { id: 'p16', name: '葉酸鐵', bv: 619 },
-            { id: 'p17', name: '益生菌(30入)', bv: 1571 },
-            { id: 'p18', name: '益生菌(90入)', bv: 4471 },
-            { id: 'p19', name: '易孅菌', bv: 1733 },
-            { id: 'p20', name: '活悅益生菌', bv: 1733 },
-            { id: 'p21', name: '女士益生菌', bv: 1733 },
-            { id: 'p22', name: '纖維嚼片', bv: 638 },
-            { id: 'p23', name: '高纖隨身包', bv: 976 },
-            { id: 'p24', name: '三倍魚油', bv: 1514 },
-            { id: 'p25', name: '全方位魚油', bv: 2076 },
-            { id: 'p26', name: '晶明+', bv: 2762 },
-            { id: 'p27', name: '卵磷脂粉', bv: 2048 },
-            { id: 'p28', name: '卵磷脂嚼片', bv: 724 },
-            { id: 'p29', name: '葡萄糖胺', bv: 1095 },
-            { id: 'p30', name: '大蒜片', bv: 1152 },
-            { id: 'p31', name: 'Q10', bv: 1005 },
-            { id: 'p32', name: '消化酵素', bv: 1562 },
-            { id: 'p33', name: '蔚葆飲', bv: 1524 },
-            { id: 'p34', name: '養氣飲', bv: 1524 },
-            { id: 'p35', name: '活妍飲', bv: 1524 },
-            { id: 'p36', name: '養晶飲', bv: 1524 },
-            { id: 'p37', name: '順欣飲', bv: 1619 },
-            { id: 'p38', name: '蘅怡飲', bv: 1619 },
-            { id: 'p39', name: '管花肉蓯蓉', bv: 1714 },
-            { id: 'p40', name: '好甘萃', bv: 1543 },
-            { id: 'p41', name: '薑黃C', bv: 1476 },
-            { id: 'p42', name: '兒童綜合營養片', bv: 714 },
-            { id: 'p43', name: '兒童鐵嚼片', bv: 414 },
-            { id: 'p44', name: '兒童C+益生菌', bv: 1143 },
-            { id: 'p45', name: '卸妝乳', bv: 786 },
-            { id: 'p46', name: '小橘瓶', bv: 1857 },
-            { id: 'p47', name: '水潤淨化精華', bv: 2238 },
-            { id: 'p48', name: '緊緻抗老精華', bv: 2838 }
+            { id: 'p1', name: '優蛋白', bv: 948 }, { id: 'p2', name: '優蛋白家庭號', bv: 1800 }, { id: 'p3', name: '優蛋白關鍵行動力', bv: 1714 },
+            { id: 'p4', name: 'BK超纖飲', bv: 1524 }, { id: 'p5', name: 'BK減糖超纖飲', bv: 1619 }, { id: 'p6', name: '纖盈錠', bv: 1286 },
+            { id: 'p7', name: '纖巧錠', bv: 1548 }, { id: 'p8', name: 'DX盒裝', bv: 2190 }, { id: 'p9', name: 'DX補充包', bv: 2095 },
+            { id: 'p10', name: '得力', bv: 571 }, { id: 'p11', name: '倍欣', bv: 695 }, { id: 'p12', name: 'B群', bv: 943 },
+            { id: 'p13', name: 'C', bv: 881 }, { id: 'p14', name: 'E', bv: 1314 }, { id: 'p15', name: '加美D', bv: 629 },
+            { id: 'p16', name: '葉酸鐵', bv: 619 }, { id: 'p17', name: '益生菌(30入)', bv: 1571 }, { id: 'p18', name: '益生菌(90入)', bv: 4471 },
+            { id: 'p19', name: '易孅菌', bv: 1733 }, { id: 'p20', name: '活悅益生菌', bv: 1733 }, { id: 'p21', name: '女士益生菌', bv: 1733 },
+            { id: 'p22', name: '纖維嚼片', bv: 638 }, { id: 'p23', name: '高纖隨身包', bv: 976 }, { id: 'p24', name: '三倍魚油', bv: 1514 },
+            { id: 'p25', name: '全方位魚油', bv: 2076 }, { id: 'p26', name: '晶明+', bv: 2762 }, { id: 'p27', name: '卵磷脂粉', bv: 2048 },
+            { id: 'p28', name: '卵磷脂嚼片', bv: 724 }, { id: 'p29', name: '葡萄糖胺', bv: 1095 }, { id: 'p30', name: '大蒜片', bv: 1152 },
+            { id: 'p31', name: 'Q10', bv: 1005 }, { id: 'p32', name: '消化酵素', bv: 1562 }, { id: 'p33', name: '蔚葆飲', bv: 1524 },
+            { id: 'p34', name: '養氣飲', bv: 1524 }, { id: 'p35', name: '活妍飲', bv: 1524 }, { id: 'p36', name: '養晶飲', bv: 1524 },
+            { id: 'p37', name: '順欣飲', bv: 1619 }, { id: 'p38', name: '蘅怡飲', bv: 1619 }, { id: 'p39', name: '管花肉蓯蓉', bv: 1714 },
+            { id: 'p40', name: '好甘萃', bv: 1543 }, { id: 'p41', name: '薑黃C', bv: 1476 }, { id: 'p42', name: '兒童綜合營養片', bv: 714 },
+            { id: 'p43', name: '兒童鐵嚼片', bv: 414 }, { id: 'p44', name: '兒童C+益生菌', bv: 1143 }, { id: 'p45', name: '卸妝乳', bv: 786 },
+            { id: 'p46', name: '小橘瓶', bv: 1857 }, { id: 'p47', name: '水潤淨化精華', bv: 2238 }, { id: 'p48', name: '緊緻抗老精華', bv: 2838 }
         ];
 
         let leaderboardCategory = 'leads';
@@ -741,7 +721,6 @@
             renderTrashCount(); renderTagsLobby(); renderProductsLobby(); renderBVReport();
         }
 
-        // ✅ 長客專區：支援「前12個月快速選單 + 自訂年月自由切換」
         function populateAmwayMonthOptions() {
             const select = document.getElementById('bv-month-select'); if(!select) return; select.innerHTML = '';
             const now = new Date();
@@ -780,8 +759,16 @@
             const tSel = document.getElementById('filter-tag'); if(tSel) { const cur = tSel.value; tSel.innerHTML = `<option value="all">🏷️ 所有活動標籤</option>` + Object.keys(tagMap).map(k => `<option value="${k}">#${k} (${tagMap[k]}人)</option>`).join(''); tSel.value = cur || 'all'; }
         }
 
+        // ✅ 本地時間修正工具 (解決時差造成的待跟進任務跨日誤差)
+        function getLocalDateString(d = new Date()) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function renderFollowupBanner() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const tasks = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed && c.nextFollowUp && c.nextFollowUp <= today);
             const container = document.getElementById('followup-banner-container'); container.innerHTML = '';
             if(tasks.length > 0) {
@@ -789,7 +776,7 @@
             }
         }
         window.openTodoListModal = function() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const tasks = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed && c.nextFollowUp && c.nextFollowUp <= today);
             document.getElementById('todo-list-items').innerHTML = tasks.map(c => `<div class="flex justify-between items-center p-4 rounded-xl theme-subcard border-theme border"><div class="flex items-center gap-3"><input type="checkbox" onchange="window.completeFollowUp('${c.id}')" class="rounded text-rose-600 w-5 h-5 cursor-pointer"><span class="font-bold theme-title text-base sm:text-lg">${c.name}</span></div><div class="flex gap-4 text-sm font-bold"><button onclick="window.editCustomer('${c.id}'); window.closeModal('todo-modal')" class="text-indigo-600">📝 編輯</button><button onclick="window.openTimeline('${c.id}'); window.closeModal('todo-modal')" class="text-purple-600">📜 軌跡</button></div></div>`).join('');
             window.openModal('todo-modal');
@@ -877,7 +864,7 @@
         }
 
         let tempTagsForModal = [];
-        window.openAddCustomerModal = function() { document.getElementById('crm-form').reset(); document.getElementById('field-id').value = ''; document.getElementById('field-date').value = new Date().toISOString().split('T')[0]; document.getElementById('modal-title').textContent = '➕ 新增跟進名單'; document.getElementById('delete-in-modal-btn').classList.add('hidden'); tempTagsForModal = []; document.getElementById('loyalty-items-list').innerHTML = ''; renderTagsInModal(); window.openModal('modal'); };
+        window.openAddCustomerModal = function() { document.getElementById('crm-form').reset(); document.getElementById('field-id').value = ''; document.getElementById('field-date').value = getLocalDateString(); document.getElementById('modal-title').textContent = '➕ 新增跟進名單'; document.getElementById('delete-in-modal-btn').classList.add('hidden'); tempTagsForModal = []; document.getElementById('loyalty-items-list').innerHTML = ''; renderTagsInModal(); window.openModal('modal'); };
         
         window.editCustomer = function(id) {
             const c = state.customers.find(x=>x.id===id); if(!c) return;
@@ -913,7 +900,7 @@
         
         window.addLoyaltyItemField = function(loyId = '', pId = '', qty = 1, date = '', endDate = '') {
             const currentId = loyId || 'ly_' + Date.now() + Math.random().toString().substring(2,6);
-            const initDate = date || document.getElementById('field-date').value || new Date().toISOString().split('T')[0];
+            const initDate = date || document.getElementById('field-date').value || getLocalDateString();
             const div = document.createElement('div'); div.className = "flex gap-2 items-center loyalty-item-row bg-black/5 dark:bg-white/5 p-2 rounded-xl flex-wrap sm:flex-nowrap";
             
             let btnAction = `<button type="button" onclick="window.terminateLoyaltyItem(this)" class="text-xs bg-amber-500/20 text-amber-700 px-3 py-1.5 rounded font-bold whitespace-nowrap">終止</button>`;
@@ -978,21 +965,36 @@
                 if(pid && qty>0) loyItems.push({id: loyId, productId: pid, qty, date, endDate}); 
             });
             const newCustomerId = id || 'c_' + Date.now();
+            const existingCust = id ? state.customers.find(x=>x.id===id) : null;
+            let timeline = existingCust ? (existingCust.timeline || []) : [{date: document.getElementById('field-date').value, text:'建立名單'}];
+            
+            if (id && existingCust) {
+                timeline.unshift({date: getLocalDateString(), text: '編輯名單資料'});
+            }
+
             const data = {
-                id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: document.getElementById('field-referrer').value.trim(), level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: id ? (state.customers.find(x=>x.id===id).timeline||[]) : [{date: document.getElementById('field-date').value, text:'建立名單'}]
+                id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: document.getElementById('field-referrer').value.trim(), level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: timeline
             };
             
+            const currentMonth = new Date().toISOString().substring(0,7);
+
             if(id) { 
                 const idx = state.customers.findIndex(x=>x.id===id); if(idx>-1) state.customers[idx] = data; 
             } else { 
                 state.customers.unshift(data); 
-                const fd1 = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: newCustomerId, action:'新增跟進名單', pts:1, time:new Date().toISOString()}; 
-                state.feeds.unshift(fd1); await cloudUpsert('feeds', fd1); 
+                // ✅ 智慧補登分流：新增名單日期若為當月才計分
+                if (data.date.startsWith(currentMonth)) {
+                    const fd1 = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: newCustomerId, action:'新增跟進名單', pts:1, time:new Date().toISOString()}; 
+                    state.feeds.unshift(fd1); await cloudUpsert('feeds', fd1); 
+                }
                 
                 let totalLoyaltyQty = loyItems.reduce((sum, item) => sum + parseInt(item.qty), 0);
                 if (totalLoyaltyQty > 0) {
-                    const fd2 = {id:'f_'+Date.now()+'_l', user_name: sessionUser.email, customer_id: newCustomerId, action:`新增了 ${totalLoyaltyQty} 組長客`, pts:10*totalLoyaltyQty, time:new Date().toISOString()};
-                    state.feeds.unshift(fd2); await cloudUpsert('feeds', fd2);
+                    const firstLoyDate = loyItems[0].date || currentMonth;
+                    if (firstLoyDate.startsWith(currentMonth)) {
+                        const fd2 = {id:'f_'+Date.now()+'_l', user_name: sessionUser.email, customer_id: newCustomerId, action:`新增了 ${totalLoyaltyQty} 組長客`, pts:10*totalLoyaltyQty, time:new Date().toISOString()};
+                        state.feeds.unshift(fd2); await cloudUpsert('feeds', fd2);
+                    }
                 }
             }
             await cloudUpsert('customers', data); renderAll(); window.closeModal('modal'); window.showToast(isTrashProgress ? '📦 已移至封存區' : '💾 資料已維護儲存');
@@ -1003,7 +1005,7 @@
             const defaultId = checkedBoxes.length > 0 ? checkedBoxes[0].value : '';
             const actives = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed);
             const opts = actives.map(c => `<option value="${c.name}" ${c.id === defaultId ? 'selected' : ''}>${c.name} ${c.referrer?`(${c.referrer})`:''}</option>`).join(''); 
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             
             if(t==='opp') { 
                 document.getElementById('opp-partner-select').innerHTML = opts; 
@@ -1021,7 +1023,6 @@
             }
         };
         
-        // ✅ 336 OPP 打卡：切換下拉選單與手動輸入模式
         window.toggleOppInputMode = function() {
             const sel = document.getElementById('opp-partner-select');
             const inp = document.getElementById('opp-partner-input');
@@ -1053,9 +1054,12 @@
                 cObj.progress = 'OPP'; if(!cObj.timeline) cObj.timeline=[]; cObj.timeline.unshift({date:d, text:`[講336/OPP] ${note}`}); await cloudUpsert('customers', cObj);
             }
             
-            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`講了一場 336/OPP (${partnerName})`, pts:5, time:new Date().toISOString()}; 
-            state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
-            renderAll(); window.closeModal('checkin-opp-modal'); window.showToast('🎉 OPP 打卡成功 (+5分)');
+            const currentMonth = new Date().toISOString().substring(0,7);
+            if (d.startsWith(currentMonth)) {
+                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`講了一場 336/OPP (${partnerName})`, pts:5, time:new Date().toISOString()}; 
+                state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+            }
+            renderAll(); window.closeModal('checkin-opp-modal'); window.showToast('🎉 OPP 打卡成功');
         };
 
         window.submitRecCheckin = async function(e) {
@@ -1065,8 +1069,11 @@
             if(c) { c.memberType = type; if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:d, text:`[推薦${type}] ${note}`}); await cloudUpsert('customers', c); }
             const pts = type==='直銷商'?10:2; 
             
-            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`推薦了${type} (${partnerName})`, pts:pts, time:new Date().toISOString()}; 
-            state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+            const currentMonth = new Date().toISOString().substring(0,7);
+            if (d.startsWith(currentMonth)) {
+                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`推薦了${type} (${partnerName})`, pts:pts, time:new Date().toISOString()}; 
+                state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+            }
             renderAll(); window.closeModal('checkin-rec-modal'); window.showToast('🎉 推薦打卡成功');
         };
 
@@ -1087,14 +1094,17 @@
             const note = document.getElementById('loyalty-checkin-notes').value; 
             if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:checkinDate, text:`[新增長客] +${totalAdded}組. ${note}`}); await cloudUpsert('customers', c);
             
-            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`新增了 ${totalAdded} 組長客 (${c.name})`, pts:10*totalAdded, time:new Date().toISOString()}; 
-            state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+            const currentMonth = new Date().toISOString().substring(0,7);
+            if (checkinDate.startsWith(currentMonth)) {
+                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`新增了 ${totalAdded} 組長客 (${c.name})`, pts:10*totalAdded, time:new Date().toISOString()}; 
+                state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+            }
             renderAll(); window.closeModal('checkin-loyalty-modal'); window.showToast(`🎉 長客打卡成功 (+${totalAdded}組)`);
         };
 
         // 🌟 新增 Vincent 個人直轄長客
         window.addMyDirectLoyalty = async function() {
-            const date = document.getElementById('my-loyalty-date').value || new Date().toISOString().split('T')[0];
+            const date = document.getElementById('my-loyalty-date').value || getLocalDateString();
             const productId = document.getElementById('my-loyalty-prod').value;
             const qty = parseInt(document.getElementById('my-loyalty-qty').value) || 1;
             if(!productId) return alert('請選擇長客品項！');
@@ -1103,22 +1113,26 @@
             state.myDirectLoyalties.push(item);
             await cloudUpsert('my_direct_loyalties', item);
 
-            const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`新增個人直轄長客 x${qty}`, pts: 10 * qty, time: new Date().toISOString()};
-            state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+            const currentMonth = new Date().toISOString().substring(0,7);
+            if (date.startsWith(currentMonth)) {
+                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`新增個人直轄長客 x${qty}`, pts: 10 * qty, time: new Date().toISOString()};
+                state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+            }
 
             renderBVReport();
             window.showToast('🎉 個人直轄長客新增成功！');
         }
 
-        // 📝 小組夥伴長客補登
+        // 📝 小組夥伴長客補登 (含誰的夥伴欄位)
         window.addManualSubLoyalty = async function() {
             const partnerName = document.getElementById('sub-partner-name').value.trim(); 
+            const referrer = document.getElementById('sub-partner-referrer').value;
             const productId = document.getElementById('sub-prod-select').value; 
             const qty = parseInt(document.getElementById('sub-prod-qty').value)||1; 
-            const date = document.getElementById('sub-partner-date').value || new Date().toISOString().split('T')[0];
+            const date = document.getElementById('sub-partner-date').value || getLocalDateString();
             
             if(partnerName && productId) { 
-                const newItem = { id: 'sub_'+Date.now(), owner: sessionUser.email, partnerName, productId, qty, date, endDate: '' }; 
+                const newItem = { id: 'sub_'+Date.now(), owner: sessionUser.email, partnerName, referrer, productId, qty, date, endDate: '' }; 
                 state.subGroupLoyalties.push(newItem); 
                 await cloudUpsert('sub_group_loyalties', newItem); 
                 document.getElementById('sub-partner-name').value = ''; 
@@ -1126,22 +1140,26 @@
             }
         }
 
-        // 🛠️ 長客明細直接終止/刪除聯動機制
+        // 🛠️ 長客明細直接終止與刪除聯動機制 (刪除抹除軌跡，終止寫入足跡)
         window.terminateDirectLoyaltyItem = async function(custId, loyId) {
             const c = state.customers.find(x=>x.id===custId); if(!c) return;
             const item = (c.loyaltyItems||[]).find(x=>x.id===loyId); if(!item) return;
             const targetMonth = prompt('請輸入「終止月份」，該月份起將不再統計積分。\n(格式範例：2026-08)', new Date().toISOString().substring(0,7));
             if (targetMonth && targetMonth.match(/^\d{4}-\d{2}$/)) {
                 item.endDate = targetMonth;
-                await cloudUpsert('customers', c); renderBVReport(); window.showToast('✅ 已設定終止月份');
+                if(!c.timeline) c.timeline=[];
+                c.timeline.unshift({date: getLocalDateString(), text: `[長客終止] 品項終止於 ${targetMonth}`});
+                await cloudUpsert('customers', c); renderBVReport(); window.showToast('✅ 已設定終止月份並寫入軌跡');
             }
         }
 
         window.deleteDirectLoyaltyItem = async function(custId, loyId) {
-            if(confirm('確定要刪除此長客品項嗎？')) {
+            if(confirm('確定要刪除此長客品項嗎？\n(系統將會同步從軌跡中抹除此項紀錄)')) {
                 const c = state.customers.find(x=>x.id===custId); if(!c) return;
                 c.loyaltyItems = (c.loyaltyItems||[]).filter(x=>x.id!==loyId);
-                await cloudUpsert('customers', c); renderBVReport(); window.showToast('🗑️ 已刪除長客品項');
+                if(!c.timeline) c.timeline=[];
+                c.timeline.unshift({date: getLocalDateString(), text: `[長客刪除] 刪除無效品項紀錄`});
+                await cloudUpsert('customers', c); renderBVReport(); window.showToast('🗑️ 已刪除長客品項與對應軌跡');
             }
         }
 
@@ -1177,7 +1195,31 @@
             }
         }
 
-        function renderTree() { const container = document.getElementById('tree-root-container'); if (!container) return; container.innerHTML = buildPillTreeHTML(state.treeData, true); }
+        function renderTree() { 
+            const container = document.getElementById('tree-root-container'); if (!container) return; 
+            container.innerHTML = buildPillTreeHTML(state.treeData, true); 
+            updateReferrerDropdowns();
+        }
+
+        // 🔄 動態更新補登選單的「誰的夥伴」下拉清單 (包含你自己與所有團隊成員)
+        function updateReferrerDropdowns() {
+            const refSel = document.getElementById('sub-partner-referrer');
+            if(!refSel) return;
+            const myName = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
+            let html = `<option value="${myName}">誰的夥伴: 我自己 (${myName})</option>`;
+            
+            const collectNames = (node) => {
+                if(node.name && node.name !== myName) {
+                    html += `<option value="${node.name}">誰的夥伴: ${node.name}</option>`;
+                }
+                if(node.children) {
+                    node.children.forEach(c => collectNames(c));
+                }
+            };
+            if(state.treeData) collectNames(state.treeData);
+            refSel.innerHTML = html;
+        }
+
         function buildPillTreeHTML(node, isRoot = false) {
             const hasChildren = node.children && node.children.length > 0; const coll = node.collapsed; let childHTML = '';
             if (hasChildren && !coll) { childHTML = `<div class="flex pt-6 relative justify-center gap-8 border-t border-theme border-dashed mt-4">${node.children.map(c => buildPillTreeHTML(c, false)).join('')}</div>`; }
@@ -1259,7 +1301,6 @@
             }
         }
 
-        // ✅ BV 統計：支援指定月份自由切換、個人直轄長客、明細直接終止/刪除
         window.renderBVReport = function() {
             const container = document.getElementById('bv-report-container'); if(!container) return;
             
@@ -1272,10 +1313,10 @@
             document.getElementById('my-loyalty-prod').innerHTML = prodOpts;
             
             if(!document.getElementById('my-loyalty-date').value) {
-                document.getElementById('my-loyalty-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('my-loyalty-date').value = getLocalDateString();
             }
             if(!document.getElementById('sub-partner-date').value) {
-                document.getElementById('sub-partner-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('sub-partner-date').value = getLocalDateString();
             }
 
             const groups = {}; let totalBV = 0; let totalQty = 0;
@@ -1290,7 +1331,7 @@
             const myName = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
             groups[myName] = { items: [], sumBV: 0 };
 
-            // 1. 個人直轄長客 (Vincent 自己的)
+            // 1. 個人直轄長客
             (state.myDirectLoyalties||[]).forEach(item => {
                 if (isEligible(item.date, item.endDate, selectedMonth)) {
                     const p = state.products.find(x=>x.id===item.productId);
@@ -1318,21 +1359,22 @@
                 });
             });
             
-            // 3. 小組夥伴補登長客
+            // 3. 小組夥伴補登長客 (含推薦人顯示)
             (state.subGroupLoyalties||[]).forEach(item => {
                 const itemDate = item.date || selectedMonth + '-01';
                 if (isEligible(itemDate, item.endDate, selectedMonth)) {
-                    if(!groups[item.partnerName]) groups[item.partnerName] = { items: [], sumBV: 0 };
+                    const groupKey = item.partnerName;
+                    if(!groups[groupKey]) groups[groupKey] = { items: [], sumBV: 0 };
                     const p = state.products.find(x=>x.id===item.productId);
                     if(p) { 
                         const rowBV = p.bv * item.qty; 
-                        groups[item.partnerName].items.push({ type:'sub', subId: item.id, pName: p.name + ` <span class="text-xs text-amber-600 font-bold ml-1">(小組補登 啟動: ${itemDate})</span>`, qty: item.qty, rowBV, endDate: item.endDate }); 
-                        groups[item.partnerName].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; 
+                        const referrerText = item.referrer ? ` (推薦人: ${item.referrer})` : '';
+                        groups[groupKey].items.push({ type:'sub', subId: item.id, pName: p.name + ` <span class="text-xs text-amber-600 font-bold ml-1">(小組補登${referrerText} 啟動: ${itemDate})</span>`, qty: item.qty, rowBV, endDate: item.endDate }); 
+                        groups[groupKey].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; 
                     }
                 }
             });
             
-            // 清理空的群組
             Object.keys(groups).forEach(k => { if(groups[k].items.length === 0 && k !== myName) delete groups[k]; });
 
             document.getElementById('total-bv-display').textContent = totalBV.toLocaleString(); 
@@ -1359,16 +1401,16 @@
             }).join('');
         }
 
-        function renderTagsLobby() { const c = document.getElementById('global-tags-container'); if(c) c.innerHTML = state.tags.map(t => `<span class="tag-chip">#${t} <button onclick="window.deleteGlobalTag('${t}')">x</button></span>`).join(''); }
+        window.renderTagsLobby = function() { const c = document.getElementById('global-tags-container'); if(c) c.innerHTML = state.tags.map(t => `<span class="tag-chip">#${t} <button onclick="window.deleteGlobalTag('${t}')">x</button></span>`).join(''); }
         window.createGlobalTag = function() { const v = document.getElementById('new-tag-input').value.trim().replace(/^#/,''); if(v && !state.tags.includes(v)) { state.tags.push(v); document.getElementById('new-tag-input').value=''; saveSystemSettings(); renderAll(); } }
         window.deleteGlobalTag = function(t) { window.openConfirmModal(`確定刪除標籤 #${t}？`, async () => { state.tags = state.tags.filter(x=>x!==t); saveSystemSettings(); renderAll(); window.showToast('🏷️ 已刪除'); }); }
 
-        function renderProductsLobby() { const c = document.getElementById('products-container'); if(c) c.innerHTML = state.products.map(p => `<div class="flex justify-between items-center p-4 border-b border-theme text-base theme-title"><span>${p.name}</span><div class="flex gap-4 items-center"><span class="text-indigo-500 font-bold">${p.bv} BV</span><button onclick="window.editProduct('${p.id}')" class="text-indigo-600 font-bold text-xl">✏️</button><button onclick="window.deleteProduct('${p.id}')" class="text-rose-500 font-bold text-xl">x</button></div></div>`).join(''); }
+        window.renderProductsLobby = function() { const c = document.getElementById('products-container'); if(c) c.innerHTML = state.products.map(p => `<div class="flex justify-between items-center p-4 border-b border-theme text-base theme-title"><span>${p.name}</span><div class="flex gap-4 items-center"><span class="text-indigo-500 font-bold">${p.bv} BV</span><button onclick="window.editProduct('${p.id}')" class="text-indigo-600 font-bold text-xl">✏️</button><button onclick="window.deleteProduct('${p.id}')" class="text-rose-500 font-bold text-xl">x</button></div></div>`).join(''); }
         window.editProduct = function(id) { const p = state.products.find(x=>x.id===id); if(!p) return; document.getElementById('edit-prod-id').value = p.id; document.getElementById('new-prod-name').value = p.name; document.getElementById('new-prod-bv').value = p.bv; document.getElementById('save-prod-btn').textContent = '修改'; }
         window.saveProduct = function() { const id = document.getElementById('edit-prod-id').value; const n = document.getElementById('new-prod-name').value.trim(); const b = parseInt(document.getElementById('new-prod-bv').value)||0; if(n && b) { if(id) { const p = state.products.find(x=>x.id===id); if(p) { p.name = n; p.bv = b; } } else { state.products.push({id:'p'+Date.now(), name:n, bv:b}); } document.getElementById('edit-prod-id').value=''; document.getElementById('new-prod-name').value=''; document.getElementById('new-prod-bv').value=''; document.getElementById('save-prod-btn').textContent='儲存'; saveSystemSettings(); renderAll(); window.showToast('🛍️ 已更新'); } }
         window.deleteProduct = function(id) { state.products = state.products.filter(x=>x.id!==id); saveSystemSettings(); renderAll(); }
 
-        function renderTrashCount() { const trashed = state.customers.filter(c => c.isTrashed && c.owner === sessionUser.email); document.getElementById('drawer-trash-btn').innerHTML = `📦 名單封存區 (${trashed.length})`; document.getElementById('trash-list-container').innerHTML = trashed.map(c=>`<div class="flex justify-between p-4 border-b border-theme text-base"><span class="theme-title font-bold">${c.name}</span><div><button onclick="window.restoreCustomer('${c.id}')" class="text-indigo-600 font-bold mr-4">解封</button><button onclick="window.deletePermanently('${c.id}')" class="text-rose-600 font-bold">永久刪除</button></div></div>`).join(''); }
+        window.renderTrashCount = function() { const trashed = state.customers.filter(c => c.isTrashed && c.owner === sessionUser.email); document.getElementById('drawer-trash-btn').innerHTML = `📦 名單封存區 (${trashed.length})`; document.getElementById('trash-list-container').innerHTML = trashed.map(c=>`<div class="flex justify-between p-4 border-b border-theme text-base"><span class="theme-title font-bold">${c.name}</span><div><button onclick="window.restoreCustomer('${c.id}')" class="text-indigo-600 font-bold mr-4">解封</button><button onclick="window.deletePermanently('${c.id}')" class="text-rose-600 font-bold">永久刪除</button></div></div>`).join(''); }
         window.restoreCustomer = async function(id) { const c = state.customers.find(x=>x.id===id); if(c){ c.isTrashed=false; await cloudUpsert('customers', c); renderAll(); window.showToast('✅ 成功解除封存'); } }
         
         window.deletePermanently = function(id) { 
@@ -1397,7 +1439,7 @@
                 for (let i = 1; i < lines.length; i++) {
                     const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
                     if (cols[1]) {
-                        const data = { id: 'c_' + Date.now() + '_' + i, owner: sessionUser.email, date: cols[0] || new Date().toISOString().split('T')[0], name: cols[1], referrer: cols[2]||'', level: cols[3]||'未分類', progress: cols[4]||'新開發/待跟進', memberType: cols[5]||'未加入', ig: cols[6]||'', threads: cols[7]||'', tags: cols[8]?cols[8].split(';'):[], notes: cols[9]||'', isTrashed: false, timeline: [{date: new Date().toISOString().split('T')[0], text: '自 Excel 匯入'}] };
+                        const data = { id: 'c_' + Date.now() + '_' + i, owner: sessionUser.email, date: cols[0] || getLocalDateString(), name: cols[1], referrer: cols[2]||'', level: cols[3]||'未分類', progress: cols[4]||'新開發/待跟進', memberType: cols[5]||'未加入', ig: cols[6]||'', threads: cols[7]||'', tags: cols[8]?cols[8].split(';'):[], notes: cols[9]||'', isTrashed: false, timeline: [{date: getLocalDateString(), text: '自 Excel 匯入'}] };
                         state.customers.unshift(data); await cloudUpsert('customers', data); count++;
                     }
                 }
@@ -1452,15 +1494,40 @@
 
         window.openTimeline = function(id) { currentActiveContactId = id; const c = state.customers.find(x=>x.id===id); document.getElementById('timeline-title').textContent = `📜 ${c.name} 帶線陪伴軌跡`; renderTimelineItems(c); window.openModal('timeline-modal'); }
         
+        // 📜 軌跡渲染 (支援手動新增筆記的刪除按鈕)
         function renderTimelineItems(c) { 
-            document.getElementById('timeline-items-container').innerHTML = (c.timeline||[]).map(t=> {
+            document.getElementById('timeline-items-container').innerHTML = (c.timeline||[]).map((t, index)=> {
                 const textContent = typeof t === 'string' ? t : (t.text || t.t || '陪伴紀錄');
                 const dateContent = t.date || '近期';
-                return `<div class="relative"><div class="absolute -left-[27px] top-2 w-3 h-3 bg-indigo-500 rounded-full shadow"></div><div class="text-xs theme-muted mb-1">${dateContent}</div><div class="text-base theme-title font-bold">${textContent}</div></div>`;
+                const isManualNote = textContent.startsWith('筆記:'); // 辨識手動新增筆記
+                const deleteBtn = isManualNote ? `<button onclick="window.deleteTimelineNote('${c.id}', ${index})" class="text-rose-500 font-bold text-xs ml-2 hover:underline">刪除</button>` : '';
+                return `<div class="relative"><div class="absolute -left-[27px] top-2 w-3 h-3 bg-indigo-500 rounded-full shadow"></div><div class="flex justify-between items-center text-xs theme-muted mb-1"><span>${dateContent}</span>${deleteBtn}</div><div class="text-base theme-title font-bold">${textContent}</div></div>`;
             }).join(''); 
         }
 
-        window.addTimelineNote = async function() { const t = document.getElementById('timeline-new-note').value.trim(); if(!t) return; const c = state.customers.find(x=>x.id===currentActiveContactId); if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:new Date().toISOString().split('T')[0], text: t}); await cloudUpsert('customers', c); renderTimelineItems(c); document.getElementById('timeline-new-note').value=''; window.showToast('📝 筆記已寫入'); }
+        window.addTimelineNote = async function() { 
+            const t = document.getElementById('timeline-new-note').value.trim(); 
+            if(!t) return; 
+            const c = state.customers.find(x=>x.id===currentActiveContactId); 
+            if(!c.timeline) c.timeline=[]; 
+            c.timeline.unshift({date: getLocalDateString(), text: `筆記: ${t}`}); 
+            await cloudUpsert('customers', c); 
+            renderTimelineItems(c); 
+            document.getElementById('timeline-new-note').value=''; 
+            window.showToast('📝 筆記已寫入'); 
+        }
+
+        window.deleteTimelineNote = async function(custId, index) {
+            if(confirm('確定要刪除這則手動筆記嗎？')) {
+                const c = state.customers.find(x=>x.id===custId);
+                if(c && c.timeline) {
+                    c.timeline.splice(index, 1);
+                    await cloudUpsert('customers', c);
+                    renderTimelineItems(c);
+                    window.showToast('🗑️ 筆記已刪除');
+                }
+            }
+        }
 
         window.logout = async function() { if(confirm('確定要登出系統嗎？')) { await db.auth.signOut(); window.location.reload(); } }
     </script>
