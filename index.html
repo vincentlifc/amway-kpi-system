@@ -39,7 +39,7 @@
         /* 🖨️ 完美置中列印與 PDF 匯出專用排版 */
         @media print {
             body * { visibility: hidden !important; }
-            #printable-timeline-area, #printable-timeline-area * { visibility: visible !important; }
+            #printable-timeline-area, #printable-timeline-area *, #tree-root-container, #tree-root-container * { visibility: visible !important; }
             #printable-timeline-area {
                 position: fixed !important;
                 left: 50% !important;
@@ -51,6 +51,15 @@
                 color: #000000 !important;
                 box-shadow: none !important;
                 padding: 20px !important;
+                z-index: 999999 !important;
+            }
+            #tree-root-container {
+                position: fixed !important;
+                left: 0 !important;
+                top: 50px !important;
+                width: 100% !important;
+                display: flex !important;
+                justify-content: center !important;
                 z-index: 999999 !important;
             }
             .no-print { display: none !important; }
@@ -267,7 +276,7 @@
         </div>
     </div>
 
-    <!-- 新增/編輯跟進名單 Modal -->
+    <!-- 新增/編輯跟進名單 Modal (修復：選擇「自己」可順暢儲存) -->
     <div id="modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl border-theme border flex flex-col max-h-[90vh]">
             <div class="px-6 py-4 border-b border-theme flex justify-between items-center theme-subcard shrink-0"><h3 id="modal-title" class="text-base sm:text-lg font-bold theme-title">➕ 新增跟進名單</h3><button onclick="window.closeModal('modal')" class="theme-muted hover:theme-title text-2xl font-bold">&times;</button></div>
@@ -413,7 +422,7 @@
     <!-- 📅 336 OPP 月曆日誌 -->
     <div id="opp-history-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[80vh] flex flex-col"><div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">🗣️ 講 336 / OPP 日誌</h3><button onclick="window.closeModal('opp-history-modal')" class="theme-muted text-2xl">&times;</button></div><div class="overflow-y-auto flex-1 space-y-3 no-scrollbar text-base" id="opp-history-container"></div></div></div>
     
-    <!-- 📜 帶線陪伴軌跡 (支援置中一頁列印 PDF) -->
+    <!-- 📜 帶線陪伴軌跡 -->
     <div id="timeline-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[80vh] flex flex-col">
             <div class="flex justify-between border-b border-theme pb-3 items-center">
@@ -428,7 +437,6 @@
                     <textarea id="timeline-new-note" rows="2" placeholder="新增帶線筆記..." class="w-full bg-transparent text-base theme-title outline-none"></textarea>
                     <div class="text-right"><button onclick="window.addTimelineNote()" class="bg-indigo-600 text-white text-sm px-5 py-2 rounded-xl font-bold shadow">寫入</button></div>
                 </div>
-                <!-- 🖨️ 專屬置中列印與 PDF 匯出容器 -->
                 <div id="printable-timeline-area" class="space-y-4 pl-5 border-l-2 border-indigo-500/30"></div>
             </div>
         </div>
@@ -883,19 +891,26 @@
             });
         }
         
+        // ⚡ 優化：批次刪除加上極速響應提示與前端即時清空
         window.bulkDelete = function() {
             const checked = document.querySelectorAll('.contact-checkbox:checked'); if(!checked.length) return window.showToast('ℹ️ 請先勾選名單');
             window.openConfirmModal(`⚠️ 確定將勾選的 ${checked.length} 筆名單「永久刪除」？\n(相關的打卡日誌與捷報積分也將一併清除！)`, async () => {
-                for(let cb of checked) { 
-                    const id = cb.value;
+                window.showToast('⚡ 批次刪除處理中...');
+                const idsToDelete = Array.from(checked).map(cb => cb.value);
+                
+                // 前端瞬間反應清空
+                state.customers = state.customers.filter(c => !idsToDelete.includes(c.id));
+                state.feeds = state.feeds.filter(f => !idsToDelete.includes(f.customer_id));
+                state.checkinLogs = state.checkinLogs.filter(l => !idsToDelete.includes(l.customer_id));
+                renderAll();
+
+                // 背景非同步雲端刪除
+                for(let id of idsToDelete) { 
                     await cloudDelete('customers', id); 
                     await db.from('feeds').delete().eq('customer_id', id);
                     await db.from('checkin_logs').delete().eq('customer_id', id);
-                    state.customers = state.customers.filter(c => c.id !== id); 
-                    state.feeds = state.feeds.filter(f => f.customer_id !== id);
-                    state.checkinLogs = state.checkinLogs.filter(l => l.customer_id !== id);
                 }
-                renderAll(); window.showToast('🗑️ 名單與歷史紀錄已徹底刪除');
+                window.showToast('🗑️ 名單與歷史紀錄已徹底刪除');
             });
         }
 
@@ -907,9 +922,13 @@
             document.getElementById('modal-title').textContent = '➕ 新增跟進名單'; 
             document.getElementById('delete-in-modal-btn').classList.add('hidden'); 
             
-            document.getElementById('field-referrer-type').value = '自己';
-            document.getElementById('field-referrer-name').classList.add('hidden');
-            document.getElementById('field-referrer-name').value = '';
+            // 預設誰的朋友為「自己」
+            const refSel = document.getElementById('field-referrer-type');
+            const nameInput = document.getElementById('field-referrer-name');
+            refSel.value = '自己';
+            nameInput.classList.add('hidden');
+            nameInput.value = '';
+            nameInput.removeAttribute('required');
 
             tempTagsForModal = []; 
             document.getElementById('loyalty-items-list').innerHTML = ''; 
@@ -917,6 +936,7 @@
             window.openModal('modal'); 
         };
         
+        // ✅ 修正：選「自己」時立刻清空屬性，解決無法儲存的問題
         window.onReferrerTypeChange = function(sel) {
             const nameInput = document.getElementById('field-referrer-name');
             if(sel.value === '代為跟進') {
@@ -1052,7 +1072,7 @@
             const refType = document.getElementById('field-referrer-type').value;
             const refName = document.getElementById('field-referrer-name').value.trim();
             const referrerValue = (refType === '代為跟進') ? `代為跟進:${refName}` : '自己';
-            const isDelegated = (refType === '代為跟進');
+            const isDelegated = (refType === '代為跟进');
 
             const loyItems = []; 
             document.querySelectorAll('.loyalty-item-row').forEach(row => { 
@@ -1156,7 +1176,6 @@
             
             const currentMonth = new Date().toISOString().substring(0,7);
             if (d.startsWith(currentMonth)) {
-                // ✅ 加上 log_id 屬性，修復雲端同步報錯
                 const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, log_id: logId, action:`講了一場 336/OPP`, pts:5, time:new Date().toISOString()}; 
                 state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             }
@@ -1409,6 +1428,7 @@
             }
         }
 
+        // ✅ 長客明細移除「(個人直轄...)」與「(小組補登...)」贅字
         window.renderBVReport = function() {
             const container = document.getElementById('bv-report-container'); if(!container) return;
             
@@ -1444,7 +1464,7 @@
                     const p = state.products.find(x=>x.id===item.productId);
                     if(p) {
                         const rowBV = p.bv * item.qty;
-                        groups[myName].items.push({ type:'myDirect', id: item.id, pName: p.name + ` <span class="text-xs text-sky-600 font-bold ml-1">(個人直轄 啟動: ${item.date})</span>`, qty: item.qty, rowBV, endDate: item.endDate });
+                        groups[myName].items.push({ type:'myDirect', id: item.id, pName: p.name + ` <span class="text-xs text-sky-600 font-bold ml-1">(啟動: ${item.date})</span>`, qty: item.qty, rowBV, endDate: item.endDate });
                         groups[myName].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0;
                     }
                 }
@@ -1474,7 +1494,7 @@
                     if(p) { 
                         const rowBV = p.bv * item.qty; 
                         const referrerText = item.referrer ? ` (推薦人: ${item.referrer})` : '';
-                        groups[groupKey].items.push({ type:'sub', subId: item.id, pName: p.name + ` <span class="text-xs text-amber-600 font-bold ml-1">(小組補登${referrerText} 啟動: ${itemDate})</span>`, qty: item.qty, rowBV, endDate: item.endDate }); 
+                        groups[groupKey].items.push({ type:'sub', subId: item.id, pName: p.name + ` <span class="text-xs text-amber-600 font-bold ml-1">${referrerText} 啟動: ${itemDate}</span>`, qty: item.qty, rowBV, endDate: item.endDate }); 
                         groups[groupKey].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0; 
                     }
                 }
@@ -1664,7 +1684,6 @@
             const c = state.customers.find(x=>x.id===id); 
             document.getElementById('timeline-modal-main-title').textContent = `📜 ${c.name} 帶線陪伴軌跡`; 
             
-            // 🖨️ 動態組合置中列印與 PDF 匯出容器內容 (強制帶出客戶姓名與完整標題)
             const area = document.getElementById('printable-timeline-area');
             area.innerHTML = `
                 <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
@@ -1706,7 +1725,6 @@
             }
         }
 
-        // 📄 軌跡一鍵轉 PDF 匯出功能
         window.exportTimelinePDF = function() {
             window.print();
         }
