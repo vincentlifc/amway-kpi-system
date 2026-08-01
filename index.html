@@ -35,10 +35,24 @@
         .tag-chip button { margin-left: 0.25rem; color: #ef4444; }
         #main-app { display: none; }
         .tree-action-btn { background: transparent !important; color: inherit !important; border: 1.5px solid currentColor !important; }
+
+        /* 🖨️ 完美置中列印與 PDF 匯出專用排版 */
         @media print {
-            body * { visibility: hidden; }
-            #printable-timeline-area, #printable-timeline-area * { visibility: visible; }
-            #printable-timeline-area { position: absolute; left: 0; top: 0; width: 100%; background: #ffffff !important; color: #000000 !important; }
+            body * { visibility: hidden !important; }
+            #printable-timeline-area, #printable-timeline-area * { visibility: visible !important; }
+            #printable-timeline-area {
+                position: fixed !important;
+                left: 50% !important;
+                top: 20px !important;
+                transform: translateX(-50%) !important;
+                width: 90% !important;
+                max-width: 600px !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                box-shadow: none !important;
+                padding: 20px !important;
+                z-index: 999999 !important;
+            }
             .no-print { display: none !important; }
         }
     </style>
@@ -253,7 +267,7 @@
         </div>
     </div>
 
-    <!-- 新增/編輯跟進名單 Modal (誰的朋友改為二選一分流：自己 vs 代為跟進) -->
+    <!-- 新增/編輯跟進名單 Modal -->
     <div id="modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl border-theme border flex flex-col max-h-[90vh]">
             <div class="px-6 py-4 border-b border-theme flex justify-between items-center theme-subcard shrink-0"><h3 id="modal-title" class="text-base sm:text-lg font-bold theme-title">➕ 新增跟進名單</h3><button onclick="window.closeModal('modal')" class="theme-muted hover:theme-title text-2xl font-bold">&times;</button></div>
@@ -396,25 +410,26 @@
         </div>
     </div>
 
-    <!-- 📅 336 OPP 月曆日誌 (支援刪除並連動扣分) -->
+    <!-- 📅 336 OPP 月曆日誌 -->
     <div id="opp-history-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[80vh] flex flex-col"><div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">🗣️ 講 336 / OPP 日誌</h3><button onclick="window.closeModal('opp-history-modal')" class="theme-muted text-2xl">&times;</button></div><div class="overflow-y-auto flex-1 space-y-3 no-scrollbar text-base" id="opp-history-container"></div></div></div>
     
-    <!-- 📜 帶線陪伴軌跡 (支援手動筆記刪除與一鍵匯出 PDF) -->
+    <!-- 📜 帶線陪伴軌跡 (支援置中一頁列印 PDF) -->
     <div id="timeline-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[80vh] flex flex-col">
             <div class="flex justify-between border-b border-theme pb-3 items-center">
-                <h3 id="timeline-title" class="font-bold theme-title text-lg">📜 時間軸</h3>
+                <h3 id="timeline-modal-main-title" class="font-bold theme-title text-lg">📜 時間軸</h3>
                 <div class="flex gap-2">
                     <button onclick="window.exportTimelinePDF()" class="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow no-print">📄 匯出 PDF</button>
                     <button onclick="window.closeModal('timeline-modal')" class="theme-muted text-2xl no-print">&times;</button>
                 </div>
             </div>
-            <div id="printable-timeline-area" class="overflow-y-auto flex-1 space-y-5 no-scrollbar p-2">
+            <div class="overflow-y-auto flex-1 space-y-5 no-scrollbar p-2">
                 <div class="theme-subcard p-4 rounded-xl border-theme border space-y-3 no-print">
                     <textarea id="timeline-new-note" rows="2" placeholder="新增帶線筆記..." class="w-full bg-transparent text-base theme-title outline-none"></textarea>
                     <div class="text-right"><button onclick="window.addTimelineNote()" class="bg-indigo-600 text-white text-sm px-5 py-2 rounded-xl font-bold shadow">寫入</button></div>
                 </div>
-                <div id="timeline-items-container" class="space-y-4 pl-5 border-l-2 border-indigo-500/30"></div>
+                <!-- 🖨️ 專屬置中列印與 PDF 匯出容器 -->
+                <div id="printable-timeline-area" class="space-y-4 pl-5 border-l-2 border-indigo-500/30"></div>
             </div>
         </div>
     </div>
@@ -892,7 +907,6 @@
             document.getElementById('modal-title').textContent = '➕ 新增跟進名單'; 
             document.getElementById('delete-in-modal-btn').classList.add('hidden'); 
             
-            // 預設誰的朋友為「自己」
             document.getElementById('field-referrer-type').value = '自己';
             document.getElementById('field-referrer-name').classList.add('hidden');
             document.getElementById('field-referrer-name').value = '';
@@ -1053,8 +1067,6 @@
             const newCustomerId = id || 'c_' + Date.now();
             const existingCust = id ? state.customers.find(x=>x.id===id) : null;
             let timeline = existingCust ? (existingCust.timeline || []) : [{date: document.getElementById('field-date').value, text:'建立名單'}];
-            
-            // ✅ 保持主軌跡極致乾淨：不產生無謂的「編輯名單資料」流水帳
 
             const data = {
                 id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: referrerValue, level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: timeline
@@ -1066,7 +1078,6 @@
                 const idx = state.customers.findIndex(x=>x.id===id); if(idx>-1) state.customers[idx] = data; 
             } else { 
                 state.customers.unshift(data); 
-                // ✅ 代為跟進的名單不計開發量積分與捷報
                 if (!isDelegated && data.date.startsWith(currentMonth)) {
                     const fd1 = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: newCustomerId, action:'新增了一筆跟進名單', pts:1, time:new Date().toISOString()}; 
                     state.feeds.unshift(fd1); await cloudUpsert('feeds', fd1); 
@@ -1076,7 +1087,6 @@
                 if (totalLoyaltyQty > 0) {
                     const firstLoyDate = loyItems[0].date || currentMonth;
                     if (firstLoyDate.startsWith(currentMonth)) {
-                        // 取得品名稱以便捷報顯示
                         const firstProd = state.products.find(p => p.id === loyItems[0].productId);
                         const prodNameStr = firstProd ? firstProd.name : '長客';
                         const actionText = totalLoyaltyQty === 1 ? `新增了一組 ${prodNameStr} 長客` : `新增了 ${totalLoyaltyQty} 組 ${prodNameStr} 長客`;
@@ -1146,7 +1156,7 @@
             
             const currentMonth = new Date().toISOString().substring(0,7);
             if (d.startsWith(currentMonth)) {
-                // ✅ 捷報去識別化：保護個資，不出現具體對象姓名
+                // ✅ 加上 log_id 屬性，修復雲端同步報錯
                 const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, log_id: logId, action:`講了一場 336/OPP`, pts:5, time:new Date().toISOString()}; 
                 state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             }
@@ -1162,7 +1172,6 @@
             
             const currentMonth = new Date().toISOString().substring(0,7);
             if (d.startsWith(currentMonth)) {
-                // ✅ 捷報去識別化
                 const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`推薦了一位${type}`, pts:pts, time:new Date().toISOString()}; 
                 state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             }
@@ -1194,7 +1203,6 @@
             
             const currentMonth = new Date().toISOString().substring(0,7);
             if (checkinDate.startsWith(currentMonth)) {
-                // ✅ 捷報去識別化並帶出品項名稱
                 const actionText = totalAdded === 1 ? `新增了一組 ${firstProdName} 長客` : `新增了 ${totalAdded} 組 ${firstProdName} 長客`;
                 const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action: actionText, pts:10*totalAdded, time:new Date().toISOString()}; 
                 state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
@@ -1241,7 +1249,6 @@
             }
         }
 
-        // ✅ 長客終止：不洗版主軌跡，僅在 BV 報表呈現
         window.terminateDirectLoyaltyItem = async function(custId, loyId) {
             const c = state.customers.find(x=>x.id===custId); if(!c) return;
             const item = (c.loyaltyItems||[]).find(x=>x.id===loyId); if(!item) return;
@@ -1252,12 +1259,10 @@
             }
         }
 
-        // ✅ 長客刪除：直接抹除主軌跡中對應的 [新增長客] 紀錄
         window.deleteDirectLoyaltyItem = async function(custId, loyId) {
             if(confirm('確定要刪除此長客品項嗎？\n(系統將會同步從軌跡中抹除此項紀錄)')) {
                 const c = state.customers.find(x=>x.id===custId); if(!c) return;
                 c.loyaltyItems = (c.loyaltyItems||[]).filter(x=>x.id!==loyId);
-                // 自動尋找並移除該長客的軌跡紀錄
                 if(c.timeline) {
                     c.timeline = c.timeline.filter(t => {
                         const txt = typeof t === 'string' ? t : (t.text || '');
@@ -1624,7 +1629,6 @@
             document.getElementById('opp-history-container').innerHTML = html;
         }
 
-        // ✅ 336 月曆日誌：點選日期時，標題直接備註當天總場次
         window.showOppLogsForDate = function(d) {
             const logs = state.checkinLogs.filter(x=>x.type==='opp'&&x.user_name===sessionUser.email&&x.date===d);
             const c = document.getElementById('opp-cal-details');
@@ -1634,7 +1638,6 @@
             }
         }
 
-        // ✅ 336 日誌刪除並連動扣分
         window.deleteOppLog = async function(logId, dateStr) {
             if(confirm('確定要刪除這筆 336 打卡紀錄嗎？\n(若為當月紀錄，將會自動扣除 5 分戰功積分)')) {
                 const log = state.checkinLogs.find(x => x.id === logId);
@@ -1644,7 +1647,6 @@
 
                     const currentMonth = new Date().toISOString().substring(0,7);
                     if(dateStr.startsWith(currentMonth)) {
-                        // 移除對應的 feed 捷報或新增負分捷報
                         state.feeds = state.feeds.filter(f => f.log_id !== logId);
                         const negFeed = {id: 'f_neg_' + Date.now(), user_name: sessionUser.email, action: '刪除誤按的 336/OPP 打卡', pts: -5, time: new Date().toISOString()};
                         state.feeds.unshift(negFeed);
@@ -1657,18 +1659,29 @@
             }
         }
 
-        window.openTimeline = function(id) { currentActiveContactId = id; const c = state.customers.find(x=>x.id===id); document.getElementById('timeline-title').textContent = `📜 ${c.name} 帶線陪伴軌跡`; renderTimelineItems(c); window.openModal('timeline-modal'); }
-        
-        function renderTimelineItems(c) { 
-            document.getElementById('timeline-items-container').innerHTML = (c.timeline||[]).map((t, index)=> {
+        window.openTimeline = function(id) { 
+            currentActiveContactId = id; 
+            const c = state.customers.find(x=>x.id===id); 
+            document.getElementById('timeline-modal-main-title').textContent = `📜 ${c.name} 帶線陪伴軌跡`; 
+            
+            // 🖨️ 動態組合置中列印與 PDF 匯出容器內容 (強制帶出客戶姓名與完整標題)
+            const area = document.getElementById('printable-timeline-area');
+            area.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+                    <h2 style="font-size: 20px; font-weight: bold; margin: 0;">📜 帶線陪伴軌跡紀錄</h2>
+                    <p style="font-size: 16px; font-weight: bold; margin: 5px 0 0 0;">對象姓名：${c.name}</p>
+                </div>
+            ` + (c.timeline||[]).map((t, index)=> {
                 const textContent = typeof t === 'string' ? t : (t.text || t.t || '陪伴紀錄');
                 const dateContent = t.date || '近期';
                 const isManualNote = textContent.startsWith('筆記:');
                 const deleteBtn = isManualNote ? `<button onclick="window.deleteTimelineNote('${c.id}', ${index})" class="text-rose-500 font-bold text-xs ml-2 hover:underline no-print">刪除</button>` : '';
-                return `<div class="relative"><div class="absolute -left-[27px] top-2 w-3 h-3 bg-indigo-500 rounded-full shadow"></div><div class="flex justify-between items-center text-xs theme-muted mb-1"><span>${dateContent}</span>${deleteBtn}</div><div class="text-base theme-title font-bold">${textContent}</div></div>`;
-            }).join(''); 
-        }
+                return `<div class="relative mb-4"><div class="absolute -left-[27px] top-2 w-3 h-3 bg-indigo-500 rounded-full shadow"></div><div class="flex justify-between items-center text-xs theme-muted mb-1"><span>${dateContent}</span>${deleteBtn}</div><div class="text-base theme-title font-bold">${textContent}</div></div>`;
+            }).join('');
 
+            window.openModal('timeline-modal'); 
+        }
+        
         window.addTimelineNote = async function() { 
             const t = document.getElementById('timeline-new-note').value.trim(); 
             if(!t) return; 
@@ -1676,7 +1689,7 @@
             if(!c.timeline) c.timeline=[]; 
             c.timeline.unshift({date: getLocalDateString(), text: `筆記: ${t}`}); 
             await cloudUpsert('customers', c); 
-            renderTimelineItems(c); 
+            openTimeline(currentActiveContactId);
             document.getElementById('timeline-new-note').value=''; 
             window.showToast('📝 筆記已寫入'); 
         }
@@ -1687,7 +1700,7 @@
                 if(c && c.timeline) {
                     c.timeline.splice(index, 1);
                     await cloudUpsert('customers', c);
-                    renderTimelineItems(c);
+                    openTimeline(custId);
                     window.showToast('🗑️ 筆記已刪除');
                 }
             }
