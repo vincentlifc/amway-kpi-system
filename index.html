@@ -35,14 +35,14 @@
         #main-app { display: none; }
         .tree-action-btn { background: transparent !important; color: inherit !important; border: 1.5px solid currentColor !important; }
 
-        /* 🖨️ 極致手機與電腦強效一頁置中 PDF 排版 */
+        /* 🖨️ 列印與 PDF 匯出專用排版 (強效防空白與手機偏左) */
         @media print {
-            @page { size: portrait; margin: 5mm; }
+            @page { size: portrait; margin: 10mm; }
             html, body { height: 100%; overflow: hidden !important; background: #ffffff !important; }
             body * { visibility: hidden !important; }
             .no-print { display: none !important; }
             
-            /* 軌跡匯出強制一頁置中 */
+            /* 軌跡匯出強制置中 */
             body.print-timeline #printable-timeline-area, 
             body.print-timeline #printable-timeline-area * { visibility: visible !important; }
             body.print-timeline #printable-timeline-area {
@@ -52,7 +52,7 @@
                 page-break-inside: avoid !important;
             }
 
-            /* 五心圖匯出強制一頁置中 */
+            /* 五心圖匯出強制置中 */
             body.print-tree #tree-root-container, 
             body.print-tree #tree-root-container * { visibility: visible !important; }
             body.print-tree #tree-root-container {
@@ -1061,7 +1061,6 @@
             }
         }
 
-        // ✅ 修正：新增名單時，若有同時新增長客品項，自動同步連動軌跡紀錄
         window.handleFormSubmit = async function(e) {
             e.preventDefault(); 
             const id = document.getElementById('field-id').value; 
@@ -1086,7 +1085,6 @@
             const existingCust = id ? state.customers.find(x=>x.id===id) : null;
             let timeline = existingCust ? (existingCust.timeline || []) : [{date: document.getElementById('field-date').value, text:'建立名單'}];
 
-            // 🌟 自動檢查與同步連動長客軌跡
             let totalLoyaltyQty = loyItems.reduce((sum, item) => sum + parseInt(item.qty), 0);
             if (!id && totalLoyaltyQty > 0) {
                 timeline.unshift({
@@ -1731,14 +1729,17 @@
             }
         }
 
+        // ✅ 加上 0.3 秒緩衝延遲，讓手機瀏覽器辨識為「手動點擊列印」，降低被系統彈窗阻擋的機率
         window.exportTimelinePDF = function() {
             document.body.classList.add('print-timeline');
             const oldTitle = document.title;
             const c = state.customers.find(x => x.id === currentActiveContactId);
             if(c) { document.title = '帶線陪伴軌跡-' + c.name; }
-            window.print();
-            document.title = oldTitle;
-            setTimeout(() => document.body.classList.remove('print-timeline'), 1000);
+            setTimeout(() => {
+                window.print();
+                document.title = oldTitle;
+                setTimeout(() => document.body.classList.remove('print-timeline'), 1000);
+            }, 300);
         }
         
         window.printTree = function() {
@@ -1746,9 +1747,11 @@
             const oldTitle = document.title;
             const uName = document.getElementById('current-user-display').textContent;
             document.title = '五心計畫圖-' + uName;
-            window.print();
-            document.title = oldTitle;
-            setTimeout(() => document.body.classList.remove('print-tree'), 1000);
+            setTimeout(() => {
+                window.print();
+                document.title = oldTitle;
+                setTimeout(() => document.body.classList.remove('print-tree'), 1000);
+            }, 300);
         }
 
         window.logout = async function() { if(confirm('確定要登出系統嗎？')) { await db.auth.signOut(); window.location.reload(); } }
