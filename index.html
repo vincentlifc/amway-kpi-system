@@ -335,7 +335,8 @@
         </div>
     </div>
 
-    <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="block font-bold theme-title mb-1.5">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div></div>
+    <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="font-bold theme-title mb-1.5 block">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="font-bold theme-title mb-1.5 block">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="font-bold theme-title mb-1.5 block">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="font-bold theme-title mb-1.5 block">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div></div>
+    
     <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[85vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客打卡</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="loyalty-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">長客備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認長客打卡</button></div></form></div></div>
 
     <!-- ✅ BV 統計視窗 -->
@@ -895,7 +896,7 @@
         
         window.bulkDelete = function() {
             const checked = document.querySelectorAll('.contact-checkbox:checked'); if(!checked.length) return window.showToast('ℹ️ 請先勾選名單');
-            window.openConfirmModal(`⚠️ 確定將勾選的 ${checked.length} 筆名單「永久刪除」？\n(將自動回溯扣除對應的建立名單與長客積分)`, async () => {
+            window.openConfirmModal(`⚠️ 確定將勾選的 ${checked.length} 筆名單「永久刪除」？\n(將智慧回溯扣除當初建立名單時獲得的有效積分)`, async () => {
                 window.showToast('⚡ 批次刪除處理中...');
                 const idsToDelete = Array.from(checked).map(cb => cb.value);
                 
@@ -903,14 +904,17 @@
                     const c = state.customers.find(x => x.id === id);
                     if (c) {
                         const currentMonth = new Date().toISOString().substring(0, 7);
-                        if (c.date && c.date.startsWith(currentMonth)) {
+                        // 檢查當初是否有真正加過「新增名單 +1」分（透過檢查 feeds 紀錄或確認是否為本人建立且非代開發）
+                        const hasLeadFeed = state.feeds.some(f => f.customer_id === c.id && f.user_name === sessionUser.email && f.action.includes('新增了一筆跟進名單'));
+                        if (c.date && c.date.startsWith(currentMonth) && (!c.referrer || !c.referrer.startsWith('代為跟進')) && hasLeadFeed) {
                             const negFd = {id: 'f_neg_del_' + Date.now() + Math.random().toString().substring(2,6), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單: ${c.name}`, pts: -1, time: new Date().toISOString()};
                             state.feeds.unshift(negFd); await cloudUpsert('feeds', negFd);
                         }
                         if (c.loyaltyItems && c.loyaltyItems.length > 0) {
                             let totalLoyQty = c.loyaltyItems.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
                             let firstLoyDate = c.loyaltyItems[0].date || c.date;
-                            if (firstLoyDate && firstLoyDate.startsWith(currentMonth) && totalLoyQty > 0) {
+                            const hasLoyFeed = state.feeds.some(f => f.customer_id === c.id && f.user_name === sessionUser.email && (f.action.includes('長客') || f.action.includes('新增了')));
+                            if (firstLoyDate && firstLoyDate.startsWith(currentMonth) && totalLoyQty > 0 && hasLoyFeed) {
                                 const negLoyFd = {id: 'f_neg_loy_' + Date.now() + Math.random().toString().substring(2,6), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單連帶長客: ${c.name}`, pts: -(10 * totalLoyQty), time: new Date().toISOString()};
                                 state.feeds.unshift(negLoyFd); await cloudUpsert('feeds', negLoyFd);
                             }
@@ -1002,18 +1006,20 @@
         
         window.deleteCurrentCustomerFromModal = function() {
             const id = document.getElementById('field-id').value; if(!id) return;
-            window.openConfirmModal('確定將此筆名單「永久刪除」？\n(將自動回溯扣除對應的建立名單與長客積分)', async () => { 
+            window.openConfirmModal('確定將此筆名單「永久刪除」？\n(將智慧回溯扣除當初建立名單時獲得的有效積分)', async () => { 
                 const c = state.customers.find(x => x.id === id);
                 if (c) {
                     const currentMonth = new Date().toISOString().substring(0, 7);
-                    if (c.date && c.date.startsWith(currentMonth)) {
+                    const hasLeadFeed = state.feeds.some(f => f.customer_id === c.id && f.user_name === sessionUser.email && f.action.includes('新增了一筆跟進名單'));
+                    if (c.date && c.date.startsWith(currentMonth) && (!c.referrer || !c.referrer.startsWith('代為跟進')) && hasLeadFeed) {
                         const negFd = {id: 'f_neg_del_' + Date.now(), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單: ${c.name}`, pts: -1, time: new Date().toISOString()};
                         state.feeds.unshift(negFd); await cloudUpsert('feeds', negFd);
                     }
                     if (c.loyaltyItems && c.loyaltyItems.length > 0) {
                         let totalLoyQty = c.loyaltyItems.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
                         let firstLoyDate = c.loyaltyItems[0].date || c.date;
-                        if (firstLoyDate && firstLoyDate.startsWith(currentMonth) && totalLoyQty > 0) {
+                        const hasLoyFeed = state.feeds.some(f => f.customer_id === c.id && f.user_name === sessionUser.email && (f.action.includes('長客') || f.action.includes('新增了')));
+                        if (firstLoyDate && firstLoyDate.startsWith(currentMonth) && totalLoyQty > 0 && hasLoyFeed) {
                             const negLoyFd = {id: 'f_neg_loy_' + Date.now(), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單連帶長客: ${c.name}`, pts: -(10 * totalLoyQty), time: new Date().toISOString()};
                             state.feeds.unshift(negLoyFd); await cloudUpsert('feeds', negLoyFd);
                         }
@@ -1577,18 +1583,20 @@
         window.restoreCustomer = async function(id) { const c = state.customers.find(x=>x.id===id); if(c){ c.isTrashed=false; await cloudUpsert('customers', c); renderAll(); window.showToast('✅ 成功解除封存'); } }
         
         window.deletePermanently = function(id) { 
-            window.openConfirmModal('確定要永久刪除此名單？\n(將自動回溯扣除對應的建立名單與長客積分)', async ()=>{ 
+            window.openConfirmModal('確定要永久刪除此名單？\n(將智慧回溯扣除當初建立名單時獲得的有效積分)', async ()=>{ 
                 const c = state.customers.find(x => x.id === id);
                 if (c) {
                     const currentMonth = new Date().toISOString().substring(0, 7);
-                    if (c.date && c.date.startsWith(currentMonth)) {
+                    const hasLeadFeed = state.feeds.some(f => f.customer_id === c.id && f.user_name === sessionUser.email && f.action.includes('新增了一筆跟進名單'));
+                    if (c.date && c.date.startsWith(currentMonth) && (!c.referrer || !c.referrer.startsWith('代為跟進')) && hasLeadFeed) {
                         const negFd = {id: 'f_neg_del_' + Date.now(), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單: ${c.name}`, pts: -1, time: new Date().toISOString()};
                         state.feeds.unshift(negFd); await cloudUpsert('feeds', negFd);
                     }
                     if (c.loyaltyItems && c.loyaltyItems.length > 0) {
                         let totalLoyQty = c.loyaltyItems.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
                         let firstLoyDate = c.loyaltyItems[0].date || c.date;
-                        if (firstLoyDate && firstLoyDate.startsWith(currentMonth) && totalLoyQty > 0) {
+                        const hasLoyFeed = state.feeds.some(f => f.customer_id === c.id && f.user_name === sessionUser.email && (f.action.includes('長客') || f.action.includes('新增了')));
+                        if (firstLoyDate && firstLoyDate.startsWith(currentMonth) && totalLoyQty > 0 && hasLoyFeed) {
                             const negLoyFd = {id: 'f_neg_loy_' + Date.now(), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單連帶長客: ${c.name}`, pts: -(10 * totalLoyQty), time: new Date().toISOString()};
                             state.feeds.unshift(negLoyFd); await cloudUpsert('feeds', negLoyFd);
                         }
