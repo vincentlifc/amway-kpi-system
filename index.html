@@ -597,7 +597,7 @@
                     document.getElementById('auth-screen').classList.remove('hidden'); 
                 } else { 
                     if (data.user) { await db.from('profiles').upsert({ id: data.user.id, email: email, nickname: nickname }); }
-                    alert('✅ 註冊成功！請直接登入'); 
+                    alert('✅ 註冊成功！系統已發送驗證信至您的信箱，請務必前往收信點擊驗證連結後才能登入系統！'); 
                     isLoginMode = true; 
                     window.toggleAuthMode(); 
                     document.getElementById('auth-screen').classList.remove('hidden'); 
@@ -864,7 +864,7 @@
             const filtered = state.customers.filter(c => {
                 if(c.owner !== sessionUser.email) return false;
                 if(pF === '名單封存(隱藏)') { if(!c.isTrashed) return false; } else { if(c.isTrashed) return false; }
-                const mK = c.name.toLowerCase().includes(kw) || (c.tags && c.tags.some(t=>t.toLowerCase().includes(kw))) || c.date.includes(kw) || (kw==='長客' && c.loyaltyItems && c.loyaltyItems.length>0) || (kw==='會員' && c.memberType!=='未加入');
+                const mK = c.name.toLowerCase().includes(kw) || (c.notes && c.notes.toLowerCase().includes(kw)) || (c.tags && c.tags.some(t=>t.toLowerCase().includes(kw))) || c.date.includes(kw) || (kw==='長客' && c.loyaltyItems && c.loyaltyItems.length>0) || (kw==='會員' && c.memberType!=='未加入');
                 const mP = pF === 'all' || pF === '名單封存(隱藏)' || c.progress === pF;
                 const mL = lF === 'all' || c.level === lF; const mT = tF === 'all' || (c.tags && c.tags.includes(tF));
                 return mK && mP && mL && mT;
@@ -895,21 +895,38 @@
         
         window.bulkDelete = function() {
             const checked = document.querySelectorAll('.contact-checkbox:checked'); if(!checked.length) return window.showToast('ℹ️ 請先勾選名單');
-            window.openConfirmModal(`⚠️ 確定將勾選的 ${checked.length} 筆名單「永久刪除」？\n(相關的打卡日誌與捷報積分也將一併連根拔除！)`, async () => {
+            window.openConfirmModal(`⚠️ 確定將勾選的 ${checked.length} 筆名單「永久刪除」？\n(將自動回溯扣除對應的建立名單與長客積分)`, async () => {
                 window.showToast('⚡ 批次刪除處理中...');
                 const idsToDelete = Array.from(checked).map(cb => cb.value);
                 
-                state.customers = state.customers.filter(c => !idsToDelete.includes(c.id));
-                state.feeds = state.feeds.filter(f => !idsToDelete.includes(f.customer_id));
-                state.checkinLogs = state.checkinLogs.filter(l => !idsToDelete.includes(l.customer_id));
-                renderAll();
-
                 for(let id of idsToDelete) { 
+                    const c = state.customers.find(x => x.id === id);
+                    if (c) {
+                        const currentMonth = new Date().toISOString().substring(0, 7);
+                        if (c.date && c.date.startsWith(currentMonth)) {
+                            const negFd = {id: 'f_neg_del_' + Date.now() + Math.random().toString().substring(2,6), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單: ${c.name}`, pts: -1, time: new Date().toISOString()};
+                            state.feeds.unshift(negFd); await cloudUpsert('feeds', negFd);
+                        }
+                        if (c.loyaltyItems && c.loyaltyItems.length > 0) {
+                            let totalLoyQty = c.loyaltyItems.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
+                            let firstLoyDate = c.loyaltyItems[0].date || c.date;
+                            if (firstLoyDate && firstLoyDate.startsWith(currentMonth) && totalLoyQty > 0) {
+                                const negLoyFd = {id: 'f_neg_loy_' + Date.now() + Math.random().toString().substring(2,6), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單連帶長客: ${c.name}`, pts: -(10 * totalLoyQty), time: new Date().toISOString()};
+                                state.feeds.unshift(negLoyFd); await cloudUpsert('feeds', negLoyFd);
+                            }
+                        }
+                    }
+
                     await cloudDelete('customers', id); 
                     await db.from('feeds').delete().eq('customer_id', id);
                     await db.from('checkin_logs').delete().eq('customer_id', id);
                 }
-                window.showToast('🗑️ 名單與歷史紀錄已徹底刪除，積分即時重算完成');
+
+                state.customers = state.customers.filter(c => !idsToDelete.includes(c.id));
+                state.feeds = state.feeds.filter(f => !idsToDelete.includes(f.customer_id));
+                state.checkinLogs = state.checkinLogs.filter(l => !idsToDelete.includes(l.customer_id));
+                renderAll();
+                window.showToast('🗑️ 名單與歷史紀錄已徹底刪除，積分已連動扣除');
             });
         }
 
@@ -985,14 +1002,31 @@
         
         window.deleteCurrentCustomerFromModal = function() {
             const id = document.getElementById('field-id').value; if(!id) return;
-            window.openConfirmModal('確定將此筆名單「永久刪除」？\n(相關的打卡日誌與捷報積分也將一併連根拔除！)', async () => { 
+            window.openConfirmModal('確定將此筆名單「永久刪除」？\n(將自動回溯扣除對應的建立名單與長客積分)', async () => { 
+                const c = state.customers.find(x => x.id === id);
+                if (c) {
+                    const currentMonth = new Date().toISOString().substring(0, 7);
+                    if (c.date && c.date.startsWith(currentMonth)) {
+                        const negFd = {id: 'f_neg_del_' + Date.now(), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單: ${c.name}`, pts: -1, time: new Date().toISOString()};
+                        state.feeds.unshift(negFd); await cloudUpsert('feeds', negFd);
+                    }
+                    if (c.loyaltyItems && c.loyaltyItems.length > 0) {
+                        let totalLoyQty = c.loyaltyItems.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
+                        let firstLoyDate = c.loyaltyItems[0].date || c.date;
+                        if (firstLoyDate && firstLoyDate.startsWith(currentMonth) && totalLoyQty > 0) {
+                            const negLoyFd = {id: 'f_neg_loy_' + Date.now(), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單連帶長客: ${c.name}`, pts: -(10 * totalLoyQty), time: new Date().toISOString()};
+                            state.feeds.unshift(negLoyFd); await cloudUpsert('feeds', negLoyFd);
+                        }
+                    }
+                }
+
                 await cloudDelete('customers', id); 
                 await db.from('feeds').delete().eq('customer_id', id);
                 await db.from('checkin_logs').delete().eq('customer_id', id);
                 state.customers = state.customers.filter(c => c.id !== id); 
                 state.feeds = state.feeds.filter(f => f.customer_id !== id);
                 state.checkinLogs = state.checkinLogs.filter(l => l.customer_id !== id);
-                renderAll(); window.closeModal('modal'); window.showToast('🗑️ 名單與歷史紀錄已徹底刪除，積分即時重算完成'); 
+                renderAll(); window.closeModal('modal'); window.showToast('🗑️ 名單與歷史紀錄已徹底刪除，積分已連動扣除'); 
             });
         }
 
@@ -1054,7 +1088,7 @@
                 const currentMonth = new Date().toISOString().substring(0,7);
                 
                 if (dateVal.substring(0,7) === currentMonth) {
-                    const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:'刪除建檔錯誤長客', pts: -(10 * qtyVal), time:new Date().toISOString()}; 
+                    const fd = {id:'f_neg_loy_item_' + Date.now(), user_name: sessionUser.email, action:'刪除建檔錯誤長客', pts: -(10 * qtyVal), time:new Date().toISOString()}; 
                     state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
                 }
                 row.remove();
@@ -1444,12 +1478,12 @@
             document.getElementById('sub-prod-select').innerHTML = prodOpts;
             document.getElementById('my-loyalty-prod').innerHTML = prodOpts;
             
-            if(!document.getElementById('my-loyalty-date').value) {
-                document.getElementById('my-loyalty-date').value = getLocalDateString();
-            }
-            if(!document.getElementById('sub-partner-date').value) {
-                document.getElementById('sub-partner-date').value = getLocalDateString();
-            }
+            // ✅ 使用者體驗連動：當切換上方檢視月份時，下方的補登日期自動連動至該月份的第一天
+            const linkedDefaultDate = selectedMonth + '-01';
+            const myLoyInput = document.getElementById('my-loyalty-date');
+            const subLoyInput = document.getElementById('sub-partner-date');
+            if(myLoyInput) myLoyInput.value = linkedDefaultDate;
+            if(subLoyInput) subLoyInput.value = linkedDefaultDate;
 
             const groups = {}; let totalBV = 0; let totalQty = 0;
             
@@ -1543,14 +1577,31 @@
         window.restoreCustomer = async function(id) { const c = state.customers.find(x=>x.id===id); if(c){ c.isTrashed=false; await cloudUpsert('customers', c); renderAll(); window.showToast('✅ 成功解除封存'); } }
         
         window.deletePermanently = function(id) { 
-            window.openConfirmModal('確定要永久刪除此名單？\n(相關日誌與捷報積分將一併清除)', async ()=>{ 
+            window.openConfirmModal('確定要永久刪除此名單？\n(將自動回溯扣除對應的建立名單與長客積分)', async ()=>{ 
+                const c = state.customers.find(x => x.id === id);
+                if (c) {
+                    const currentMonth = new Date().toISOString().substring(0, 7);
+                    if (c.date && c.date.startsWith(currentMonth)) {
+                        const negFd = {id: 'f_neg_del_' + Date.now(), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單: ${c.name}`, pts: -1, time: new Date().toISOString()};
+                        state.feeds.unshift(negFd); await cloudUpsert('feeds', negFd);
+                    }
+                    if (c.loyaltyItems && c.loyaltyItems.length > 0) {
+                        let totalLoyQty = c.loyaltyItems.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
+                        let firstLoyDate = c.loyaltyItems[0].date || c.date;
+                        if (firstLoyDate && firstLoyDate.startsWith(currentMonth) && totalLoyQty > 0) {
+                            const negLoyFd = {id: 'f_neg_loy_' + Date.now(), user_name: sessionUser.email, customer_id: c.id, action: `刪除名單連帶長客: ${c.name}`, pts: -(10 * totalLoyQty), time: new Date().toISOString()};
+                            state.feeds.unshift(negLoyFd); await cloudUpsert('feeds', negLoyFd);
+                        }
+                    }
+                }
+
                 await cloudDelete('customers', id); 
                 await db.from('feeds').delete().eq('customer_id', id);
                 await db.from('checkin_logs').delete().eq('customer_id', id);
                 state.customers = state.customers.filter(x=>x.id!==id); 
                 state.feeds = state.feeds.filter(f => f.customer_id !== id);
                 state.checkinLogs = state.checkinLogs.filter(l => l.customer_id !== id);
-                renderAll(); window.showToast('🗑️ 已永久刪除'); 
+                renderAll(); window.showToast('🗑️ 已永久刪除，積分已連動扣除'); 
             }); 
         }
 
