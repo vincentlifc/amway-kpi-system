@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- 📱 PWA 手機主畫面圖示設定 -->
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <title>五心計畫 KPI - 雲端完全體</title>
@@ -36,28 +35,32 @@
         #main-app { display: none; }
         .tree-action-btn { background: transparent !important; color: inherit !important; border: 1.5px solid currentColor !important; }
 
-        /* 🖨️ 列印與 PDF 匯出專用排版 (精準分流與完美置中) */
+        /* 🖨️ 極致手機與電腦強效一頁置中 PDF 排版 */
         @media print {
+            @page { size: portrait; margin: 5mm; }
+            html, body { height: 100%; overflow: hidden !important; background: #ffffff !important; }
             body * { visibility: hidden !important; }
             .no-print { display: none !important; }
             
-            /* 軌跡匯出專用 */
+            /* 軌跡匯出強制一頁置中 */
             body.print-timeline #printable-timeline-area, 
             body.print-timeline #printable-timeline-area * { visibility: visible !important; }
             body.print-timeline #printable-timeline-area {
-                position: absolute !important; left: 50% !important; top: 0 !important;
-                transform: translateX(-50%) !important; width: 90% !important; max-width: 600px !important;
-                background: #ffffff !important; color: #000000 !important; box-shadow: none !important; padding: 20px !important;
+                position: absolute !important; left: 0 !important; right: 0 !important; top: 0 !important;
+                margin: 0 auto !important; width: 95% !important; max-width: 550px !important;
+                background: #ffffff !important; color: #000000 !important; box-shadow: none !important; padding: 10px !important;
+                page-break-inside: avoid !important;
             }
 
-            /* 五心圖匯出專用 */
+            /* 五心圖匯出強制一頁置中 */
             body.print-tree #tree-root-container, 
             body.print-tree #tree-root-container * { visibility: visible !important; }
             body.print-tree #tree-root-container {
-                position: absolute !important; left: 50% !important; top: 20px !important;
-                transform: translateX(-50%) !important; width: 100% !important; max-width: 1000px !important;
+                position: absolute !important; left: 0 !important; right: 0 !important; top: 10px !important;
+                margin: 0 auto !important; width: 100% !important;
                 display: flex !important; justify-content: center !important; align-items: flex-start !important;
-                background: transparent !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important;
+                background: transparent !important; box-shadow: none !important; padding: 0 !important;
+                page-break-inside: avoid !important;
             }
             body.print-tree .theme-card { border: 2px solid #000 !important; box-shadow: none !important; }
         }
@@ -71,7 +74,6 @@
         const TEAM_INVITE_CODE = 'kpimyself-336';
     </script>
 
-    <!-- 🌟 登入與註冊 -->
     <div id="auth-screen" class="flex flex-1 items-center justify-center p-4 h-screen w-full fixed inset-0 z-50 bg-slate-50/90 backdrop-blur-sm">
         <div id="login-card-box" class="theme-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
@@ -447,7 +449,6 @@
     <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card max-w-sm w-full rounded-2xl p-6 border-theme border shadow-2xl text-base space-y-5"><h4 class="theme-title font-bold text-lg">⚠️ 確認操作</h4><p id="confirm-msg" class="theme-muted font-medium whitespace-pre-wrap">確定執行此操作？</p><div class="flex justify-end gap-3"><button onclick="window.closeModal('confirm-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button id="confirm-execute-btn" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold shadow">確定</button></div></div></div>
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
-    <!-- 🚀 核心邏輯引擎 -->
     <script>
         let db;
         let sessionUser = null;
@@ -764,7 +765,7 @@
         function renderAll() {
             updateFilterOptions(); renderFollowupBanner(); renderDashboard(); renderList();
             renderTrashCount(); renderTagsLobby(); renderProductsLobby(); renderBVReport(); updateReferrerDropdowns();
-            renderLeaderboard(); // 確保重新整理畫面時排行榜即時重算
+            renderLeaderboard();
         }
 
         function populateAmwayMonthOptions() {
@@ -892,7 +893,6 @@
             });
         }
         
-        // ⚡ 批次刪除：極速響應與徹底抹除積分綁定
         window.bulkDelete = function() {
             const checked = document.querySelectorAll('.contact-checkbox:checked'); if(!checked.length) return window.showToast('ℹ️ 請先勾選名單');
             window.openConfirmModal(`⚠️ 確定將勾選的 ${checked.length} 筆名單「永久刪除」？\n(相關的打卡日誌與捷報積分也將一併連根拔除！)`, async () => {
@@ -921,7 +921,6 @@
             document.getElementById('modal-title').textContent = '➕ 新增跟進名單'; 
             document.getElementById('delete-in-modal-btn').classList.add('hidden'); 
             
-            // ✅ 防呆修復：選「自己」時立刻清空屬性
             const refSel = document.getElementById('field-referrer-type');
             const nameInput = document.getElementById('field-referrer-name');
             refSel.value = '自己';
@@ -1062,6 +1061,7 @@
             }
         }
 
+        // ✅ 修正：新增名單時，若有同時新增長客品項，自動同步連動軌跡紀錄
         window.handleFormSubmit = async function(e) {
             e.preventDefault(); 
             const id = document.getElementById('field-id').value; 
@@ -1086,6 +1086,15 @@
             const existingCust = id ? state.customers.find(x=>x.id===id) : null;
             let timeline = existingCust ? (existingCust.timeline || []) : [{date: document.getElementById('field-date').value, text:'建立名單'}];
 
+            // 🌟 自動檢查與同步連動長客軌跡
+            let totalLoyaltyQty = loyItems.reduce((sum, item) => sum + parseInt(item.qty), 0);
+            if (!id && totalLoyaltyQty > 0) {
+                timeline.unshift({
+                    date: loyItems[0].date || document.getElementById('field-date').value,
+                    text: `[新增長客] +${totalLoyaltyQty}組.`
+                });
+            }
+
             const data = {
                 id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: referrerValue, level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: timeline
             };
@@ -1096,13 +1105,11 @@
                 const idx = state.customers.findIndex(x=>x.id===id); if(idx>-1) state.customers[idx] = data; 
             } else { 
                 state.customers.unshift(data); 
-                // ✅ 綁定 customer_id 以支援徹底刪除
                 if (!isDelegated && data.date.startsWith(currentMonth)) {
                     const fd1 = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: newCustomerId, action:'新增了一筆跟進名單', pts:1, time:new Date().toISOString()}; 
                     state.feeds.unshift(fd1); await cloudUpsert('feeds', fd1); 
                 }
                 
-                let totalLoyaltyQty = loyItems.reduce((sum, item) => sum + parseInt(item.qty), 0);
                 if (totalLoyaltyQty > 0) {
                     const firstLoyDate = loyItems[0].date || currentMonth;
                     if (firstLoyDate.startsWith(currentMonth)) {
@@ -1176,7 +1183,6 @@
             
             const currentMonth = new Date().toISOString().substring(0,7);
             if (d.startsWith(currentMonth)) {
-                // ✅ 綁定 customer_id 以支援徹底刪除
                 const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: cObj ? cObj.id : null, log_id: logId, action:`講了一場 336/OPP`, pts:5, time:new Date().toISOString()}; 
                 state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             }
@@ -1429,7 +1435,6 @@
             }
         }
 
-        // ✅ BV 報表明細瘦身：移除冗長字眼
         window.renderBVReport = function() {
             const container = document.getElementById('bv-report-container'); if(!container) return;
             
@@ -1726,7 +1731,6 @@
             }
         }
 
-        // ✅ 軌跡專屬動態檔名匯出
         window.exportTimelinePDF = function() {
             document.body.classList.add('print-timeline');
             const oldTitle = document.title;
@@ -1737,7 +1741,6 @@
             setTimeout(() => document.body.classList.remove('print-timeline'), 1000);
         }
         
-        // ✅ 五心圖專屬動態檔名匯出
         window.printTree = function() {
             document.body.classList.add('print-tree');
             const oldTitle = document.title;
