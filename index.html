@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- 📱 PWA 手機主畫面圖示設定 (讀取根目錄的 icon.png) -->
+    <!-- 📱 PWA 手機主畫面圖示設定 -->
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <title>五心計畫 KPI - 雲端完全體</title>
@@ -36,33 +36,30 @@
         #main-app { display: none; }
         .tree-action-btn { background: transparent !important; color: inherit !important; border: 1.5px solid currentColor !important; }
 
-        /* 🖨️ 完美置中列印與 PDF 匯出專用排版 */
+        /* 🖨️ 列印與 PDF 匯出專用排版 (精準分流與完美置中) */
         @media print {
             body * { visibility: hidden !important; }
-            #printable-timeline-area, #printable-timeline-area *, #tree-root-container, #tree-root-container * { visibility: visible !important; }
-            #printable-timeline-area {
-                position: fixed !important;
-                left: 50% !important;
-                top: 20px !important;
-                transform: translateX(-50%) !important;
-                width: 90% !important;
-                max-width: 600px !important;
-                background: #ffffff !important;
-                color: #000000 !important;
-                box-shadow: none !important;
-                padding: 20px !important;
-                z-index: 999999 !important;
-            }
-            #tree-root-container {
-                position: fixed !important;
-                left: 0 !important;
-                top: 50px !important;
-                width: 100% !important;
-                display: flex !important;
-                justify-content: center !important;
-                z-index: 999999 !important;
-            }
             .no-print { display: none !important; }
+            
+            /* 軌跡匯出專用 */
+            body.print-timeline #printable-timeline-area, 
+            body.print-timeline #printable-timeline-area * { visibility: visible !important; }
+            body.print-timeline #printable-timeline-area {
+                position: absolute !important; left: 50% !important; top: 0 !important;
+                transform: translateX(-50%) !important; width: 90% !important; max-width: 600px !important;
+                background: #ffffff !important; color: #000000 !important; box-shadow: none !important; padding: 20px !important;
+            }
+
+            /* 五心圖匯出專用 */
+            body.print-tree #tree-root-container, 
+            body.print-tree #tree-root-container * { visibility: visible !important; }
+            body.print-tree #tree-root-container {
+                position: absolute !important; left: 50% !important; top: 20px !important;
+                transform: translateX(-50%) !important; width: 100% !important; max-width: 1000px !important;
+                display: flex !important; justify-content: center !important; align-items: flex-start !important;
+                background: transparent !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important;
+            }
+            body.print-tree .theme-card { border: 2px solid #000 !important; box-shadow: none !important; }
         }
     </style>
 </head>
@@ -228,15 +225,15 @@
 
             <section id="sect-tree" class="hidden space-y-4 w-full">
                 <div class="theme-card rounded-2xl p-5 shadow border-theme border space-y-4 w-full">
-                    <div class="flex justify-between items-center border-b border-theme pb-4"><h2 class="text-base sm:text-lg font-extrabold theme-title flex items-center gap-2"><span class="text-indigo-500">💎</span>五心團隊組織圖</h2><button onclick="window.print()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-lg text-sm shadow">📷 匯出/列印</button></div>
-                    <div class="overflow-x-auto py-10 px-4 theme-subcard rounded-2xl border-theme border min-h-[500px] flex justify-center w-full"><div id="tree-root-container" class="w-full flex justify-center"></div></div>
+                    <div class="flex justify-between items-center border-b border-theme pb-4"><h2 class="text-base sm:text-lg font-extrabold theme-title flex items-center gap-2"><span class="text-indigo-500">💎</span>五心團隊組織圖</h2><button onclick="window.printTree()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-lg text-sm shadow">📷 匯出/列印</button></div>
+                    <div class="overflow-x-auto py-10 px-4 theme-subcard rounded-2xl border-theme border min-h-[500px] flex justify-center w-full relative"><div id="tree-root-container" class="w-full flex justify-center pb-20"></div></div>
                 </div>
             </section>
 
             <section id="sect-leaderboard" class="hidden space-y-4 w-full">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
                     <div class="lg:col-span-2 theme-card rounded-2xl p-5 shadow border-theme border space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-theme pb-3 gap-3">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                             <h2 class="text-base sm:text-lg font-extrabold theme-title">🏆 戰功排行榜</h2>
                             <div class="flex items-center gap-3">
                                 <select id="lb-month-select" onchange="window.onLbTimeChange()" class="theme-subcard border-theme border text-sm font-bold rounded-lg px-3 py-1.5 theme-title outline-none"></select>
@@ -246,6 +243,9 @@
                                     <input type="date" id="lb-end-date" onchange="window.renderLeaderboard()" class="theme-subcard border-theme border rounded px-2 py-1 theme-title">
                                 </div>
                             </div>
+                        </div>
+                        <div class="text-[11px] sm:text-xs font-bold theme-muted bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-theme shadow-sm mt-2 mb-4 leading-relaxed">
+                            📌 計分規則：新增名單 <span class="text-indigo-500">+1</span> (代開發不計) ｜ 講 336/OPP <span class="text-purple-500">+5</span> ｜ 推薦生活會員 <span class="text-amber-500">+2</span> ｜ 推薦直銷商 <span class="text-amber-600">+10</span> ｜ 新增長客 <span class="text-emerald-500">+10</span>/組
                         </div>
                         <div id="leaderboard-container" class="space-y-4"></div>
                     </div>
@@ -276,7 +276,7 @@
         </div>
     </div>
 
-    <!-- 新增/編輯跟進名單 Modal (修復：選擇「自己」可順暢儲存) -->
+    <!-- 新增/編輯跟進名單 Modal -->
     <div id="modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl border-theme border flex flex-col max-h-[90vh]">
             <div class="px-6 py-4 border-b border-theme flex justify-between items-center theme-subcard shrink-0"><h3 id="modal-title" class="text-base sm:text-lg font-bold theme-title">➕ 新增跟進名單</h3><button onclick="window.closeModal('modal')" class="theme-muted hover:theme-title text-2xl font-bold">&times;</button></div>
@@ -365,7 +365,7 @@
                 </div>
 
                 <div class="theme-subcard border-theme border rounded-2xl p-4 space-y-3">
-                    <span class="font-bold theme-title text-sm block">➕ 補登小組夥伴長客 (非直轄名單)</span>
+                    <span class="font-bold theme-title text-sm block">➕ 補登小組夥伴長客</span>
                     <div class="flex flex-wrap gap-3 items-center">
                         <input type="date" id="sub-partner-date" class="theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
                         <input type="text" id="sub-partner-name" placeholder="夥伴名字 (例如：張小華)" class="flex-1 min-w-[120px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
@@ -764,6 +764,7 @@
         function renderAll() {
             updateFilterOptions(); renderFollowupBanner(); renderDashboard(); renderList();
             renderTrashCount(); renderTagsLobby(); renderProductsLobby(); renderBVReport(); updateReferrerDropdowns();
+            renderLeaderboard(); // 確保重新整理畫面時排行榜即時重算
         }
 
         function populateAmwayMonthOptions() {
@@ -891,26 +892,24 @@
             });
         }
         
-        // ⚡ 優化：批次刪除加上極速響應提示與前端即時清空
+        // ⚡ 批次刪除：極速響應與徹底抹除積分綁定
         window.bulkDelete = function() {
             const checked = document.querySelectorAll('.contact-checkbox:checked'); if(!checked.length) return window.showToast('ℹ️ 請先勾選名單');
-            window.openConfirmModal(`⚠️ 確定將勾選的 ${checked.length} 筆名單「永久刪除」？\n(相關的打卡日誌與捷報積分也將一併清除！)`, async () => {
+            window.openConfirmModal(`⚠️ 確定將勾選的 ${checked.length} 筆名單「永久刪除」？\n(相關的打卡日誌與捷報積分也將一併連根拔除！)`, async () => {
                 window.showToast('⚡ 批次刪除處理中...');
                 const idsToDelete = Array.from(checked).map(cb => cb.value);
                 
-                // 前端瞬間反應清空
                 state.customers = state.customers.filter(c => !idsToDelete.includes(c.id));
                 state.feeds = state.feeds.filter(f => !idsToDelete.includes(f.customer_id));
                 state.checkinLogs = state.checkinLogs.filter(l => !idsToDelete.includes(l.customer_id));
                 renderAll();
 
-                // 背景非同步雲端刪除
                 for(let id of idsToDelete) { 
                     await cloudDelete('customers', id); 
                     await db.from('feeds').delete().eq('customer_id', id);
                     await db.from('checkin_logs').delete().eq('customer_id', id);
                 }
-                window.showToast('🗑️ 名單與歷史紀錄已徹底刪除');
+                window.showToast('🗑️ 名單與歷史紀錄已徹底刪除，積分即時重算完成');
             });
         }
 
@@ -922,7 +921,7 @@
             document.getElementById('modal-title').textContent = '➕ 新增跟進名單'; 
             document.getElementById('delete-in-modal-btn').classList.add('hidden'); 
             
-            // 預設誰的朋友為「自己」
+            // ✅ 防呆修復：選「自己」時立刻清空屬性
             const refSel = document.getElementById('field-referrer-type');
             const nameInput = document.getElementById('field-referrer-name');
             refSel.value = '自己';
@@ -936,7 +935,6 @@
             window.openModal('modal'); 
         };
         
-        // ✅ 修正：選「自己」時立刻清空屬性，解決無法儲存的問題
         window.onReferrerTypeChange = function(sel) {
             const nameInput = document.getElementById('field-referrer-name');
             if(sel.value === '代為跟進') {
@@ -988,14 +986,14 @@
         
         window.deleteCurrentCustomerFromModal = function() {
             const id = document.getElementById('field-id').value; if(!id) return;
-            window.openConfirmModal('確定將此筆名單「永久刪除」？\n(相關的打卡日誌與捷報積分也將一併清除！)', async () => { 
+            window.openConfirmModal('確定將此筆名單「永久刪除」？\n(相關的打卡日誌與捷報積分也將一併連根拔除！)', async () => { 
                 await cloudDelete('customers', id); 
                 await db.from('feeds').delete().eq('customer_id', id);
                 await db.from('checkin_logs').delete().eq('customer_id', id);
                 state.customers = state.customers.filter(c => c.id !== id); 
                 state.feeds = state.feeds.filter(f => f.customer_id !== id);
                 state.checkinLogs = state.checkinLogs.filter(l => l.customer_id !== id);
-                renderAll(); window.closeModal('modal'); window.showToast('🗑️ 名單與歷史紀錄已徹底刪除'); 
+                renderAll(); window.closeModal('modal'); window.showToast('🗑️ 名單與歷史紀錄已徹底刪除，積分即時重算完成'); 
             });
         }
 
@@ -1072,7 +1070,7 @@
             const refType = document.getElementById('field-referrer-type').value;
             const refName = document.getElementById('field-referrer-name').value.trim();
             const referrerValue = (refType === '代為跟進') ? `代為跟進:${refName}` : '自己';
-            const isDelegated = (refType === '代為跟进');
+            const isDelegated = (refType === '代為跟進');
 
             const loyItems = []; 
             document.querySelectorAll('.loyalty-item-row').forEach(row => { 
@@ -1098,6 +1096,7 @@
                 const idx = state.customers.findIndex(x=>x.id===id); if(idx>-1) state.customers[idx] = data; 
             } else { 
                 state.customers.unshift(data); 
+                // ✅ 綁定 customer_id 以支援徹底刪除
                 if (!isDelegated && data.date.startsWith(currentMonth)) {
                     const fd1 = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: newCustomerId, action:'新增了一筆跟進名單', pts:1, time:new Date().toISOString()}; 
                     state.feeds.unshift(fd1); await cloudUpsert('feeds', fd1); 
@@ -1166,17 +1165,19 @@
             
             const note = document.getElementById('opp-checkin-notes').value; const d = document.getElementById('opp-checkin-date').value;
             const logId = 'log_' + Date.now();
-            const log = {id: logId, type:'opp', user_name:sessionUser.email, partnerName: partnerName, date:d, notes:note};
+            const cObj = state.customers.find(x=>x.name === partnerName && x.owner === sessionUser.email);
+
+            const log = {id: logId, type:'opp', user_name:sessionUser.email, customer_id: cObj ? cObj.id : null, partnerName: partnerName, date:d, notes:note};
             state.checkinLogs.push(log); await cloudUpsert('checkin_logs', log);
             
-            const cObj = state.customers.find(x=>x.name === partnerName && x.owner === sessionUser.email);
             if(cObj) {
                 cObj.progress = 'OPP'; if(!cObj.timeline) cObj.timeline=[]; cObj.timeline.unshift({date:d, text:`[講336/OPP] ${note}`}); await cloudUpsert('customers', cObj);
             }
             
             const currentMonth = new Date().toISOString().substring(0,7);
             if (d.startsWith(currentMonth)) {
-                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, log_id: logId, action:`講了一場 336/OPP`, pts:5, time:new Date().toISOString()}; 
+                // ✅ 綁定 customer_id 以支援徹底刪除
+                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: cObj ? cObj.id : null, log_id: logId, action:`講了一場 336/OPP`, pts:5, time:new Date().toISOString()}; 
                 state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             }
             renderAll(); window.closeModal('checkin-opp-modal'); window.showToast('🎉 OPP 打卡成功');
@@ -1191,7 +1192,7 @@
             
             const currentMonth = new Date().toISOString().substring(0,7);
             if (d.startsWith(currentMonth)) {
-                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action:`推薦了一位${type}`, pts:pts, time:new Date().toISOString()}; 
+                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: c ? c.id : null, action:`推薦了一位${type}`, pts:pts, time:new Date().toISOString()}; 
                 state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             }
             renderAll(); window.closeModal('checkin-rec-modal'); window.showToast('🎉 推薦打卡成功');
@@ -1223,7 +1224,7 @@
             const currentMonth = new Date().toISOString().substring(0,7);
             if (checkinDate.startsWith(currentMonth)) {
                 const actionText = totalAdded === 1 ? `新增了一組 ${firstProdName} 長客` : `新增了 ${totalAdded} 組 ${firstProdName} 長客`;
-                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action: actionText, pts:10*totalAdded, time:new Date().toISOString()}; 
+                const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, customer_id: c.id, action: actionText, pts:10*totalAdded, time:new Date().toISOString()}; 
                 state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             }
             renderAll(); window.closeModal('checkin-loyalty-modal'); window.showToast(`🎉 長客打卡成功 (+${totalAdded}組)`);
@@ -1243,7 +1244,7 @@
             if (date.startsWith(currentMonth)) {
                 const pObj = state.products.find(p => p.id === productId);
                 const prodName = pObj ? pObj.name : '長客';
-                const actionText = qty === 1 ? `新增了一組 ${prodName} 長客` : `新增了 ${qty} 組 ${prodName} 長客`;
+                const actionText = qty === 1 ? `新增個人直轄 ${prodName} 長客` : `新增個人直轄 ${qty} 組 ${prodName} 長客`;
                 const fd = {id:'f_'+Date.now(), user_name: sessionUser.email, action: actionText, pts: 10 * qty, time: new Date().toISOString()};
                 state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
             }
@@ -1352,9 +1353,9 @@
             if (hasChildren && !coll) { childHTML = `<div class="flex pt-6 relative justify-center gap-8 border-t border-theme border-dashed mt-4">${node.children.map(c => buildPillTreeHTML(c, false)).join('')}</div>`; }
             const pillClass = isRoot ? 'bg-amber-100 border-2 border-amber-400 text-amber-950 shadow-md' : 'theme-card border-2 border-theme theme-title shadow-sm';
             return `<div class="flex flex-col items-center relative"><div class="px-6 py-3 rounded-full ${pillClass} min-w-[140px] text-center"><div class="text-base font-black whitespace-nowrap">${node.name}</div><div class="flex justify-center gap-3 mt-2">
-                <button onclick="window.openAddTreeNodeModal('${node.id}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold">＋</button>
-                ${hasChildren ? `<button onclick="window.toggleTreeNode('${node.id}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold">${coll?'＋':'－'}</button>`:''}
-                ${!isRoot ? `<button onclick="window.openConfirmModal('確定要從五心組織圖中移除此成員嗎？', ()=>window.deleteTreeNode('${node.id}'))" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold">×</button>`:''}
+                <button onclick="window.openAddTreeNodeModal('${node.id}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold no-print">＋</button>
+                ${hasChildren ? `<button onclick="window.toggleTreeNode('${node.id}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold no-print">${coll?'＋':'－'}</button>`:''}
+                ${!isRoot ? `<button onclick="window.openConfirmModal('確定要從五心組織圖中移除此成員嗎？', ()=>window.deleteTreeNode('${node.id}'))" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold no-print">×</button>`:''}
             </div></div>${childHTML}</div>`;
         }
         window.toggleTreeNode = function(id) { const rec=(n)=>{if(n.id===id){n.collapsed=!n.collapsed;return true;}if(n.children){for(let c of n.children)if(rec(c))return true;}return false;}; rec(state.treeData); saveSystemSettings(); renderTree(); }
@@ -1428,7 +1429,7 @@
             }
         }
 
-        // ✅ 長客明細移除「(個人直轄...)」與「(小組補登...)」贅字
+        // ✅ BV 報表明細瘦身：移除冗長字眼
         window.renderBVReport = function() {
             const container = document.getElementById('bv-report-container'); if(!container) return;
             
@@ -1725,8 +1726,26 @@
             }
         }
 
+        // ✅ 軌跡專屬動態檔名匯出
         window.exportTimelinePDF = function() {
+            document.body.classList.add('print-timeline');
+            const oldTitle = document.title;
+            const c = state.customers.find(x => x.id === currentActiveContactId);
+            if(c) { document.title = '帶線陪伴軌跡-' + c.name; }
             window.print();
+            document.title = oldTitle;
+            setTimeout(() => document.body.classList.remove('print-timeline'), 1000);
+        }
+        
+        // ✅ 五心圖專屬動態檔名匯出
+        window.printTree = function() {
+            document.body.classList.add('print-tree');
+            const oldTitle = document.title;
+            const uName = document.getElementById('current-user-display').textContent;
+            document.title = '五心計畫圖-' + uName;
+            window.print();
+            document.title = oldTitle;
+            setTimeout(() => document.body.classList.remove('print-tree'), 1000);
         }
 
         window.logout = async function() { if(confirm('確定要登出系統嗎？')) { await db.auth.signOut(); window.location.reload(); } }
