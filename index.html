@@ -185,7 +185,7 @@
                     </div>
                     <div id="dash-content-box" class="grid grid-cols-2 lg:grid-cols-5 gap-4">
                         <div onclick="window.filterDashboardMetric('leads')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-indigo-500"><span>🚀 開發量</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-leads-count">0</div></div>
-                        <div class="theme-subcard border-theme border rounded-xl p-4"><div class="flex justify-between items-center text-sm font-bold text-sky-500"><span>🎯 破題人數</span><span class="text-xs opacity-70">不重複</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-bt-count">0 人</div><div class="text-[11px] theme-muted mt-1" id="kpi-bt-total"></div></div>
+                        <div onclick="window.showBreakthroughList()" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-sky-500"><span>🎯 破題人數</span><span class="text-xs opacity-70">名單日誌</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-bt-count">0 人</div><div class="text-[11px] theme-muted mt-1" id="kpi-bt-total"></div></div>
                         <div onclick="window.showOppLogHistory()" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-purple-500"><span>🗣️ 講 336 / OPP</span><span class="text-xs opacity-70">日誌</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-opp-count">0 次</div></div>
                         <div onclick="window.filterDashboardMetric('loyalty')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-emerald-500"><span>📦 長客總組數</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-loyalty-count">0 組</div></div>
                         <div onclick="window.filterDashboardMetric('rec')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-amber-500"><span>🤝 推薦人數(累計)</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-rec-count">0 人</div></div>
@@ -269,6 +269,18 @@
                     <button type="button" onclick="window.saveEditedNickname()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow">儲存</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="bt-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">🎯 破題名單與日誌</h3><button onclick="window.closeModal('bt-modal')" class="theme-muted text-2xl">&times;</button></div>
+            <div class="flex gap-2 text-sm font-bold">
+                <button id="bt-tab-range" onclick="window.setBtView('range')" class="px-4 py-1.5 rounded-lg">目前區間</button>
+                <button id="bt-tab-all" onclick="window.setBtView('all')" class="px-4 py-1.5 rounded-lg">全部累計</button>
+            </div>
+            <div id="bt-summary" class="text-xs theme-muted"></div>
+            <div id="bt-list-items" class="overflow-y-auto flex-1 space-y-2 no-scrollbar text-sm"></div>
         </div>
     </div>
 
@@ -954,12 +966,39 @@
             if(document.getElementById('dash-time-range').value === 'custom') p.classList.remove('hidden'); else p.classList.add('hidden');
             renderDashboard();
         }
-        function renderDashboard() {
+        function getDashRange() {
             const range = document.getElementById('dash-time-range').value;
             let sd = '2000-01-01', ed = '2099-12-31'; const now = new Date();
             if(range === 'month') { sd = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`; ed = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-31`; }
             else if(range === 'year') { sd = `${now.getFullYear()}-01-01`; ed = `${now.getFullYear()}-12-31`; }
             else if(range === 'custom') { sd = document.getElementById('dash-start-date').value || sd; ed = document.getElementById('dash-end-date').value || ed; }
+            const label = range === 'month' ? '本月' : range === 'year' ? '全年' : `${sd} ～ ${ed}`;
+            return { sd, ed, label };
+        }
+
+        let btView = 'range';
+        window.showBreakthroughList = function() { btView = 'range'; window.renderBreakthroughList(); window.openModal('bt-modal'); };
+        window.setBtView = function(v) { btView = v; window.renderBreakthroughList(); };
+        window.renderBreakthroughList = function() {
+            const { sd, ed, label } = getDashRange();
+            const all = state.customers.filter(c => c.owner === sessionUser.email && isBreakthrough(c));
+            const inRange = c => c.breakthroughDate && c.breakthroughDate >= sd && c.breakthroughDate <= ed;
+            const dated = all.filter(c => c.breakthroughDate).sort((a, b) => b.breakthroughDate.localeCompare(a.breakthroughDate));
+            const unknown = all.filter(c => !c.breakthroughDate);
+            const rows = (btView === 'range' ? dated.filter(inRange) : dated);
+            const act = 'bg-sky-600 text-white shadow', off = 'theme-subcard border-theme border theme-title';
+            document.getElementById('bt-tab-range').className = 'px-4 py-1.5 rounded-lg ' + (btView === 'range' ? act : off);
+            document.getElementById('bt-tab-all').className = 'px-4 py-1.5 rounded-lg ' + (btView === 'all' ? act : off);
+            document.getElementById('bt-summary').textContent = btView === 'range' ? `${label}：${rows.length} 人（依 KPI 區間）` : `累計已破題 ${all.length} 人（有日期 ${dated.length}、日期不詳 ${unknown.length}）`;
+            const item = c => `<div class="flex justify-between items-center p-3 rounded-xl theme-subcard border-theme border"><div><div class="font-bold theme-title">${esc(c.name)}${c.isTrashed ? ' <span class="text-xs theme-muted">(封存)</span>' : ''}</div><div class="text-xs theme-muted">${c.breakthroughDate ? '破題日 ' + esc(c.breakthroughDate) : '日期不詳'}　進度：${esc(c.progress || '-')}</div></div><button onclick="window.editCustomer('${sid(c.id)}'); window.closeModal('bt-modal')" class="text-indigo-600 font-bold text-sm">📝 編輯</button></div>`;
+            let html = rows.map(item).join('');
+            if (!rows.length) html = '<div class="text-center theme-muted py-6">這個區間還沒有破題紀錄</div>';
+            if (btView === 'all' && unknown.length) html += `<div class="text-xs font-bold theme-muted pt-3">日期不詳（可點編輯補上日期）</div>` + unknown.map(item).join('');
+            document.getElementById('bt-list-items').innerHTML = html;
+        };
+
+        function renderDashboard() {
+            const { sd, ed } = getDashRange();
             const actives = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed);
             const leads = actives.filter(c => c.date >= sd && c.date <= ed).length;
             const opps = state.checkinLogs.filter(l => l.user_name === sessionUser.email && l.type === 'opp' && l.date >= sd && l.date <= ed).length;
