@@ -128,8 +128,7 @@
                     <button onclick="window.exportExcel()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📊 匯出 Excel (CSV)</button>
                     <button onclick="window.downloadCsvTemplate()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📥 下載標準匯入範本</button>
                     <label class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3 cursor-pointer">📂 匯入 Excel (CSV)<input type="file" accept=".csv" onchange="window.importExcel(event)" class="hidden"></label>
-                    <button onclick="window.exportJSON()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">💾 備份 JSON 檔案</button>
-                    <label class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3 cursor-pointer">📂 還原 JSON 備份<input type="file" accept=".json" onchange="window.importJSON(event)" class="hidden"></label>
+                    <button onclick="window.backfillBreakthrough()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🎯 批次標記既有名單為已破題</button>
                     <button onclick="window.openModal('settings-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">⚙️ 系統與視覺設定</button>
                 </div>
             </div>
@@ -184,11 +183,12 @@
                             <button type="button" onclick="window.toggleSection('dash-content-box', 'dash-toggle-icon')" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="dash-toggle-icon">▲</span></button>
                         </div>
                     </div>
-                    <div id="dash-content-box" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div id="dash-content-box" class="grid grid-cols-2 lg:grid-cols-5 gap-4">
                         <div onclick="window.filterDashboardMetric('leads')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-indigo-500"><span>🚀 開發量</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-leads-count">0</div></div>
+                        <div class="theme-subcard border-theme border rounded-xl p-4"><div class="flex justify-between items-center text-sm font-bold text-sky-500"><span>🎯 破題人數</span><span class="text-xs opacity-70">不重複</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-bt-count">0 人</div><div class="text-[11px] theme-muted mt-1" id="kpi-bt-total"></div></div>
                         <div onclick="window.showOppLogHistory()" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-purple-500"><span>🗣️ 講 336 / OPP</span><span class="text-xs opacity-70">日誌</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-opp-count">0 次</div></div>
                         <div onclick="window.filterDashboardMetric('loyalty')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-emerald-500"><span>📦 長客總組數</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-loyalty-count">0 組</div></div>
-                        <div onclick="window.filterDashboardMetric('rec')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-amber-500"><span>🤝 推薦人數</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-rec-count">0 人</div></div>
+                        <div onclick="window.filterDashboardMetric('rec')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-amber-500"><span>🤝 推薦人數(累計)</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-rec-count">0 人</div></div>
                     </div>
                 </div>
 
@@ -198,10 +198,11 @@
                         <button type="button" onclick="window.toggleSection('filter-content-box', 'filter-toggle-icon')" class="p-1 rounded theme-muted text-sm"><span id="filter-toggle-icon">▲</span></button>
                     </div>
                     <div id="filter-content-box" class="space-y-4 pt-4 border-t border-theme">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                             <select id="filter-progress" onchange="window.renderList()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 text-sm theme-title outline-none"><option value="all">🎯 所有跟進進度</option></select>
                             <select id="filter-level" onchange="window.renderList()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 text-sm theme-title outline-none"><option value="all">💎 所有等級/定位</option></select>
                             <select id="filter-tag" onchange="window.renderList()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 text-sm theme-title outline-none"><option value="all">🏷️ 所有活動標籤</option></select>
+                            <select id="sort-select" onchange="window.renderList()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 text-sm theme-title outline-none"><option value="followup">↕️ 排序：待跟進日（最急在前）</option><option value="touch">↕️ 排序：最近互動</option><option value="newest">↕️ 排序：最新建立</option><option value="oldest">↕️ 排序：最早建立</option><option value="name">↕️ 排序：姓名</option></select>
                         </div>
                         <div class="flex justify-between items-center pt-3 border-t border-theme text-sm">
                             <label class="flex items-center gap-2 font-bold theme-title cursor-pointer"><input type="checkbox" id="select-all-checkbox" onchange="window.toggleSelectAll(this)" class="rounded text-indigo-600 w-5 h-5"> 全選</label>
@@ -296,11 +297,20 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4"><div><label class="block font-bold theme-title mb-1.5">認識日期 <span class="text-red-500">*</span></label><input type="date" id="field-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="block font-bold theme-title mb-1.5">📅 下次跟進日期</label><input type="date" id="field-next-followup" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div></div>
+                <div><label class="block font-bold theme-title mb-1.5">📝 跟進內容 <span class="text-xs theme-muted font-normal">（會顯示在待跟進任務清單）</span></label><input type="text" id="field-followup-note" maxlength="120" placeholder="例如：問他上週活動的感想、約週六說明會" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block font-bold theme-title mb-1.5">跟進進度 <span class="text-red-500">*</span></label><select id="field-progress" required onchange="window.onProgressChange(this)" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="新開發/待跟進">新開發/待跟進</option><option value="建立友誼">建立友誼</option><option value="約聚會/活動">約聚會/活動</option><option value="破題">破題</option><option value="OPP">OPP</option><option value="七天法則">七天法則</option><option value="加入">加入</option><option value="體驗產品">體驗產品</option><option value="長客">長客</option><option value="名單封存(隱藏)">📦 名單封存(隱藏)</option></select></div>
+                    <div><label class="block font-bold theme-title mb-1.5">跟進進度 <span class="text-red-500">*</span></label><select id="field-progress" required onchange="window.onProgressChange(this)" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="新開發/待跟進">新開發/待跟進</option><option value="建立友誼">建立友誼</option><option value="約聚會/活動">約聚會/活動</option><option value="OPP">OPP</option><option value="七天法則">七天法則</option><option value="加入">加入</option><option value="體驗產品">體驗產品</option><option value="長客">長客</option><option value="名單封存(隱藏)">📦 名單封存(隱藏)</option></select></div>
                     <div><label class="block font-bold theme-title mb-1.5">等級 / 定位 <span class="text-red-500">*</span></label><select id="field-level" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="未分類">未分類</option><option value="A級">A級</option><option value="B級">B級</option><option value="C級">C級</option><option value="高蛋白名單">高蛋白名單</option><option value="顧客">顧客</option><option value="準領導人">準領導人</option><option value="領導人">領導人</option></select></div>
                 </div>
-                <div><label class="block font-bold theme-title mb-1.5">安麗會員類別</label><select id="field-member-type" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="未加入">未加入</option><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold theme-title mb-1.5">🎯 破題狀態</label>
+                        <select id="field-breakthrough" onchange="window.onBreakthroughChange(this)" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="未破題">未破題</option><option value="已破題">已破題</option></select>
+                        <input type="date" id="field-breakthrough-date" class="hidden w-full theme-subcard border-theme border rounded-xl p-3 theme-title mt-2">
+                        <p id="bt-date-hint" class="hidden text-xs theme-muted mt-1">日期留空＝已破題但日期不詳（不計入期間統計）</p>
+                    </div>
+                    <div><label class="block font-bold theme-title mb-1.5">安麗會員類別</label><select id="field-member-type" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="未加入">未加入</option><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div>
+                </div>
                 <div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><label class="block font-bold theme-title text-sm">🔗 聯絡方式與跳轉連結</label><div class="flex flex-wrap gap-3 items-center"><label class="flex items-center gap-2 theme-title"><input type="checkbox" id="field-has-line" class="rounded w-5 h-5"> LINE</label><input type="text" id="field-ig-link" placeholder="IG 帳號 (@abc)" class="w-36 theme-card border-theme border rounded-lg p-2 text-sm theme-title"><input type="text" id="field-threads-link" placeholder="Threads" class="w-36 theme-card border-theme border rounded-lg p-2 text-sm theme-title"><input type="text" id="field-other-channel" placeholder="其他管道" class="flex-1 theme-card border-theme border rounded-lg p-2 text-sm theme-title"></div></div>
                 <div><label class="block font-bold theme-title mb-1.5">🏷️ 套用活動標籤 (輸入按 Enter 套用)</label><div class="theme-subcard border-theme border rounded-xl p-3 flex flex-wrap gap-2 items-center" id="field-tags-container"><input type="text" id="field-tag-input" onkeydown="window.handleTagInput(event)" placeholder="輸入標籤..." class="bg-transparent text-sm theme-title outline-none w-36 flex-1"></div><div id="available-tags-chips" class="mt-2 flex flex-wrap gap-2"></div></div>
                 <div><label class="block font-bold theme-title mb-1.5">備註 / 痛點</label><textarea id="field-notes" rows="2" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></textarea></div>
@@ -779,6 +789,15 @@
             window.showToast(`🎉 歡迎回來，${nickname}！`);
         }
 
+        // ===== P1：進度順序、破題、防連點 =====
+        const PROGRESS_ORDER = ['新開發/待跟進','建立友誼','約聚會/活動','OPP','七天法則','加入','體驗產品','長客'];
+        const PAST_BT_STAGES = ['OPP','七天法則','加入','體驗產品','長客'];
+        function isBreakthrough(c) { return !!c && c.breakthrough === '已破題'; }
+        function markBreakthrough(c, date) { if (isBreakthrough(c)) return false; c.breakthrough = '已破題'; c.breakthroughDate = date || ''; return true; }
+        function csvCell(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
+        const _busy = new Set();
+        async function guardRun(key, fn, self, args) { if (_busy.has(key)) return; _busy.add(key); try { return await fn.apply(self, args); } finally { _busy.delete(key); } }
+
         async function loadCloudData() {
             const { data: profiles } = await db.from('profiles').select('*');
             if(profiles) { profiles.forEach(p => { userProfilesMap[p.email] = p.nickname; }); }
@@ -801,6 +820,15 @@
             let qCust = db.from('customers').select('*').eq('owner', sessionUser.email);
             const { data: custs } = await qCust;
             state.customers = custs || [];
+            // 新欄位是否已建立（select * 會回傳所有欄位，包含值為 null 的）
+            const hasBtCol = state.customers.length === 0 || ('breakthrough' in state.customers[0]);
+            if (!hasBtCol) {
+                window.showToast('⚠️ 資料庫尚未新增「破題 / 跟進內容」欄位，請先執行 P1 的 SQL');
+            } else {
+                // 進度「破題」已移除：改標記為已破題（日期不詳），進度退回上一站
+                const toMigrate = state.customers.filter(c => c.progress === '破題');
+                for (const c of toMigrate) { c.progress = '約聚會/活動'; markBreakthrough(c, ''); await cloudUpsert('customers', c); }
+            }
 
             let qLog = db.from('checkin_logs').select('*').eq('user_name', sessionUser.email);
             let qSub = db.from('sub_group_loyalties').select('*').eq('owner', sessionUser.email);
@@ -817,13 +845,12 @@
             const cleanData = { ...data };
             delete cleanData.inTree;
             let { error } = await db.from(table).upsert(cleanData);
-            // 資料表缺少某個欄位（PostgREST 錯誤碼 PGRST204）時，略過該欄位再試一次，避免整筆寫入失敗
-            if (error && error.code === 'PGRST204') {
+            // 資料表缺少某個欄位（PostgREST 錯誤碼 PGRST204）時，略過該欄位再試（最多 5 次），避免整筆寫入失敗
+            for (let i = 0; i < 5 && error && error.code === 'PGRST204'; i++) {
                 const m = (error.message || '').match(/'([^']+)' column/);
-                if (m && (m[1] in cleanData)) {
-                    delete cleanData[m[1]];
-                    ({ error } = await db.from(table).upsert(cleanData));
-                }
+                if (!(m && (m[1] in cleanData))) break;
+                delete cleanData[m[1]];
+                ({ error } = await db.from(table).upsert(cleanData));
             }
             if (error) { window.showToast(`⚠️ 雲端同步失敗: ${error.message}`); }
         }
@@ -880,7 +907,7 @@
             const isTrashSelected = document.getElementById('filter-progress')?.value === '名單封存(隱藏)';
             const actives = state.customers.filter(c => c.owner === sessionUser.email && (isTrashSelected ? c.isTrashed : !c.isTrashed));
             const lvls = { '未分類':0, 'A級':0, 'B級':0, 'C級':0, '高蛋白名單':0, '顧客':0, '準領導人':0, '領導人':0 };
-            const progs = { '新開發/待跟進':0, '建立友誼':0, '約聚會/活動':0, '破題':0, 'OPP':0, '七天法則':0, '加入':0, '體驗產品':0, '長客':0, '名單封存(隱藏)': state.customers.filter(c=>c.owner===sessionUser.email&&c.isTrashed).length };
+            const progs = { '新開發/待跟進':0, '建立友誼':0, '約聚會/活動':0, 'OPP':0, '七天法則':0, '加入':0, '體驗產品':0, '長客':0, '名單封存(隱藏)': state.customers.filter(c=>c.owner===sessionUser.email&&c.isTrashed).length };
             const tagMap = {}; state.tags.forEach(t=>tagMap[t]=0);
             actives.forEach(c => { if(lvls[c.level]!==undefined) lvls[c.level]++; if(!c.isTrashed && progs[c.progress]!==undefined) progs[c.progress]++; if(c.tags) c.tags.forEach(t => { if(tagMap[t]!==undefined) tagMap[t]++; }); });
 
@@ -889,23 +916,37 @@
             const tSel = document.getElementById('filter-tag'); if(tSel) { const cur = tSel.value; tSel.innerHTML = `<option value="all">🏷️ 所有活動標籤</option>` + Object.keys(tagMap).map(k => `<option value="${esc(k)}">#${esc(k)} (${tagMap[k]}人)</option>`).join(''); tSel.value = cur || 'all'; }
         }
 
-        function renderFollowupBanner() {
+        function getDueTasks() {
             const today = getLocalDateString();
-            const tasks = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed && c.nextFollowUp && c.nextFollowUp <= today);
+            return state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed && c.nextFollowUp && c.nextFollowUp <= today)
+                .sort((a, b) => a.nextFollowUp.localeCompare(b.nextFollowUp));
+        }
+        function renderFollowupBanner() {
+            const tasks = getDueTasks();
             const container = document.getElementById('followup-banner-container'); container.innerHTML = '';
             if(tasks.length > 0) {
-                container.innerHTML = `<div onclick="window.openTodoListModal()" class="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex justify-between items-center text-sm shadow-sm cursor-pointer hover:bg-rose-100 transition"><div><span class="text-rose-600 font-bold text-base">🚨 今日待跟進任務 (${tasks.length}人) - 點擊查看名單</span></div><span class="text-rose-600 font-bold text-2xl">➔</span></div>`;
+                const preview = tasks.slice(0, 2).map(c => `${esc(c.name)}${c.followUpNote ? '：' + esc(c.followUpNote) : ''}`).join('　｜　');
+                container.innerHTML = `<div onclick="window.openTodoListModal()" class="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex justify-between items-center text-sm shadow-sm cursor-pointer hover:bg-rose-100 transition"><div class="min-w-0"><div class="text-rose-600 font-bold text-base">🚨 今日待跟進任務 (${tasks.length}人) - 點擊查看</div><div class="text-rose-500 text-xs mt-1 truncate">${preview}${tasks.length > 2 ? ' …' : ''}</div></div><span class="text-rose-600 font-bold text-2xl shrink-0 ml-3">➔</span></div>`;
             }
         }
         window.openTodoListModal = function() {
             const today = getLocalDateString();
-            const tasks = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed && c.nextFollowUp && c.nextFollowUp <= today);
-            document.getElementById('todo-list-items').innerHTML = tasks.map(c => `<div class="flex justify-between items-center p-4 rounded-xl theme-subcard border-theme border"><div class="flex items-center gap-3"><input type="checkbox" onchange="window.completeFollowUp('${sid(c.id)}')" class="rounded text-rose-600 w-5 h-5 cursor-pointer"><span class="font-bold theme-title text-base sm:text-lg">${esc(c.name)}</span></div><div class="flex gap-4 text-sm font-bold"><button onclick="window.editCustomer('${sid(c.id)}'); window.closeModal('todo-modal')" class="text-indigo-600">📝 編輯</button><button onclick="window.openTimeline('${sid(c.id)}'); window.closeModal('todo-modal')" class="text-purple-600">📜 軌跡</button></div></div>`).join('');
+            const tasks = getDueTasks();
+            document.getElementById('todo-list-items').innerHTML = tasks.length ? tasks.map(c => {
+                const when = c.nextFollowUp < today ? `<span class="text-rose-500 font-bold">逾期（${esc(c.nextFollowUp)}）</span>` : '<span class="text-amber-600 font-bold">今天</span>';
+                const note = c.followUpNote ? `<span class="theme-title font-bold">${esc(c.followUpNote)}</span>` : '<span class="theme-muted">尚未填寫跟進內容</span>';
+                return `<div class="p-4 rounded-xl theme-subcard border-theme border space-y-2"><div class="flex justify-between items-center"><div class="flex items-center gap-3"><input type="checkbox" onchange="window.completeFollowUp('${sid(c.id)}')" class="rounded text-rose-600 w-5 h-5 cursor-pointer"><span class="font-bold theme-title text-base sm:text-lg">${esc(c.name)}</span></div><div class="flex gap-4 text-sm font-bold"><button onclick="window.editCustomer('${sid(c.id)}'); window.closeModal('todo-modal')" class="text-indigo-600">📝 編輯</button><button onclick="window.openTimeline('${sid(c.id)}'); window.closeModal('todo-modal')" class="text-purple-600">📜 軌跡</button></div></div><div class="text-sm pl-8">${when}　${note}</div></div>`;
+            }).join('') : '<div class="text-center theme-muted py-8">🎉 今天沒有待跟進的任務</div>';
             window.openModal('todo-modal');
         }
         window.completeFollowUp = async function(id) {
             const c = state.customers.find(x=>x.id===id);
-            if(c) { c.nextFollowUp = ''; await cloudUpsert('customers', c); renderAll(); window.openTodoListModal(); window.showToast(`🎉 「${c.name}」跟進完成！`); }
+            if(c) {
+                if(!c.timeline) c.timeline = [];
+                c.timeline.unshift({date: getLocalDateString(), text: `[跟進完成] ${c.followUpNote || ''}`.trim()});
+                c.nextFollowUp = ''; c.followUpNote = '';
+                await cloudUpsert('customers', c); renderAll(); window.openTodoListModal(); window.showToast(`🎉 「${c.name}」跟進完成！`);
+            }
         }
 
         window.onDashTimeChange = function() {
@@ -924,6 +965,11 @@
             const opps = state.checkinLogs.filter(l => l.user_name === sessionUser.email && l.type === 'opp' && l.date >= sd && l.date <= ed).length;
             const loyalty = actives.reduce((sum, c) => sum + (c.loyaltyItems ? c.loyaltyItems.reduce((s,i)=>s+(parseInt(i.qty)||0),0) : 0), 0);
             const recs = actives.filter(c => c.memberType === '生活會員' || c.memberType === '直銷商').length;
+            const btAll = state.customers.filter(c => c.owner === sessionUser.email && isBreakthrough(c));
+            const btRange = btAll.filter(c => c.breakthroughDate && c.breakthroughDate >= sd && c.breakthroughDate <= ed).length;
+            const btUnknown = btAll.filter(c => !c.breakthroughDate).length;
+            document.getElementById('kpi-bt-count').textContent = `${btRange} 人`;
+            document.getElementById('kpi-bt-total').textContent = `累計 ${btAll.length} 人（日期不詳 ${btUnknown}）`;
             document.getElementById('kpi-leads-count').textContent = leads; document.getElementById('kpi-opp-count').textContent = `${opps} 次`; document.getElementById('kpi-loyalty-count').textContent = `${loyalty} 組`; document.getElementById('kpi-rec-count').textContent = `${recs} 人`;
         }
         window.filterDashboardMetric = function(t) { const s = document.getElementById('search-input'); if(t==='leads') s.value = getLocalMonthString(); else if(t==='loyalty') s.value = '長客'; else if(t==='rec') s.value = '會員'; renderList(); }
@@ -945,6 +991,16 @@
                 const mL = lF === 'all' || c.level === lF; const mT = tF === 'all' || (c.tags && c.tags.includes(tF));
                 return mK && mP && mL && mT;
             });
+            const sortKey = (document.getElementById('sort-select') || {}).value || 'followup';
+            const lastTouch = c => (c.timeline && c.timeline[0] && c.timeline[0].date) || c.date || '';
+            const sorters = {
+                followup: (a, b) => { const fa = a.nextFollowUp || '', fb = b.nextFollowUp || ''; if (fa && fb) return fa.localeCompare(fb); if (fa) return -1; if (fb) return 1; return (b.date || '').localeCompare(a.date || ''); },
+                touch: (a, b) => lastTouch(b).localeCompare(lastTouch(a)),
+                newest: (a, b) => (b.date || '').localeCompare(a.date || '') || String(b.created_at || '').localeCompare(String(a.created_at || '')),
+                oldest: (a, b) => (a.date || '').localeCompare(b.date || '') || String(a.created_at || '').localeCompare(String(b.created_at || '')),
+                name: (a, b) => (a.name || '').localeCompare(b.name || '', 'zh-Hant')
+            };
+            filtered.sort(sorters[sortKey] || sorters.followup);
             const tbody = document.getElementById('list-tbody'); const mobList = document.getElementById('mobile-card-list');
             document.getElementById('empty-state').classList[filtered.length ? 'add' : 'remove']('hidden');
             const selAll = document.getElementById('select-all-checkbox'); if (selAll) selAll.checked = false;
@@ -958,8 +1014,9 @@
                 if(igUrl) links += `<a href="${esc(igUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs bg-purple-500/10 text-purple-600 px-2 py-0.5 rounded ml-2 font-bold">IG</a>`;
                 if(c.channels && c.channels.includes('LINE')) links += `<span class="text-xs bg-green-500/10 text-green-600 px-2 py-0.5 rounded ml-2 font-bold">LINE</span>`;
                 const levelBadge = `<span class="font-bold">${esc(c.level)}</span>` + (c.inTree ? `<br><span class="text-xs text-indigo-500 font-bold opacity-90">💎 五心計畫</span>` : '');
-                const progBadge = `<span class="font-bold text-indigo-600">${esc(c.progress)}</span>` + (c.memberType && c.memberType!=='未加入' ? `<br><span class="text-xs text-amber-600 font-bold opacity-90">${esc(c.memberType)}</span>` : '');
-                const noteBadge = (loyaltySum>0 ? `<span class="text-sm bg-emerald-500/10 text-emerald-600 font-bold px-2 py-0.5 rounded block w-max mb-1">長客 x${loyaltySum}</span>` : '') + `<span class="truncate block max-w-[150px]" title="${esc(c.notes||'')}">${esc(c.notes||'-')}</span>`;
+                const progBadge = `<span class="font-bold text-indigo-600">${esc(c.progress)}</span>` + (isBreakthrough(c) ? `<br><span class="text-xs text-sky-500 font-bold opacity-90">🎯 已破題</span>` : '') + (c.memberType && c.memberType!=='未加入' ? `<br><span class="text-xs text-amber-600 font-bold opacity-90">${esc(c.memberType)}</span>` : '');
+                const followBadge = c.nextFollowUp ? `<span class="text-xs text-rose-500 font-bold block mb-1 truncate max-w-[150px]" title="${esc(c.followUpNote||'')}">📅 ${esc(c.nextFollowUp.slice(5))}${c.followUpNote ? ' ' + esc(c.followUpNote) : ''}</span>` : '';
+                const noteBadge = followBadge + (loyaltySum>0 ? `<span class="text-sm bg-emerald-500/10 text-emerald-600 font-bold px-2 py-0.5 rounded block w-max mb-1">長客 x${loyaltySum}</span>` : '') + `<span class="truncate block max-w-[150px]" title="${esc(c.notes||'')}">${esc(c.notes||'-')}</span>`;
                 if (isDesktop) {
                     rows.push(`<tr class="hover:theme-subcard"><td class="px-5 py-4"><input type="checkbox" value="${esc(c.id)}" class="contact-checkbox w-5 h-5"></td><td class="px-5 py-4 font-bold theme-title">${esc(c.name)} ${links}</td><td class="px-5 py-4 theme-muted">${esc(c.referrer||'自己')}</td><td class="px-5 py-4">${levelBadge}</td><td class="px-5 py-4">${progBadge}</td><td class="px-5 py-4">${noteBadge}</td><td class="px-5 py-4 text-right space-x-4 whitespace-nowrap"><button onclick="window.openTimeline('${sid(c.id)}')" class="text-purple-600 font-bold text-base">📜 軌跡</button><button onclick="window.editCustomer('${sid(c.id)}')" class="text-indigo-600 font-bold text-base">📝 編輯</button></td></tr>`);
                 } else {
@@ -1017,10 +1074,21 @@
             nameInput.value = '';
             nameInput.removeAttribute('required');
 
+            window.onBreakthroughChange(document.getElementById('field-breakthrough'), true);
             tempTagsForModal = [];
             document.getElementById('loyalty-items-list').innerHTML = '';
             renderTagsInModal();
             window.openModal('modal');
+        };
+
+        window.onBreakthroughChange = function(sel, silent) {
+            const d = document.getElementById('field-breakthrough-date'); const hint = document.getElementById('bt-date-hint');
+            if (sel.value === '已破題') {
+                d.classList.remove('hidden'); hint.classList.remove('hidden');
+                if (!silent && !d.value) d.value = getLocalDateString();
+            } else {
+                d.classList.add('hidden'); hint.classList.add('hidden'); d.value = '';
+            }
         };
 
         window.onReferrerTypeChange = function(sel) {
@@ -1064,6 +1132,10 @@
             document.getElementById('field-has-line').checked = c.channels&&c.channels.includes('LINE');
             document.getElementById('field-other-channel').value = c.otherChannel||'';
             document.getElementById('field-next-followup').value = c.nextFollowUp||'';
+            document.getElementById('field-followup-note').value = c.followUpNote||'';
+            document.getElementById('field-breakthrough').value = isBreakthrough(c) ? '已破題' : '未破題';
+            document.getElementById('field-breakthrough-date').value = c.breakthroughDate||'';
+            window.onBreakthroughChange(document.getElementById('field-breakthrough'), true);
             document.getElementById('field-notes').value = c.notes||'';
             document.getElementById('delete-in-modal-btn').classList.remove('hidden');
             tempTagsForModal = [...(c.tags||[])]; renderTagsInModal();
@@ -1191,7 +1263,7 @@
             }
 
             const data = {
-                id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: referrerValue, level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: timeline
+                id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: referrerValue, level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, followUpNote: document.getElementById('field-next-followup').value ? document.getElementById('field-followup-note').value.trim() : '', breakthrough: document.getElementById('field-breakthrough').value, breakthroughDate: document.getElementById('field-breakthrough').value === '已破題' ? document.getElementById('field-breakthrough-date').value : '', notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: timeline
             };
 
             const currentMonth = getLocalMonthString();
@@ -1273,7 +1345,12 @@
             state.checkinLogs.push(log); await cloudUpsert('checkin_logs', log);
 
             if(cObj) {
-                cObj.progress = 'OPP'; if(!cObj.timeline) cObj.timeline=[]; cObj.timeline.unshift({date:d, text:`[講336/OPP] ${note}`}); await cloudUpsert('customers', cObj);
+                // 進度只往前推，不倒退（例如已是長客就不要被改回 OPP）
+                if (PROGRESS_ORDER.indexOf(cObj.progress) < PROGRESS_ORDER.indexOf('OPP')) cObj.progress = 'OPP';
+                if(!cObj.timeline) cObj.timeline=[]; cObj.timeline.unshift({date:d, text:`[講336/OPP] ${note}`});
+                // 第一次講 336 的對象若還沒標記破題，自動標記（日期以首次為準；已破題者不更動）
+                if (markBreakthrough(cObj, d)) cObj.timeline.unshift({date:d, text:'[破題] 講 336/OPP 時自動標記'});
+                await cloudUpsert('customers', cObj);
             }
 
             const currentMonth = getLocalMonthString();
@@ -1669,8 +1746,8 @@
 
         window.exportExcel = function() {
             const myC = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed); if (!myC.length) return window.showToast('無資料可匯出');
-            const headers = ['認識日期', '姓名', '誰的朋友', '等級定位', '跟進進度', '會員類別', 'IG', 'Threads', '活動標籤', '備註'];
-            const rows = myC.map(c => [`"${c.date}"`, `"${c.name}"`, `"${c.referrer||'自己'}"`, `"${c.level}"`, `"${c.progress}"`, `"${c.memberType}"`, `"${c.ig||''}"`, `"${c.threads||''}"`, `"${(c.tags||[]).join(';')}"`, `"${c.notes||''}"`]);
+            const headers = ['認識日期', '姓名', '誰的朋友', '等級定位', '跟進進度', '會員類別', 'IG', 'Threads', '活動標籤', '備註', '破題狀態', '破題日期', '下次跟進日', '跟進內容'];
+            const rows = myC.map(c => [c.date, c.name, c.referrer||'自己', c.level, c.progress, c.memberType, c.ig||'', c.threads||'', (c.tags||[]).join(';'), c.notes||'', isBreakthrough(c) ? '已破題' : '未破題', c.breakthroughDate||'', c.nextFollowUp||'', c.followUpNote||''].map(csvCell));
             const csv = "﻿" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `五心名單_${sessionUser.email.split('@')[0]}.csv`; link.click();
         }
@@ -1728,20 +1805,16 @@
             }; reader.readAsText(file);
         }
 
-        window.exportJSON = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
-            const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", "five_heart_backup.json"); document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
-        }
-        window.importJSON = function(e) {
-            const file = e.target.files[0]; if(!file) return; const reader = new FileReader();
-            reader.onload = async function(ev) {
-                try {
-                    const imported = JSON.parse(ev.target.result);
-                    if(imported.customers) { for(let c of imported.customers) { await cloudUpsert('customers', c); } }
-                    window.showToast('✅ 備份還原成功！'); window.location.reload();
-                } catch(err) { alert('格式錯誤'); }
-            }; reader.readAsText(file);
-        }
+        // 批次把「進度已在 OPP 之後、但尚未標記破題」的名單標為已破題（日期不詳，不影響期間統計）
+        window.backfillBreakthrough = function() {
+            window.toggleDrawer();
+            const targets = state.customers.filter(c => c.owner === sessionUser.email && !isBreakthrough(c) && PAST_BT_STAGES.includes(c.progress));
+            if (!targets.length) return window.showToast('ℹ️ 沒有需要標記的名單');
+            window.openConfirmModal(`找到 ${targets.length} 位「進度已在 OPP 之後、但尚未標記破題」的名單。\n要全部標記為「已破題（日期不詳）」嗎？\n（不會影響期間統計，之後可個別補上日期）`, async () => {
+                for (const c of targets) { markBreakthrough(c, ''); await cloudUpsert('customers', c); }
+                renderAll(); window.showToast(`🎯 已標記 ${targets.length} 位為已破題`);
+            });
+        };
 
         window.showOppLogHistory = function() {
             renderOppCalendar();
@@ -1867,6 +1940,15 @@
                 setTimeout(() => document.body.classList.remove('print-tree'), 1000);
             }, 300);
         }
+
+        // 防連點：送出類函式執行中時，忽略重複觸發
+        ;['handleFormSubmit','submitOppCheckin','submitRecCheckin','submitLoyaltyCheckin','addMyDirectLoyalty','addManualSubLoyalty'].forEach(name => {
+            const orig = window[name]; if (typeof orig !== 'function') return;
+            window[name] = function(...args) {
+                if (args[0] && typeof args[0].preventDefault === 'function') args[0].preventDefault();
+                return guardRun(name, orig, this, args);
+            };
+        });
 
         window.logout = async function() { if(confirm('確定要登出系統嗎？')) { await db.auth.signOut(); window.location.reload(); } }
     </script>
