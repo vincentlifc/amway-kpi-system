@@ -72,6 +72,7 @@
         const SUPABASE_URL = 'https://ojvzzhzrbvmdtogxokwr.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_Oy9tndWgGKhUXaL51fOvaQ_zmoUGdJI';
         const TEAM_INVITE_CODE = 'kpimyself-336';
+        const ADMIN_EMAIL = 'chengjhou.li@gmail.com'; // 僅用來決定是否顯示「帳號管理」按鈕；真正的權限由資料庫的 is_admin() 把關
     </script>
 
     <div id="auth-screen" class="flex flex-1 items-center justify-center p-4 h-screen w-full fixed inset-0 z-50 bg-slate-50/90 backdrop-blur-sm">
@@ -110,6 +111,23 @@
         </div>
     </div>
 
+    <div id="lock-screen" class="hidden fixed inset-0 z-[60] bg-slate-50 flex items-center justify-center p-6">
+        <div class="max-w-sm w-full text-center space-y-4">
+            <div class="text-6xl">🔒</div>
+            <h2 class="text-2xl font-extrabold text-slate-800">帳號已暫時鎖定</h2>
+            <p id="lock-msg" class="text-slate-600 text-base leading-relaxed">您已超過一段時間沒有使用，為了保護名單資料，帳號已暫時鎖定。<br>請聯絡管理員解鎖，解鎖後所有資料都會完整保留。</p>
+            <button onclick="window.logout()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold">登出</button>
+        </div>
+    </div>
+
+    <div id="admin-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-2xl rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">👑 帳號管理</h3><button onclick="window.closeModal('admin-modal')" class="theme-muted text-2xl">&times;</button></div>
+            <p class="text-xs theme-muted">超過鎖定天數沒使用的帳號會自動鎖定。已 7 天以上沒使用的標示「即將鎖定」，可以先私訊提醒。</p>
+            <div id="admin-list" class="overflow-y-auto flex-1 space-y-2 no-scrollbar text-sm"></div>
+        </div>
+    </div>
+
     <div id="loading-screen" class="hidden flex-1 items-center justify-center h-screen w-full fixed inset-0 z-50 bg-slate-50/90 backdrop-blur-sm">
         <div class="text-center space-y-4"><div class="animate-spin text-5xl">⏳</div><p class="font-bold theme-title text-lg" id="loading-text">正在與雲端金庫連線...</p></div>
     </div>
@@ -123,6 +141,7 @@
                 <button onclick="window.openModal('bv-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📦 小組長客與 BV 統計</button>
                 <button onclick="window.openModal('tag-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🏷️ 專屬標籤設定</button>
                 <button onclick="window.openModal('product-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🛍️ 產品與 BV 設定</button>
+                <button onclick="window.openAdminModal(); window.toggleDrawer()" id="drawer-admin-btn" class="hidden w-full text-left p-3 rounded-xl bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 hover:bg-indigo-500/20 transition items-center gap-3">👑 帳號管理（管理員）</button>
                 <button onclick="window.openModal('trash-modal'); window.toggleDrawer()" id="drawer-trash-btn" class="w-full text-left p-3 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500/20 transition flex items-center gap-3">📦 名單封存區 (0)</button>
                 <div class="border-t border-theme pt-3 mt-3 space-y-3">
                     <button onclick="window.exportExcel()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📊 匯出 Excel (CSV)</button>
@@ -718,8 +737,59 @@
             else { alert('✅ 密碼修改成功！'); document.getElementById('new-password-input').value = ''; window.closeModal('settings-modal'); }
         }
 
+        // ===== 帳號閘門：回報最後活動時間，或得知帳號已被鎖定 =====
+        let lastGateAt = 0, pendingIdleNotice = null;
+        async function checkAccountGate() {
+            try {
+                const { data, error } = await db.rpc('touch_activity');
+                lastGateAt = Date.now();
+                if (error || !data) return { status: 'unknown' };   // 資料庫尚未建立鎖定功能時，不影響使用
+                return data;
+            } catch (e) { return { status: 'unknown' }; }
+        }
+        function showLockScreen() {
+            ['auth-screen', 'loading-screen'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('lock-screen').classList.remove('hidden');
+        }
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && sessionUser && Date.now() - lastGateAt > 3600000) {
+                const g = await checkAccountGate(); if (g.status === 'locked') showLockScreen();
+            }
+        });
+
+        window.openAdminModal = async function() {
+            const box = document.getElementById('admin-list'); box.innerHTML = '<div class="text-center theme-muted py-6">載入中...</div>';
+            window.openModal('admin-modal');
+            const { data, error } = await db.rpc('admin_list_status');
+            if (error) { box.innerHTML = `<div class="text-center text-rose-500 py-6">讀取失敗：${esc(error.message)}</div>`; return; }
+            box.innerHTML = (data || []).map(u => {
+                const idle = (u.idle_days == null) ? '—' : `${u.idle_days} 天前`;
+                const last = u.last_active_at ? new Date(u.last_active_at).toLocaleDateString('zh-TW') : '尚未使用';
+                const badge = u.locked ? '<span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 text-xs font-bold">已鎖定</span>'
+                    : (u.idle_days >= 7 ? '<span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 text-xs font-bold">即將鎖定</span>' : '<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 text-xs font-bold">正常</span>');
+                const isSelf = (u.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase();
+                const btn = isSelf ? '' : (u.locked
+                    ? `<button data-email="${esc(u.email)}" data-lock="0" onclick="window.adminSetLock(this)" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs">解鎖</button>`
+                    : `<button data-email="${esc(u.email)}" data-lock="1" onclick="window.adminSetLock(this)" class="theme-subcard border-theme border theme-title px-3 py-1.5 rounded-lg font-bold text-xs">鎖定</button>`);
+                return `<div class="flex justify-between items-center p-3 rounded-xl theme-subcard border-theme border"><div class="min-w-0"><div class="font-bold theme-title">${esc(u.nickname || '(未設定暱稱)')} ${badge}</div><div class="text-xs theme-muted truncate">${esc(u.email)}　最後使用：${esc(last)}（${esc(idle)}）</div></div><div class="shrink-0 ml-3">${btn}</div></div>`;
+            }).join('') || '<div class="text-center theme-muted py-6">沒有資料</div>';
+        };
+        window.adminSetLock = async function(btn) {
+            const email = btn.dataset.email, doLock = btn.dataset.lock === '1';
+            if (doLock && !confirm(`確定要鎖定 ${email} 嗎？`)) return;
+            btn.disabled = true;
+            const { error } = await db.rpc('admin_set_lock', { target: email, do_lock: doLock });
+            if (error) { window.showToast('⚠️ 操作失敗：' + error.message); btn.disabled = false; return; }
+            window.showToast(doLock ? '🔒 已鎖定' : '🔓 已解鎖');
+            window.openAdminModal();
+        };
+
         async function checkUserSession(user) {
             sessionUser = user;
+            const gate = await checkAccountGate();
+            if (gate.status === 'locked') { showLockScreen(); return; }
+            if (gate.status === 'ok' && gate.idle_days >= 7) pendingIdleNotice = gate;
             const { data: profile } = await db.from('profiles').select('*').eq('id', user.id).single();
             if (!profile || !profile.nickname) {
                 document.getElementById('loading-screen').classList.add('hidden');
@@ -799,6 +869,11 @@
             window.switchTab('my-list');
             renderAll();
             window.showToast(`🎉 歡迎回來，${nickname}！`);
+            if ((user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase()) { const ab = document.getElementById('drawer-admin-btn'); if (ab) { ab.classList.remove('hidden'); ab.classList.add('flex'); } }
+            if (pendingIdleNotice) {
+                const g = pendingIdleNotice; pendingIdleNotice = null;
+                setTimeout(() => window.showToast(`⏰ 您已 ${g.idle_days} 天沒有使用；連續 ${g.lock_days} 天沒使用，帳號會被鎖定喔！`), 3500);
+            }
         }
 
         // ===== P1：進度順序、破題、防連點 =====
