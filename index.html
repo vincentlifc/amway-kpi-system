@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-21b account-lock -->
+<!-- build: 2026-10-21c funnel -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -210,6 +210,14 @@
                         <div onclick="window.filterDashboardMetric('loyalty')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-emerald-500"><span>📦 長客總組數</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-loyalty-count">0 組</div></div>
                         <div onclick="window.filterDashboardMetric('rec')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-amber-500"><span>🤝 推薦人數(累計)</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-rec-count">0 人</div></div>
                     </div>
+                </div>
+
+                <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-3 w-full">
+                    <div class="flex justify-between items-center cursor-pointer select-none" onclick="window.toggleSection('funnel-body', 'funnel-toggle-icon')">
+                        <div class="flex items-center gap-2"><span class="text-xl">🔻</span><h2 class="text-base font-bold theme-title">轉換漏斗</h2><span id="funnel-range-label" class="text-xs theme-muted font-bold"></span></div>
+                        <button type="button" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="funnel-toggle-icon">▲</span></button>
+                    </div>
+                    <div id="funnel-body" class="space-y-3 pt-3 border-t border-theme"></div>
                 </div>
 
                 <div class="theme-card p-4 rounded-2xl border-theme border shadow space-y-4 w-full">
@@ -1073,6 +1081,47 @@
             document.getElementById('bt-list-items').innerHTML = html;
         };
 
+        // ===== 轉換漏斗：開發 → 破題 → 336 → 推薦 → 長客（依 KPI 區間，每一層都以「人數」計）=====
+        function renderFunnel() {
+            const box = document.getElementById('funnel-body'); if (!box) return;
+            const { sd, ed, label } = getDashRange();
+            document.getElementById('funnel-range-label').textContent = '（' + label + '，跟著上方 KPI 區間）';
+            const mine = state.customers.filter(c => c.owner === sessionUser.email);
+            const actives = mine.filter(c => !c.isTrashed);
+            const inR = d => !!d && d >= sd && d <= ed;
+            const leads = actives.filter(c => inR(c.date)).length;
+            const bt = mine.filter(c => isBreakthrough(c) && inR(c.breakthroughDate)).length;
+            const logs = state.checkinLogs.filter(l => l.user_name === sessionUser.email && l.type === 'opp' && inR(l.date));
+            const oppPeople = new Set(logs.map(l => l.customer_id || ('n:' + (l.partnerName || l.partnername || '')))).size;
+            const recPeople = mine.filter(c => (c.timeline || []).some(t => t && typeof t.text === 'string' && t.text.startsWith('[推薦') && inR(t.date))).length;
+            const loyPeople = actives.filter(c => (c.loyaltyItems || []).some(i => inR(i.date))).length;
+            const loyGroups = actives.reduce((sum, c) => sum + (c.loyaltyItems || []).filter(i => inR(i.date)).reduce((a, i) => a + (parseInt(i.qty) || 0), 0), 0);
+            const stages = [
+                { name: '開發', n: leads, sub: '新增的名單', color: 'bg-indigo-500', tip: '' },
+                { name: '破題', n: bt, sub: '', color: 'bg-sky-500', tip: '開發之後，多花力氣在第一次破題，讓對方知道你在經營安麗事業。' },
+                { name: '講 336/OPP', n: oppPeople, sub: `共 ${logs.length} 次`, color: 'bg-purple-500', tip: '破題之後，主動約時間分享 336/OPP。' },
+                { name: '推薦', n: recPeople, sub: '', color: 'bg-amber-500', tip: '講完 336 之後，加強跟進，邀請對方辦卡或加入。' },
+                { name: '長客', n: loyPeople, sub: `共 ${loyGroups} 組`, color: 'bg-emerald-500', tip: '推薦之後，協助對方體驗產品並建立長客。' }
+            ];
+            const maxN = Math.max(...stages.map(x => x.n), 0);
+            let html = '';
+            let worst = null;
+            stages.forEach((st, i) => {
+                if (i > 0) {
+                    const prev = stages[i - 1];
+                    const rate = prev.n > 0 ? st.n / prev.n : null;
+                    if (rate !== null && rate < 1 && (worst === null || rate < worst.rate)) worst = { rate, stage: st, prev };
+                    html += `<div class="text-xs font-bold theme-muted pl-2">↓ ${esc(st.name)}率 ${rate === null ? '—' : Math.round(rate * 100) + '%'}</div>`;
+                }
+                const w = maxN > 0 ? Math.max(st.n > 0 ? 6 : 0, Math.round(st.n / maxN * 100)) : 0;
+                html += `<div class="flex items-center gap-3"><div class="w-24 shrink-0 text-sm font-bold theme-title">${esc(st.name)}</div><div class="flex-1 theme-subcard border-theme border rounded-lg h-7 overflow-hidden"><div class="${st.color} h-full" style="width:${w}%"></div></div><div class="w-28 shrink-0 text-sm theme-title"><span class="font-black text-lg">${st.n}</span> 人 <span class="text-xs theme-muted">${esc(st.sub)}</span></div></div>`;
+            });
+            if (worst) html += `<div class="text-sm bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded-xl p-3 leading-relaxed">💡 目前最需要加強的是「<b>${esc(worst.stage.name)}率 ${Math.round(worst.rate * 100)}%</b>」（${esc(worst.prev.name)} ${worst.prev.n} 人 → ${esc(worst.stage.name)} ${worst.stage.n} 人）。${esc(worst.stage.tip)}</div>`;
+            else if (maxN === 0) html += '<div class="text-sm theme-muted text-center py-2">這個區間還沒有資料</div>';
+            html += '<div class="text-[11px] theme-muted leading-relaxed">※ 這是同期活動量：各層不一定是同一批人（例如這段期間講 336 的人，可能是更早之前開發的），比率僅供參考；超過 100% 代表有處理到前期累積的名單。</div>';
+            box.innerHTML = html;
+        }
+
         function renderDashboard() {
             const { sd, ed } = getDashRange();
             const actives = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed);
@@ -1086,6 +1135,7 @@
             document.getElementById('kpi-bt-count').textContent = `${btRange} 人`;
             document.getElementById('kpi-bt-total').textContent = `累計 ${btAll.length} 人（日期不詳 ${btUnknown}）`;
             document.getElementById('kpi-leads-count').textContent = leads; document.getElementById('kpi-opp-count').textContent = `${opps} 次`; document.getElementById('kpi-loyalty-count').textContent = `${loyalty} 組`; document.getElementById('kpi-rec-count').textContent = `${recs} 人`;
+            renderFunnel();
         }
         window.filterDashboardMetric = function(t) { const s = document.getElementById('search-input'); if(t==='leads') s.value = getLocalMonthString(); else if(t==='loyalty') s.value = '長客'; else if(t==='rec') s.value = '會員'; renderList(); }
 
