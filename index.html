@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-21d events -->
+<!-- build: 2026-10-21e event-types -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -314,7 +314,7 @@
             <div class="overflow-y-auto flex-1 space-y-4 no-scrollbar text-sm">
                 <div class="grid grid-cols-2 gap-3">
                     <div class="col-span-2"><label class="block font-bold theme-title mb-1.5">活動名稱 <span class="text-red-500">*</span></label><input type="text" id="event-title" maxlength="60" onchange="window.evFieldChanged()" placeholder="例如：10/25 週六說明會" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div>
-                    <div><label class="block font-bold theme-title mb-1.5">活動類型</label><select id="event-type" onchange="window.evFieldChanged()" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div>
+                    <div><div class="flex justify-between items-center mb-1.5"><label class="font-bold theme-title">活動類型</label><button type="button" onclick="window.openEventTypesModal()" class="text-xs text-indigo-600 font-bold underline">✏️ 管理類型</button></div><select id="event-type" onchange="window.evFieldChanged()" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div>
                     <div><label class="block font-bold theme-title mb-1.5">活動日期</label><input type="date" id="event-date" onchange="window.evFieldChanged()" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div>
                     <div class="col-span-2"><label class="block font-bold theme-title mb-1.5">備註</label><input type="text" id="event-note" maxlength="200" onchange="window.evFieldChanged()" placeholder="地點、時間、主題..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div>
                 </div>
@@ -339,6 +339,15 @@
             <div class="flex gap-2"><input type="text" id="event-picker-search" oninput="window.renderEventPicker()" placeholder="搜尋姓名、備註、標籤..." class="flex-1 theme-subcard border-theme border rounded-xl p-2.5 text-sm theme-title"><select id="event-picker-progress" onchange="window.renderEventPicker()" class="theme-subcard border-theme border rounded-xl p-2.5 text-sm theme-title"></select></div>
             <div id="event-picker-list" class="overflow-y-auto flex-1 space-y-2 no-scrollbar text-sm"></div>
             <button type="button" onclick="window.evPickerConfirm()" class="bg-indigo-600 text-white py-3 rounded-xl font-bold">加入選取的人</button>
+        </div>
+    </div>
+
+    <div id="event-types-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-3 max-h-[85vh] flex flex-col">
+            <div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">✏️ 管理活動類型</h3><button onclick="window.closeModal('event-types-modal')" class="theme-muted text-2xl">&times;</button></div>
+            <p class="text-xs theme-muted">修改名稱時，已建立的活動會一併更新；刪除類型不會影響已建立的活動。</p>
+            <div id="event-types-list" class="overflow-y-auto flex-1 space-y-2 no-scrollbar"></div>
+            <div class="flex gap-2 pt-2 border-t border-theme"><input type="text" id="event-type-new" maxlength="12" placeholder="新增類型..." onkeydown="if(event.key==='Enter'){event.preventDefault();window.evTypeAdd();}" class="flex-1 theme-subcard border-theme border rounded-xl p-2.5 text-sm theme-title"><button type="button" onclick="window.evTypeAdd()" class="bg-indigo-600 text-white px-4 rounded-xl font-bold text-sm">新增</button></div>
         </div>
     </div>
 
@@ -958,6 +967,8 @@
             let qCust = db.from('customers').select('*').eq('owner', sessionUser.email);
             const { data: custs } = await qCust;
             state.customers = custs || [];
+            { const et = (sets || []).find(x => x.id === `event_types_${sessionUser.email}`);
+              state.eventTypes = (et && Array.isArray(et.data) && et.data.length) ? et.data : DEFAULT_EVENT_TYPES.slice(); }
             try {
                 const evRes = await db.from('events').select('*').eq('owner', sessionUser.email);
                 state.eventsReady = !evRes.error; state.events = evRes.error ? [] : (evRes.data || []);
@@ -1003,6 +1014,7 @@
             await cloudUpsert('system_settings', { id: `products_${sessionUser.email}`, setting_type: 'user', data: state.products });
             await cloudUpsert('system_settings', { id: `tags_${sessionUser.email}`, setting_type: 'user', data: state.tags });
             await cloudUpsert('system_settings', { id: `tree_${sessionUser.email}`, setting_type: 'user', data: state.treeData });
+            await cloudUpsert('system_settings', { id: `event_types_${sessionUser.email}`, setting_type: 'user', data: getEventTypes() });
         }
 
         window.resetProducts = async function() {
@@ -1134,7 +1146,41 @@
         };
 
         // ===== 活動邀約 =====
-        const EVENT_TYPES = ['說明會', 'OPP 分享', '聚餐', '產品體驗', '其他'];
+        const DEFAULT_EVENT_TYPES = ['出遊', '交流會', '家聚', '醒獅團', '專業班', '大會'];
+        function getEventTypes() { return (state.eventTypes && state.eventTypes.length) ? state.eventTypes : DEFAULT_EVENT_TYPES; }
+        function fillEventTypeSelect(current) {
+            const list = getEventTypes().slice(); if (current && !list.includes(current)) list.push(current);
+            const sel = document.getElementById('event-type');
+            sel.innerHTML = list.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+            sel.value = current || list[0];
+        }
+        window.openEventTypesModal = function() { renderEventTypesList(); window.openModal('event-types-modal'); };
+        function renderEventTypesList() {
+            document.getElementById('event-types-list').innerHTML = getEventTypes().map((t, i) => `<div class="flex gap-2 items-center"><input type="text" value="${esc(t)}" maxlength="12" onchange="window.evTypeRename(${i}, this.value)" class="flex-1 theme-subcard border-theme border rounded-lg p-2 text-sm theme-title"><button type="button" onclick="window.evTypeDelete(${i})" class="text-rose-500 font-bold px-2">✕</button></div>`).join('') || '<div class="text-center theme-muted py-4 text-sm">目前沒有任何類型，請在下方新增</div>';
+        }
+        async function evTypesChanged() {
+            renderEventTypesList();
+            if (editingEvent) fillEventTypeSelect(document.getElementById('event-type').value || editingEvent.type);
+            renderEventsCard(); await saveSystemSettings();
+        }
+        window.evTypeAdd = async function() {
+            const inp = document.getElementById('event-type-new'); const v = inp.value.trim(); if (!v) return;
+            const list = getEventTypes().slice(); if (list.includes(v)) { window.showToast('ℹ️ 已經有這個類型了'); return; }
+            list.push(v); state.eventTypes = list; inp.value = ''; await evTypesChanged();
+        };
+        window.evTypeRename = async function(i, val) {
+            const v = val.trim(); const list = getEventTypes().slice(); const old = list[i];
+            if (!v || v === old) { renderEventTypesList(); return; }
+            if (list.includes(v)) { window.showToast('ℹ️ 已經有這個類型了'); renderEventTypesList(); return; }
+            list[i] = v; state.eventTypes = list;
+            for (const e of myEvents().filter(x => x.type === old)) { e.type = v; await cloudUpsert('events', e); }
+            if (editingEvent && editingEvent.type === old) editingEvent.type = v;
+            if (editingEvent && document.getElementById('event-type').value === old) document.getElementById('event-type').value = v;
+            await evTypesChanged();
+        };
+        window.evTypeDelete = async function(i) {
+            const list = getEventTypes().slice(); list.splice(i, 1); state.eventTypes = list; await evTypesChanged();
+        };
         const INVITE_STATUSES = ['待邀約', '已邀約', '確定出席', '已到場', '婉拒', '沒到'];
         const INVITED_SET = ['已邀約', '確定出席', '已到場', '婉拒', '沒到'];
         const CONFIRMED_SET = ['確定出席', '已到場', '沒到'];
@@ -1167,13 +1213,12 @@
                 const ev = (state.events || []).find(e => e.id === id); if (!ev) return;
                 editingEvent = JSON.parse(JSON.stringify(ev)); editingEventSaved = true;
             } else {
-                editingEvent = { id: 'ev_' + Date.now(), owner: sessionUser.email, title: '', type: '說明會', event_date: getLocalDateString(), note: '', invitees: [], is_closed: false };
+                editingEvent = { id: 'ev_' + Date.now(), owner: sessionUser.email, title: '', type: getEventTypes()[0] || '其他', event_date: getLocalDateString(), note: '', invitees: [], is_closed: false };
                 editingEventSaved = false;
             }
             document.getElementById('event-modal-title').textContent = editingEventSaved ? '📅 活動內容' : '📅 新增活動';
             document.getElementById('event-title').value = editingEvent.title || '';
-            document.getElementById('event-type').innerHTML = EVENT_TYPES.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
-            document.getElementById('event-type').value = EVENT_TYPES.includes(editingEvent.type) ? editingEvent.type : '其他';
+            fillEventTypeSelect(editingEvent.type);
             document.getElementById('event-date').value = editingEvent.event_date || '';
             document.getElementById('event-note').value = editingEvent.note || '';
             document.getElementById('event-manual-name').value = '';
