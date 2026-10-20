@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-21c funnel -->
+<!-- build: 2026-10-21d events -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -195,6 +195,14 @@
                 </div>
 
                 <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-3 w-full">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2"><span class="text-xl">📅</span><h2 class="text-base font-bold theme-title">活動邀約</h2></div>
+                        <button onclick="window.openEventModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-sm shadow">＋ 新增活動</button>
+                    </div>
+                    <div id="events-card-list" class="space-y-2"></div>
+                </div>
+
+                <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-3 w-full">
                     <div class="flex justify-between items-center border-b border-theme pb-3">
                         <div class="flex items-center gap-2"><span class="text-xl">📊</span><h2 class="text-base font-bold theme-title">KPI 指標</h2></div>
                         <div class="flex items-center gap-3">
@@ -297,6 +305,40 @@
                     <button type="button" onclick="window.saveEditedNickname()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow">儲存</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-2xl rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[92vh] flex flex-col">
+            <div class="flex justify-between border-b border-theme pb-3"><h3 id="event-modal-title" class="font-bold theme-title text-lg">📅 新增活動</h3><button onclick="window.closeModal('event-modal')" class="theme-muted text-2xl">&times;</button></div>
+            <div class="overflow-y-auto flex-1 space-y-4 no-scrollbar text-sm">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2"><label class="block font-bold theme-title mb-1.5">活動名稱 <span class="text-red-500">*</span></label><input type="text" id="event-title" maxlength="60" onchange="window.evFieldChanged()" placeholder="例如：10/25 週六說明會" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div>
+                    <div><label class="block font-bold theme-title mb-1.5">活動類型</label><select id="event-type" onchange="window.evFieldChanged()" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div>
+                    <div><label class="block font-bold theme-title mb-1.5">活動日期</label><input type="date" id="event-date" onchange="window.evFieldChanged()" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div>
+                    <div class="col-span-2"><label class="block font-bold theme-title mb-1.5">備註</label><input type="text" id="event-note" maxlength="200" onchange="window.evFieldChanged()" placeholder="地點、時間、主題..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div>
+                </div>
+                <div id="event-summary" class="text-xs font-bold theme-muted theme-subcard border-theme border rounded-xl p-3"></div>
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <span class="font-bold theme-title">受邀名單</span>
+                    <div class="flex gap-2"><button type="button" onclick="window.openEventPicker()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs">＋ 從名單加入</button><button type="button" onclick="window.evAddDueTasks()" class="theme-subcard border-theme border theme-title px-3 py-1.5 rounded-lg font-bold text-xs">帶入今日待跟進</button></div>
+                </div>
+                <div class="flex gap-2"><input type="text" id="event-manual-name" maxlength="30" placeholder="輸入還不在名單裡的人..." class="flex-1 theme-subcard border-theme border rounded-xl p-2.5 theme-title"><button type="button" onclick="window.evAddManual()" class="theme-subcard border-theme border theme-title px-4 rounded-xl font-bold">加入</button></div>
+                <div id="event-invitee-list" class="space-y-2"></div>
+            </div>
+            <div class="pt-3 border-t border-theme flex justify-between items-center">
+                <button type="button" id="event-delete-btn" onclick="window.evDelete()" class="bg-rose-500/10 text-rose-600 border border-rose-500/20 px-4 py-2.5 rounded-xl font-bold">🗑️ 刪除活動</button>
+                <div class="flex gap-2"><button type="button" id="event-close-btn" onclick="window.evToggleClosed()" class="theme-subcard border-theme border theme-title px-4 py-2.5 rounded-xl font-bold">結案</button><button type="button" onclick="window.saveEvent()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow">儲存</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="event-picker-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-3 max-h-[85vh] flex flex-col">
+            <div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">選擇要邀約的名單</h3><button onclick="window.closeModal('event-picker-modal')" class="theme-muted text-2xl">&times;</button></div>
+            <div class="flex gap-2"><input type="text" id="event-picker-search" oninput="window.renderEventPicker()" placeholder="搜尋姓名、備註、標籤..." class="flex-1 theme-subcard border-theme border rounded-xl p-2.5 text-sm theme-title"><select id="event-picker-progress" onchange="window.renderEventPicker()" class="theme-subcard border-theme border rounded-xl p-2.5 text-sm theme-title"></select></div>
+            <div id="event-picker-list" class="overflow-y-auto flex-1 space-y-2 no-scrollbar text-sm"></div>
+            <button type="button" onclick="window.evPickerConfirm()" class="bg-indigo-600 text-white py-3 rounded-xl font-bold">加入選取的人</button>
         </div>
     </div>
 
@@ -916,6 +958,10 @@
             let qCust = db.from('customers').select('*').eq('owner', sessionUser.email);
             const { data: custs } = await qCust;
             state.customers = custs || [];
+            try {
+                const evRes = await db.from('events').select('*').eq('owner', sessionUser.email);
+                state.eventsReady = !evRes.error; state.events = evRes.error ? [] : (evRes.data || []);
+            } catch (e) { state.eventsReady = false; state.events = []; }
             // 新欄位是否已建立（select * 會回傳所有欄位，包含值為 null 的）
             const hasBtCol = state.customers.length === 0 || ('breakthrough' in state.customers[0]);
             if (!hasBtCol) {
@@ -969,7 +1015,7 @@
         }
 
         function renderAll() {
-            updateFilterOptions(); renderFollowupBanner(); renderDashboard(); renderList();
+            updateFilterOptions(); renderFollowupBanner(); renderEventsCard(); renderDashboard(); renderList();
             renderTrashCount(); renderTagsLobby(); renderProductsLobby(); renderBVReport(); updateReferrerDropdowns();
             renderLeaderboard();
         }
@@ -1018,21 +1064,27 @@
                 .sort((a, b) => a.nextFollowUp.localeCompare(b.nextFollowUp));
         }
         function renderFollowupBanner() {
-            const tasks = getDueTasks();
+            const tasks = getDueTasks(); const evTasks = getEventInviteTasks();
             const container = document.getElementById('followup-banner-container'); container.innerHTML = '';
-            if(tasks.length > 0) {
-                const preview = tasks.slice(0, 2).map(c => `${esc(c.name)}${c.followUpNote ? '：' + esc(c.followUpNote) : ''}`).join('　｜　');
-                container.innerHTML = `<div onclick="window.openTodoListModal()" class="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex justify-between items-center text-sm shadow-sm cursor-pointer hover:bg-rose-100 transition"><div class="min-w-0"><div class="text-rose-600 font-bold text-base">🚨 今日待跟進任務 (${tasks.length}人) - 點擊查看</div><div class="text-rose-500 text-xs mt-1 truncate">${preview}${tasks.length > 2 ? ' …' : ''}</div></div><span class="text-rose-600 font-bold text-2xl shrink-0 ml-3">➔</span></div>`;
+            const total = tasks.length + evTasks.length;
+            if(total > 0) {
+                const previewItems = tasks.map(c => `${esc(c.name)}${c.followUpNote ? '：' + esc(c.followUpNote) : ''}`).concat(evTasks.map(t => `${esc(t.name)}（邀約：${esc(t.title)}）`));
+                const preview = previewItems.slice(0, 2).join('　｜　');
+                container.innerHTML = `<div onclick="window.openTodoListModal()" class="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex justify-between items-center text-sm shadow-sm cursor-pointer hover:bg-rose-100 transition"><div class="min-w-0"><div class="text-rose-600 font-bold text-base">🚨 今日待跟進任務 (${total}人) - 點擊查看</div><div class="text-rose-500 text-xs mt-1 truncate">${preview}${previewItems.length > 2 ? ' …' : ''}</div></div><span class="text-rose-600 font-bold text-2xl shrink-0 ml-3">➔</span></div>`;
             }
         }
         window.openTodoListModal = function() {
             const today = getLocalDateString();
-            const tasks = getDueTasks();
-            document.getElementById('todo-list-items').innerHTML = tasks.length ? tasks.map(c => {
+            const tasks = getDueTasks(); const evTasks = getEventInviteTasks();
+            let html = tasks.map(c => {
                 const when = c.nextFollowUp < today ? `<span class="text-rose-500 font-bold">逾期（${esc(c.nextFollowUp)}）</span>` : '<span class="text-amber-600 font-bold">今天</span>';
                 const note = c.followUpNote ? `<span class="theme-title font-bold">${esc(c.followUpNote)}</span>` : '<span class="theme-muted">尚未填寫跟進內容</span>';
                 return `<div class="p-4 rounded-xl theme-subcard border-theme border space-y-2"><div class="flex justify-between items-center"><div class="flex items-center gap-3"><input type="checkbox" onchange="window.completeFollowUp('${sid(c.id)}')" class="rounded text-rose-600 w-5 h-5 cursor-pointer"><span class="font-bold theme-title text-base sm:text-lg">${esc(c.name)}</span></div><div class="flex gap-4 text-sm font-bold"><button onclick="window.editCustomer('${sid(c.id)}'); window.closeModal('todo-modal')" class="text-indigo-600">📝 編輯</button><button onclick="window.openTimeline('${sid(c.id)}'); window.closeModal('todo-modal')" class="text-purple-600">📜 軌跡</button></div></div><div class="text-sm pl-8">${when}　${note}</div></div>`;
-            }).join('') : '<div class="text-center theme-muted py-8">🎉 今天沒有待跟進的任務</div>';
+            }).join('');
+            if (evTasks.length) {
+                html += `<div class="text-xs font-bold theme-muted pt-2">📅 活動待邀約（勾選代表已邀約）</div>` + evTasks.map(t => `<div class="p-4 rounded-xl theme-subcard border-theme border space-y-1"><div class="flex items-center gap-3"><input type="checkbox" onchange="window.evMarkInvited('${sid(t.evId)}','${sid(t.invId)}')" class="rounded text-indigo-600 w-5 h-5 cursor-pointer"><span class="font-bold theme-title text-base sm:text-lg">${esc(t.name)}</span></div><div class="text-sm pl-8 theme-muted">活動：<span class="theme-title font-bold">${esc(t.title)}</span>（${esc(t.date)}，${t.days === 0 ? '今天' : t.days + ' 天後'}）</div></div>`).join('');
+            }
+            document.getElementById('todo-list-items').innerHTML = html || '<div class="text-center theme-muted py-8">🎉 今天沒有待跟進的任務</div>';
             window.openModal('todo-modal');
         }
         window.completeFollowUp = async function(id) {
@@ -1079,6 +1131,178 @@
             if (!rows.length) html = '<div class="text-center theme-muted py-6">這個區間還沒有破題紀錄</div>';
             if (btView === 'all' && unknown.length) html += `<div class="text-xs font-bold theme-muted pt-3">日期不詳（可點編輯補上日期）</div>` + unknown.map(item).join('');
             document.getElementById('bt-list-items').innerHTML = html;
+        };
+
+        // ===== 活動邀約 =====
+        const EVENT_TYPES = ['說明會', 'OPP 分享', '聚餐', '產品體驗', '其他'];
+        const INVITE_STATUSES = ['待邀約', '已邀約', '確定出席', '已到場', '婉拒', '沒到'];
+        const INVITED_SET = ['已邀約', '確定出席', '已到場', '婉拒', '沒到'];
+        const CONFIRMED_SET = ['確定出席', '已到場', '沒到'];
+        let editingEvent = null, editingEventSaved = false; const pickerSelected = new Set();
+        function evCounts(ev) {
+            const l = ev.invitees || [];
+            return { total: l.length, invited: l.filter(x => INVITED_SET.includes(x.status)).length, confirmed: l.filter(x => CONFIRMED_SET.includes(x.status)).length, attended: l.filter(x => x.status === '已到場').length };
+        }
+        function daysUntil(dateStr) { if (!dateStr) return null; return Math.round((new Date(dateStr + 'T00:00:00') - new Date(getLocalDateString() + 'T00:00:00')) / 86400000); }
+        function myEvents() { return (state.events || []).filter(e => e.owner === sessionUser.email); }
+
+        function renderEventsCard() {
+            const box = document.getElementById('events-card-list'); if (!box) return;
+            const evs = myEvents();
+            const open = evs.filter(e => !e.is_closed).sort((a, b) => (a.event_date || '9999').localeCompare(b.event_date || '9999'));
+            const closed = evs.filter(e => e.is_closed).sort((a, b) => (b.event_date || '').localeCompare(a.event_date || ''));
+            const row = e => {
+                const c = evCounts(e); const d = daysUntil(e.event_date);
+                const when = d === null ? '' : d === 0 ? '<span class="text-rose-500 font-bold">今天</span>' : d > 0 ? `${d} 天後` : `已過 ${-d} 天`;
+                return `<div onclick="window.openEventModal('${sid(e.id)}')" class="theme-subcard border-theme border rounded-xl p-3 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center gap-2"><div class="font-bold theme-title truncate">${esc(e.title)} <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 font-bold">${esc(e.type || '其他')}</span></div><div class="text-xs theme-muted shrink-0">${esc(e.event_date || '')}　${when}</div></div><div class="text-xs theme-muted mt-1">受邀 ${c.total} ｜ 已邀約 ${c.invited} ｜ 確定出席 ${c.confirmed} ｜ 已到場 ${c.attended}</div></div>`;
+            };
+            let html = open.length ? open.map(row).join('') : '<div class="text-sm theme-muted text-center py-3">還沒有進行中的活動，按右上角「＋ 新增活動」開始</div>';
+            if (closed.length) html += `<details class="pt-2"><summary class="text-xs font-bold theme-muted cursor-pointer">已結案 (${closed.length})</summary><div class="space-y-2 pt-2">${closed.map(row).join('')}</div></details>`;
+            box.innerHTML = html;
+        }
+
+        window.openEventModal = function(id) {
+            if (state.eventsReady === false) return window.showToast('⚠️ 資料庫尚未建立「活動」資料表，請先執行活動功能的 SQL');
+            if (id) {
+                const ev = (state.events || []).find(e => e.id === id); if (!ev) return;
+                editingEvent = JSON.parse(JSON.stringify(ev)); editingEventSaved = true;
+            } else {
+                editingEvent = { id: 'ev_' + Date.now(), owner: sessionUser.email, title: '', type: '說明會', event_date: getLocalDateString(), note: '', invitees: [], is_closed: false };
+                editingEventSaved = false;
+            }
+            document.getElementById('event-modal-title').textContent = editingEventSaved ? '📅 活動內容' : '📅 新增活動';
+            document.getElementById('event-title').value = editingEvent.title || '';
+            document.getElementById('event-type').innerHTML = EVENT_TYPES.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+            document.getElementById('event-type').value = EVENT_TYPES.includes(editingEvent.type) ? editingEvent.type : '其他';
+            document.getElementById('event-date').value = editingEvent.event_date || '';
+            document.getElementById('event-note').value = editingEvent.note || '';
+            document.getElementById('event-manual-name').value = '';
+            document.getElementById('event-delete-btn').classList.toggle('hidden', !editingEventSaved);
+            document.getElementById('event-close-btn').classList.toggle('hidden', !editingEventSaved);
+            document.getElementById('event-close-btn').textContent = editingEvent.is_closed ? '重新開啟' : '結案';
+            renderEventInvitees();
+            window.openModal('event-modal');
+        };
+        function syncEventFields() {
+            if (!editingEvent) return;
+            editingEvent.title = document.getElementById('event-title').value.trim();
+            editingEvent.type = document.getElementById('event-type').value;
+            editingEvent.event_date = document.getElementById('event-date').value;
+            editingEvent.note = document.getElementById('event-note').value.trim();
+        }
+        async function persistEditingEvent() {
+            const copy = JSON.parse(JSON.stringify(editingEvent));
+            if (!state.events) state.events = [];
+            const i = state.events.findIndex(e => e.id === copy.id);
+            if (i > -1) state.events[i] = copy; else state.events.unshift(copy);
+            await cloudUpsert('events', copy);
+            renderEventsCard(); renderFollowupBanner();
+        }
+        async function evAutoSave() { if (editingEventSaved) await persistEditingEvent(); }
+        window.evFieldChanged = async function() { syncEventFields(); if (editingEventSaved && editingEvent.title) await persistEditingEvent(); };
+
+        window.saveEvent = async function() {
+            syncEventFields();
+            if (!editingEvent.title) return alert('請輸入活動名稱！');
+            await persistEditingEvent(); editingEventSaved = true;
+            window.closeModal('event-modal'); window.showToast('💾 活動已儲存');
+        };
+        window.evToggleClosed = async function() {
+            syncEventFields(); editingEvent.is_closed = !editingEvent.is_closed;
+            await persistEditingEvent(); window.closeModal('event-modal');
+            window.showToast(editingEvent.is_closed ? '✅ 活動已結案' : '↩️ 活動已重新開啟');
+        };
+        window.evDelete = function() {
+            if (!editingEvent) return; const id = editingEvent.id;
+            window.openConfirmModal('確定要刪除這個活動嗎？（受邀名單與狀態會一併刪除；各人名單與軌跡不受影響）', async () => {
+                state.events = (state.events || []).filter(e => e.id !== id);
+                await cloudDelete('events', id);
+                renderEventsCard(); renderFollowupBanner(); window.closeModal('event-modal'); window.showToast('🗑️ 活動已刪除');
+            });
+        };
+
+        function inviteeCustomer(inv) { return inv.customerId ? state.customers.find(c => c.id === inv.customerId) : null; }
+        function renderEventInvitees() {
+            const list = editingEvent.invitees || [];
+            const c = evCounts(editingEvent);
+            document.getElementById('event-summary').textContent = `受邀 ${c.total} 人 ｜ 已邀約 ${c.invited}（${c.total ? Math.round(c.invited / c.total * 100) : 0}%） ｜ 確定出席 ${c.confirmed} ｜ 已到場 ${c.attended}（占已邀約 ${c.invited ? Math.round(c.attended / c.invited * 100) : 0}%）`;
+            document.getElementById('event-invitee-list').innerHTML = list.length ? list.map((inv, i) => {
+                const cust = inviteeCustomer(inv); const name = cust ? cust.name : inv.name;
+                const opts = INVITE_STATUSES.map(st => `<option value="${esc(st)}" ${st === inv.status ? 'selected' : ''}>${esc(st)}</option>`).join('');
+                return `<div class="theme-subcard border-theme border rounded-xl p-3 space-y-2"><div class="flex justify-between items-center gap-2"><div class="font-bold theme-title truncate">${esc(name)} <span class="text-[11px] font-bold ${cust ? 'text-indigo-500' : 'text-amber-600'}">${cust ? '名單' : '手動'}</span></div><div class="flex items-center gap-2 shrink-0"><select onchange="window.evSetStatus(${i}, this.value)" class="theme-card border-theme border rounded-lg p-1.5 text-xs theme-title">${opts}</select><button type="button" onclick="window.evRemoveInvitee(${i})" class="text-rose-500 font-bold px-2">✕</button></div></div><input type="text" value="${esc(inv.note || '')}" maxlength="120" onchange="window.evSetNote(${i}, this.value)" placeholder="結果備註（例如：週六有事、想先看看）" class="w-full theme-card border-theme border rounded-lg p-2 text-xs theme-title"></div>`;
+            }).join('') : '<div class="text-center theme-muted py-4">還沒有受邀的人，請從名單加入或手動輸入姓名</div>';
+        }
+        async function applyInviteeStatus(ev, inv, val, writeTimeline) {
+            inv.status = val; inv.updatedAt = new Date().toISOString();
+            const cust = inviteeCustomer(inv);
+            if (writeTimeline && cust && val !== '待邀約') {
+                if (!cust.timeline) cust.timeline = [];
+                cust.timeline.unshift({ date: getLocalDateString(), text: `[活動] ${ev.title}：${val}${inv.note ? '（' + inv.note + '）' : ''}` });
+                await cloudUpsert('customers', cust);
+            }
+        }
+        window.evSetStatus = async function(i, val) {
+            const inv = editingEvent.invitees[i]; if (!inv || inv.status === val) return;
+            syncEventFields();
+            await applyInviteeStatus(editingEvent, inv, val, editingEventSaved && !!editingEvent.title);
+            renderEventInvitees(); await evAutoSave(); renderList();
+        };
+        window.evSetNote = async function(i, val) { const inv = editingEvent.invitees[i]; if (!inv) return; inv.note = val.trim(); await evAutoSave(); };
+        window.evRemoveInvitee = async function(i) { editingEvent.invitees.splice(i, 1); renderEventInvitees(); await evAutoSave(); };
+        function newInvitee(cust, name) { return { id: 'iv_' + Date.now() + Math.random().toString(36).slice(2, 6), customerId: cust ? cust.id : null, name: cust ? cust.name : name, status: '待邀約', note: '', updatedAt: new Date().toISOString() }; }
+        window.evAddManual = async function() {
+            const inp = document.getElementById('event-manual-name'); const name = inp.value.trim(); if (!name) return;
+            const exist = state.customers.find(c => c.owner === sessionUser.email && !c.isTrashed && c.name === name);
+            if ((editingEvent.invitees || []).some(x => (exist && x.customerId === exist.id) || (!x.customerId && x.name === name))) { window.showToast('ℹ️ 這個人已經在受邀名單裡'); return; }
+            editingEvent.invitees.push(newInvitee(exist || null, name)); inp.value = '';
+            renderEventInvitees(); await evAutoSave();
+        };
+        window.evAddDueTasks = async function() {
+            const have = new Set(editingEvent.invitees.map(x => x.customerId).filter(Boolean));
+            const add = getDueTasks().filter(c => !have.has(c.id));
+            if (!add.length) return window.showToast('ℹ️ 今天沒有可帶入的待跟進名單');
+            add.forEach(c => editingEvent.invitees.push(newInvitee(c)));
+            renderEventInvitees(); await evAutoSave(); window.showToast(`✅ 已帶入 ${add.length} 位`);
+        };
+        window.openEventPicker = function() {
+            pickerSelected.clear(); document.getElementById('event-picker-search').value = '';
+            const sel = document.getElementById('event-picker-progress');
+            sel.innerHTML = '<option value="all">所有進度</option>' + PROGRESS_ORDER.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+            window.renderEventPicker(); window.openModal('event-picker-modal');
+        };
+        window.renderEventPicker = function() {
+            const kw = document.getElementById('event-picker-search').value.toLowerCase(); const pf = document.getElementById('event-picker-progress').value;
+            const have = new Set(editingEvent.invitees.map(x => x.customerId).filter(Boolean));
+            const rows = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed && !have.has(c.id)
+                && (pf === 'all' || c.progress === pf)
+                && (!kw || (c.name || '').toLowerCase().includes(kw) || (c.notes || '').toLowerCase().includes(kw) || (c.tags || []).some(t => t.toLowerCase().includes(kw))))
+                .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh-Hant'));
+            document.getElementById('event-picker-list').innerHTML = rows.length ? rows.map(c => `<label class="flex items-center gap-3 p-2.5 rounded-xl theme-subcard border-theme border cursor-pointer"><input type="checkbox" class="w-5 h-5" ${pickerSelected.has(c.id) ? 'checked' : ''} data-id="${esc(c.id)}" onchange="window.evPickToggle(this)"><span class="font-bold theme-title">${esc(c.name)}</span><span class="text-xs theme-muted">${esc(c.progress || '')}${c.level && c.level !== '未分類' ? ' ｜ ' + esc(c.level) : ''}</span></label>`).join('') : '<div class="text-center theme-muted py-6">沒有符合的名單</div>';
+        };
+        window.evPickToggle = function(el) { if (el.checked) pickerSelected.add(el.dataset.id); else pickerSelected.delete(el.dataset.id); };
+        window.evPickerConfirm = async function() {
+            const picks = [...pickerSelected].map(id => state.customers.find(c => c.id === id)).filter(Boolean);
+            if (!picks.length) return window.showToast('ℹ️ 請先勾選要加入的人');
+            picks.forEach(c => editingEvent.invitees.push(newInvitee(c)));
+            window.closeModal('event-picker-modal'); renderEventInvitees(); await evAutoSave(); window.showToast(`✅ 已加入 ${picks.length} 位`);
+        };
+
+        // 活動日前 7 天內仍是「待邀約」的人，會列入今日待跟進
+        function getEventInviteTasks() {
+            const out = [];
+            myEvents().filter(e => !e.is_closed).forEach(e => {
+                const d = daysUntil(e.event_date); if (d === null || d < 0 || d > 7) return;
+                (e.invitees || []).filter(x => x.status === '待邀約').forEach(x => {
+                    const cust = inviteeCustomer(x); out.push({ evId: e.id, invId: x.id, name: cust ? cust.name : x.name, title: e.title, date: e.event_date, days: d });
+                });
+            });
+            return out.sort((a, b) => a.days - b.days);
+        }
+        window.evMarkInvited = async function(evId, invId) {
+            const ev = (state.events || []).find(e => e.id === evId); if (!ev) return;
+            const inv = (ev.invitees || []).find(x => x.id === invId); if (!inv) return;
+            await applyInviteeStatus(ev, inv, '已邀約', true);
+            await cloudUpsert('events', ev); renderAll(); window.openTodoListModal(); window.showToast(`📨 已標記「${inv.name}」為已邀約`);
         };
 
         // ===== 轉換漏斗：開發 → 破題 → 336 → 推薦 → 長客（依 KPI 區間，每一層都以「人數」計）=====
@@ -2107,7 +2331,7 @@
         }
 
         // 防連點：送出類函式執行中時，忽略重複觸發
-        ;['handleFormSubmit','submitOppCheckin','submitRecCheckin','submitLoyaltyCheckin','addMyDirectLoyalty','addManualSubLoyalty'].forEach(name => {
+        ;['saveEvent','handleFormSubmit','submitOppCheckin','submitRecCheckin','submitLoyaltyCheckin','addMyDirectLoyalty','addManualSubLoyalty'].forEach(name => {
             const orig = window[name]; if (typeof orig !== 'function') return;
             window[name] = function(...args) {
                 if (args[0] && typeof args[0].preventDefault === 'function') args[0].preventDefault();
