@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-22a pv-unify -->
+<!-- build: 2026-10-22b loyalty-tree -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -469,11 +469,11 @@
                 </div>
 
                 <div class="theme-subcard border-theme border rounded-2xl p-4 space-y-3">
-                    <span class="font-bold theme-title text-sm block">➕ 補登小組夥伴長客</span>
+                    <span class="font-bold theme-title text-sm block">➕ 補登夥伴小組的顧客長客</span><p class="text-xs theme-muted">夥伴的顧客不用進名單，在這裡補登；選好「歸屬小組」，下方組織樹就會自動加總。我自己名單裡的人，請從名單裡新增長客。</p>
                     <div class="flex flex-wrap gap-3 items-center">
                         <input type="date" id="sub-partner-date" class="theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
-                        <input type="text" id="sub-partner-name" placeholder="夥伴名字 (例如：張小華)" class="flex-1 min-w-[120px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
-                        <select id="sub-partner-referrer" class="w-32 theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"><option value="自己">誰的夥伴: 自己</option></select>
+                        <input type="text" id="sub-partner-name" placeholder="顧客姓名" class="flex-1 min-w-[110px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
+                        <select id="sub-partner-group" class="w-36 theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"><option value="root">歸屬小組…</option></select>
                         <select id="sub-prod-select" class="flex-1 min-w-[140px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"></select>
                         <input type="number" id="sub-prod-qty" min="1" value="1" class="w-16 theme-card border-theme border rounded-xl p-2.5 text-sm theme-title font-bold text-center">
                         <button onclick="window.addManualSubLoyalty()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow">補登</button>
@@ -481,7 +481,7 @@
                 </div>
 
                 <div>
-                    <h4 class="font-bold theme-title mb-4 text-lg">📊 小組夥伴長客明細</h4>
+                    <h4 class="font-bold theme-title mb-1 text-lg">📊 小組長客組織樹</h4><p class="text-xs theme-muted mb-3">＋展開下一層；「明細」看這個人底下的顧客與品項，可在明細裡改歸屬小組。</p>
                     <div id="bv-report-container" class="space-y-4"></div>
                 </div>
             </div>
@@ -1870,18 +1870,19 @@
 
         window.addManualSubLoyalty = async function() {
             const partnerName = document.getElementById('sub-partner-name').value.trim();
-            const referrer = document.getElementById('sub-partner-referrer').value;
+            const groupId = document.getElementById('sub-partner-group').value || 'root';
             const productId = document.getElementById('sub-prod-select').value;
             const qty = parseInt(document.getElementById('sub-prod-qty').value)||1;
             const date = document.getElementById('sub-partner-date').value || getLocalDateString();
 
-            if(partnerName && productId) {
-                const newItem = { id: 'sub_'+Date.now(), owner: sessionUser.email, partnerName, referrer, productId, qty, date, endDate: '' };
-                state.subGroupLoyalties.push(newItem);
-                await cloudUpsert('sub_group_loyalties', newItem);
-                document.getElementById('sub-partner-name').value = '';
-                renderBVReport(); window.showToast(`🎉 已補登小組長客！`);
-            }
+            if(!partnerName) { window.showToast('請輸入顧客姓名'); return; }
+            if(!productId) { window.showToast('請選擇長客品項'); return; }
+            const gnode = findTreeNode(groupId);
+            const newItem = { id: 'sub_'+Date.now(), owner: sessionUser.email, partnerName, referrer: gnode ? gnode.name : '', groupId, productId, qty, date, endDate: '' };
+            state.subGroupLoyalties.push(newItem);
+            await cloudUpsert('sub_group_loyalties', newItem);
+            document.getElementById('sub-partner-name').value = '';
+            renderBVReport(); window.showToast(`🎉 已補登：${partnerName}（${gnode ? gnode.name : '未歸屬'}）`);
         }
 
         window.terminateDirectLoyaltyItem = async function(custId, loyId) {
@@ -1954,21 +1955,27 @@
             updateReferrerDropdowns();
         }
 
-        function updateReferrerDropdowns() {
-            const refSel = document.getElementById('sub-partner-referrer');
-            if(!refSel) return;
-            let html = `<option value="自己">誰的夥伴: 自己</option>`;
+        function findTreeNode(id) {
+            let found = null;
+            const walk = n => { if(found) return; if(n.id === id) { found = n; return; } (n.children||[]).forEach(walk); };
+            if(state.treeData && state.treeData.id) walk(state.treeData);
+            return found;
+        }
 
-            const collectNames = (node) => {
-                if(node.name && node.name !== 'root') {
-                    html += `<option value="${esc(node.name)}">誰的夥伴: ${esc(node.name)}</option>`;
-                }
-                if(node.children) {
-                    node.children.forEach(c => collectNames(c));
-                }
+        function updateReferrerDropdowns() {
+            const sel = document.getElementById('sub-partner-group');
+            if(!sel) return;
+            const prev = sel.value;
+            let html = ''; const ids = [];
+            const walk = (n, d) => {
+                ids.push(n.id);
+                const label = d === 0 ? `${n.name}（我）` : `${'　'.repeat(d-1)}└ ${n.name}`;
+                html += `<option value="${esc(n.id)}">${esc(label)}</option>`;
+                (n.children||[]).forEach(c => walk(c, d+1));
             };
-            if(state.treeData) collectNames(state.treeData);
-            refSel.innerHTML = html;
+            if(state.treeData && state.treeData.id) walk(state.treeData, 0); else html = '<option value="root">我</option>';
+            sel.innerHTML = html;
+            sel.value = ids.includes(prev) ? prev : (ids[0] || 'root');
         }
 
         function buildPillTreeHTML(node, isRoot = false) {
@@ -1979,7 +1986,7 @@
             return `<div class="flex flex-col items-center relative"><div class="px-6 py-3 rounded-full ${pillClass} min-w-[140px] text-center"><div class="text-base font-black whitespace-nowrap">${esc(node.name)}</div><div class="flex justify-center gap-3 mt-2">
                 <button onclick="window.openAddTreeNodeModal('${nid}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold no-print">＋</button>
                 ${hasChildren ? `<button onclick="window.toggleTreeNode('${nid}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold no-print">${coll?'＋':'－'}</button>`:''}
-                ${!isRoot ? `<button onclick="window.openConfirmModal('確定要從五心組織圖中移除此成員嗎？', ()=>window.deleteTreeNode('${nid}'))" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold no-print">×</button>`:''}
+                ${!isRoot ? `<button onclick="window.openConfirmModal('確定要從五心組織圖中移除此成員嗎？（其底下成員會一併移除，他們的長客會移到「未歸屬」）', ()=>window.deleteTreeNode('${nid}'))" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold no-print">×</button>`:''}
             </div></div>${childHTML}</div>`;
         }
         window.toggleTreeNode = function(id) { const rec=(n)=>{if(n.id===id){n.collapsed=!n.collapsed;return true;}if(n.children){for(let c of n.children)if(rec(c))return true;}return false;}; rec(state.treeData); saveSystemSettings(); renderTree(); }
@@ -2071,7 +2078,8 @@
             if(myLoyInput) myLoyInput.value = linkedDefaultDate;
             if(subLoyInput) subLoyInput.value = linkedDefaultDate;
 
-            const groups = {}; let totalBV = 0; let totalQty = 0;
+            let totalPV = 0; let totalQty = 0;
+            updateReferrerDropdowns();
 
             const isEligible = (startDate, endDate, targetMonth) => {
                 const s = String(startDate || '').substring(0,7);
@@ -2080,75 +2088,146 @@
                 return true;
             };
 
+            // 組織圖節點索引
+            const hasTree = !!(state.treeData && state.treeData.id);
+            const rootId = hasTree ? state.treeData.id : 'root';
+            const nodeMap = {}, nameMap = {};
+            const indexTree = n => { nodeMap[n.id] = n; if(!(n.name in nameMap)) nameMap[n.name] = n.id; (n.children||[]).forEach(indexTree); };
+            if(hasTree) indexTree(state.treeData);
+            // 補登紀錄：有 groupId 且節點存在 → 該節點；沒有 groupId 的舊資料 → 以舊「誰的夥伴」文字對應節點，「自己」→ 我；其餘 → 未歸屬
+            const resolveSub = (gid, ref) => {
+                if(gid) return nodeMap[gid] ? gid : null;
+                if(!ref || ref === '自己') return rootId;
+                return nameMap[ref] || null;
+            };
             const myName = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
-            groups[myName] = { items: [], sumBV: 0 };
+            const persons = []; const subIndex = {};
+            const pushItem = (person, item) => { person.items.push(item); person.sumPV += item.rowPV; person.qty += parseInt(item.qty)||0; totalPV += item.rowPV; totalQty += parseInt(item.qty)||0; };
 
+            const myPerson = { kind:'my', name: myName + '（我的直轄）', gid: rootId, items: [], sumPV: 0, qty: 0 };
             (state.myDirectLoyalties||[]).forEach(item => {
                 if (isEligible(item.date, item.endDate, selectedMonth)) {
                     const p = state.products.find(x=>x.id===item.productId);
-                    if(p) {
-                        const rowBV = p.bv * item.qty / PV_RATIO;
-                        groups[myName].items.push({ type:'myDirect', id: item.id, pName: esc(p.name) + ` <span class="text-xs text-sky-600 font-bold ml-1">(啟動: ${esc(item.date)})</span>`, qty: item.qty, rowBV, endDate: item.endDate });
-                        groups[myName].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0;
-                    }
+                    if(p) pushItem(myPerson, { type:'myDirect', id: item.id, pName: esc(p.name) + ` <span class="text-xs text-sky-600 font-bold ml-1">(啟動: ${esc(item.date)})</span>`, qty: item.qty, rowPV: p.bv * item.qty / PV_RATIO, endDate: item.endDate });
                 }
             });
+            if(myPerson.items.length) persons.push(myPerson);
 
             state.customers.filter(c=>!c.isTrashed && c.owner === sessionUser.email && c.loyaltyItems && c.loyaltyItems.length>0).forEach(c => {
+                const person = { kind:'cust', custId: c.id, name: c.name, gid: (c.loyaltyGroupId && nodeMap[c.loyaltyGroupId]) ? c.loyaltyGroupId : rootId, items: [], sumPV: 0, qty: 0 };
                 c.loyaltyItems.forEach(item => {
                     const itemDate = item.date || c.date;
                     if (isEligible(itemDate, item.endDate, selectedMonth)) {
-                        if(!groups[c.name]) groups[c.name] = { items: [], sumBV: 0 };
                         const p = state.products.find(x=>x.id===item.productId);
-                        if(p) {
-                            const rowBV = p.bv * item.qty / PV_RATIO;
-                            groups[c.name].items.push({ type:'customer', custId: c.id, loyId: item.id, pName: esc(p.name) + ` <span class="text-xs text-indigo-500 font-bold ml-1">(啟動: ${esc(itemDate)})</span>`, qty: item.qty, rowBV, endDate: item.endDate });
-                            groups[c.name].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0;
-                        }
+                        if(p) pushItem(person, { type:'customer', custId: c.id, loyId: item.id, pName: esc(p.name) + ` <span class="text-xs text-indigo-500 font-bold ml-1">(啟動: ${esc(itemDate)})</span>`, qty: item.qty, rowPV: p.bv * item.qty / PV_RATIO, endDate: item.endDate });
                     }
                 });
+                if(person.items.length) persons.push(person);
             });
 
             (state.subGroupLoyalties||[]).forEach(item => {
                 const itemDate = item.date || selectedMonth + '-01';
                 if (isEligible(itemDate, item.endDate, selectedMonth)) {
-                    const groupKey = item.partnerName;
-                    if(!groups[groupKey]) groups[groupKey] = { items: [], sumBV: 0 };
                     const p = state.products.find(x=>x.id===item.productId);
-                    if(p) {
-                        const rowBV = p.bv * item.qty / PV_RATIO;
-                        const referrerText = item.referrer ? ` (推薦人: ${item.referrer})` : '';
-                        groups[groupKey].items.push({ type:'sub', subId: item.id, pName: esc(p.name) + ` <span class="text-xs text-amber-600 font-bold ml-1">${esc(referrerText)} 啟動: ${esc(itemDate)}</span>`, qty: item.qty, rowBV, endDate: item.endDate });
-                        groups[groupKey].sumBV += rowBV; totalBV += rowBV; totalQty += parseInt(item.qty)||0;
-                    }
+                    if(!p) return;
+                    const gid = resolveSub(item.groupId, item.referrer);
+                    const key = (gid || '__none') + '|' + item.partnerName;
+                    if(!subIndex[key]) { subIndex[key] = { kind:'sub', name: item.partnerName, gid, subIds: [], items: [], sumPV: 0, qty: 0 }; persons.push(subIndex[key]); }
+                    const person = subIndex[key]; if(person.subIds.indexOf(item.id) < 0) person.subIds.push(item.id);
+                    pushItem(person, { type:'sub', subId: item.id, pName: esc(p.name) + ` <span class="text-xs text-amber-600 font-bold ml-1">啟動: ${esc(itemDate)}</span>`, qty: item.qty, rowPV: p.bv * item.qty / PV_RATIO, endDate: item.endDate });
                 }
             });
 
-            Object.keys(groups).forEach(k => { if(groups[k].items.length === 0 && k !== myName) delete groups[k]; });
-
-            document.getElementById('total-bv-display').textContent = fmtPV(totalBV);
+            document.getElementById('total-bv-display').textContent = fmtPV(totalPV);
             document.getElementById('total-loyalty-qty-display').textContent = `${totalQty} 組`;
 
-            if(Object.keys(groups).length === 0 || (Object.keys(groups).length === 1 && groups[myName].items.length === 0)) {
-                container.innerHTML = '<div class="text-center theme-muted p-6">該月份無長客紀錄</div>'; return;
-            }
+            if(persons.length === 0) { container.innerHTML = '<div class="text-center theme-muted p-6">該月份無長客紀錄</div>'; return; }
 
-            container.innerHTML = Object.keys(groups).map(name => {
-                const g = groups[name];
-                if(g.items.length === 0) return '';
-                return `<div class="theme-subcard border-theme border rounded-2xl p-5 shadow-sm"><div class="flex justify-between items-center border-b border-theme pb-3 mb-3"><span class="font-black text-lg theme-title">${esc(name)}</span><span class="text-indigo-600 font-extrabold text-base">小計: ${fmtPV(g.sumBV)} PV</span></div>${g.items.map(i => {
-                    let actionBtns = '';
+            // 組織樹彙總
+            const byGroup = {};
+            persons.forEach(pe => { const g = pe.gid || '__none'; (byGroup[g] = byGroup[g] || []).push(pe); });
+            const agg = n => {
+                const own = byGroup[n.id] || []; let q = 0, pv = 0;
+                own.forEach(pe => { q += pe.qty; pv += pe.sumPV; });
+                const kids = (n.children||[]).map(agg); let tq = q, tpv = pv;
+                kids.forEach(k => { tq += k.tq; tpv += k.tpv; });
+                return { node: n, own, q, pv, tq, tpv, kids };
+            };
+            if(!window._ltInit) { window._ltOpen = new Set([rootId]); window._ltDetail = new Set(); window._ltInit = true; }
+            window._ltReg = {}; let regN = 0;
+
+            const nodeOptions = (selected) => {
+                let h = ''; const walk = (n, d) => {
+                    const label = d === 0 ? `${n.name}（我）` : `${'　'.repeat(d-1)}└ ${n.name}`;
+                    h += `<option value="${esc(n.id)}" ${n.id === selected ? 'selected' : ''}>${esc(label)}</option>`;
+                    (n.children||[]).forEach(c => walk(c, d+1));
+                }; if(hasTree) walk(state.treeData, 0); return h;
+            };
+
+            const personHTML = (pe) => {
+                let sel = '';
+                if(pe.kind !== 'my') {
+                    const k = 'k' + (regN++); window._ltReg[k] = pe;
+                    sel = `<select onchange="window.ltSetGroup('${k}', this.value)" class="theme-card border-theme border rounded-lg px-2 py-1 text-xs theme-title" title="歸屬小組">${pe.gid ? '' : '<option value="" selected disabled>選擇歸屬小組…</option>'}${nodeOptions(pe.gid)}</select>`;
+                }
+                const rows = pe.items.map(i => {
                     const endLabel = i.endDate ? `已終止(${esc(i.endDate)})` : '終止';
-                    if(i.type === 'customer') {
-                        actionBtns = `<button onclick="window.terminateDirectLoyaltyItem('${sid(i.custId)}', '${sid(i.loyId)}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${endLabel}</button><button onclick="window.deleteDirectLoyaltyItem('${sid(i.custId)}', '${sid(i.loyId)}')" class="text-rose-500 font-bold text-lg ml-2">🗑️</button>`;
-                    } else if(i.type === 'myDirect') {
-                        actionBtns = `<button onclick="window.terminateMyLoyalty('${sid(i.id)}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${endLabel}</button><button onclick="window.deleteMyLoyalty('${sid(i.id)}')" class="text-rose-500 font-bold text-lg ml-2">🗑️</button>`;
-                    } else if(i.type === 'sub') {
-                        actionBtns = `<button onclick="window.terminateSubLoyalty('${sid(i.subId)}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${endLabel}</button><button onclick="window.deleteSubLoyalty('${sid(i.subId)}')" class="text-rose-500 font-bold text-lg ml-2">🗑️</button>`;
-                    }
-                    return `<div class="flex justify-between items-center text-sm theme-title py-2 border-b border-slate-300/10"><span>${i.pName} <span class="text-emerald-600 font-bold ml-2">x${esc(i.qty)}</span></span><div class="flex gap-2 items-center"><span class="theme-muted font-bold">+${fmtPV(i.rowBV)} PV</span>${actionBtns}</div></div>`;
-                }).join('')}</div>`;
-            }).join('');
+                    let actionBtns = '';
+                    if(i.type === 'customer') actionBtns = `<button onclick="window.terminateDirectLoyaltyItem('${sid(i.custId)}', '${sid(i.loyId)}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${endLabel}</button><button onclick="window.deleteDirectLoyaltyItem('${sid(i.custId)}', '${sid(i.loyId)}')" class="text-rose-500 font-bold text-lg ml-2">🗑️</button>`;
+                    else if(i.type === 'myDirect') actionBtns = `<button onclick="window.terminateMyLoyalty('${sid(i.id)}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${endLabel}</button><button onclick="window.deleteMyLoyalty('${sid(i.id)}')" class="text-rose-500 font-bold text-lg ml-2">🗑️</button>`;
+                    else actionBtns = `<button onclick="window.terminateSubLoyalty('${sid(i.subId)}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${endLabel}</button><button onclick="window.deleteSubLoyalty('${sid(i.subId)}')" class="text-rose-500 font-bold text-lg ml-2">🗑️</button>`;
+                    return `<div class="flex justify-between items-center text-sm theme-title py-2 border-b border-slate-300/10"><span>${i.pName} <span class="text-emerald-600 font-bold ml-2">x${esc(i.qty)}</span></span><div class="flex gap-2 items-center"><span class="theme-muted font-bold">+${fmtPV(i.rowPV)} PV</span>${actionBtns}</div></div>`;
+                }).join('');
+                return `<div class="mt-3 border-t border-theme pt-3"><div class="flex justify-between items-center gap-2 flex-wrap mb-1"><span class="font-black theme-title">${esc(pe.name)}</span><div class="flex items-center gap-2"><span class="text-indigo-600 font-extrabold text-sm">${fmtPV(pe.sumPV)} PV</span>${sel}</div></div>${rows}</div>`;
+            };
+
+            const nodeHTML = (a, depth) => {
+                const n = a.node; const id = sid(n.id); const open = window._ltOpen.has(n.id); const det = window._ltDetail.has(n.id);
+                const hasKids = a.kids.length > 0; const dim = a.tq === 0 ? 'opacity-60' : '';
+                const detail = det ? (a.own.length ? a.own.slice().sort((x,y)=>x.name.localeCompare(y.name,'zh-Hant')).map(personHTML).join('') : '<div class="mt-3 text-xs theme-muted">這個小組目前沒有個人長客</div>') : '';
+                const card = `<div class="theme-subcard border-theme border rounded-xl p-3 mb-2 ${dim}">
+                    <div class="flex items-center gap-2">
+                        ${hasKids ? `<button onclick="window.ltToggle('${id}')" class="w-7 h-7 rounded-full tree-action-btn flex items-center justify-center text-sm font-bold shrink-0">${open ? '－' : '＋'}</button>` : '<span class="w-7 shrink-0"></span>'}
+                        <span class="font-black theme-title flex-1 truncate">${esc(n.name)}${depth === 0 ? '（我）' : ''}</span>
+                        <button onclick="window.ltAddTo('${id}')" class="text-xs bg-indigo-500/15 text-indigo-600 px-2 py-1 rounded font-bold shrink-0">＋補登</button>
+                        <button onclick="window.ltDetailToggle('${id}')" class="text-xs ${det ? 'bg-indigo-600 text-white' : 'bg-slate-500/15 theme-title'} px-2 py-1 rounded font-bold shrink-0">明細</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-2 text-xs theme-muted"><div>個人 <b class="theme-title">${a.q}</b> 組 · <b class="theme-title">${fmtPV(a.pv)}</b> PV</div><div>小組合計 <b class="text-indigo-600">${a.tq}</b> 組 · <b class="text-indigo-600">${fmtPV(a.tpv)}</b> PV</div></div>
+                    ${detail}</div>`;
+                const kidsHTML = (hasKids && open) ? `<div class="ml-3 pl-2 border-l border-theme">${a.kids.map(k => nodeHTML(k, depth+1)).join('')}</div>` : '';
+                return card + kidsHTML;
+            };
+
+            let html = hasTree ? nodeHTML(agg(state.treeData), 0) : '';
+            const none = byGroup['__none'];
+            if(none && none.length) {
+                const nq = none.reduce((t,pe)=>t+pe.qty,0), npv = none.reduce((t,pe)=>t+pe.sumPV,0);
+                html += `<div class="theme-subcard border border-amber-400 rounded-xl p-3 mb-2"><div class="font-black text-amber-700">⚠️ 未歸屬（${nq} 組 · ${fmtPV(npv)} PV）</div><div class="text-xs theme-muted">這些顧客的歸屬小組已不在組織圖裡，請重新選一個小組。</div>${none.map(personHTML).join('')}</div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        window.ltToggle = function(id) { const s = window._ltOpen; if(s.has(id)) s.delete(id); else s.add(id); renderBVReport(); }
+        window.ltDetailToggle = function(id) { const s = window._ltDetail; if(s.has(id)) s.delete(id); else s.add(id); renderBVReport(); }
+        window.ltAddTo = function(id) {
+            const sel = document.getElementById('sub-partner-group'); if(sel) sel.value = id;
+            const nm = document.getElementById('sub-partner-name'); if(nm) { nm.scrollIntoView({ block: 'center', behavior: 'smooth' }); nm.focus(); }
+        }
+        window.ltSetGroup = async function(key, gid) {
+            const r = (window._ltReg || {})[key]; if(!r || !gid) return;
+            const gnode = findTreeNode(gid); const gname = gnode ? gnode.name : '';
+            if(r.kind === 'cust') {
+                const c = state.customers.find(x => x.id === r.custId); if(!c) return;
+                c.loyaltyGroupId = (state.treeData && gid === state.treeData.id) ? '' : gid;
+                await cloudUpsert('customers', c);
+            } else if(r.kind === 'sub') {
+                for(const sid_ of r.subIds) {
+                    const it = state.subGroupLoyalties.find(x => x.id === sid_); if(!it) continue;
+                    it.groupId = gid; it.referrer = gname;
+                    await cloudUpsert('sub_group_loyalties', it);
+                }
+            }
+            renderBVReport(); window.showToast(`✅ 已改歸屬：${gname}`);
         }
 
         window.renderTagsLobby = function() { const c = document.getElementById('global-tags-container'); if(c) c.innerHTML = state.tags.map(t => `<span class="tag-chip">#${esc(t)} <button data-tag="${esc(t)}" onclick="window.deleteGlobalTag(this.dataset.tag)">x</button></span>`).join(''); }
