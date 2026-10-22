@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-22b loyalty-tree -->
+<!-- build: 2026-10-22c loyalty-import -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -469,7 +469,7 @@
                 </div>
 
                 <div class="theme-subcard border-theme border rounded-2xl p-4 space-y-3">
-                    <span class="font-bold theme-title text-sm block">➕ 補登夥伴小組的顧客長客</span><p class="text-xs theme-muted">夥伴的顧客不用進名單，在這裡補登；選好「歸屬小組」，下方組織樹就會自動加總。我自己名單裡的人，請從名單裡新增長客。</p>
+                    <div class="flex justify-between items-center"><span class="font-bold theme-title text-sm block">➕ 補登夥伴小組的顧客長客</span><button onclick="window.openLoyImport()" class="text-xs bg-slate-500/15 theme-title px-3 py-1.5 rounded-lg font-bold">📥 批次匯入</button></div><p class="text-xs theme-muted">夥伴的顧客不用進名單，在這裡補登；選好「歸屬小組」，下方組織樹就會自動加總。我自己名單裡的人，請從名單裡新增長客。</p>
                     <div class="flex flex-wrap gap-3 items-center">
                         <input type="date" id="sub-partner-date" class="theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
                         <input type="text" id="sub-partner-name" placeholder="顧客姓名" class="flex-1 min-w-[110px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
@@ -484,6 +484,26 @@
                     <h4 class="font-bold theme-title mb-1 text-lg">📊 小組長客組織樹</h4><p class="text-xs theme-muted mb-3">＋展開下一層；「明細」看這個人底下的顧客與品項，可在明細裡改歸屬小組。</p>
                     <div id="bv-report-container" class="space-y-4"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 長客批次匯入 -->
+    <div id="loy-import-modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-2xl rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between border-b border-theme pb-3 shrink-0 items-center">
+                <h3 class="font-bold theme-title text-lg">📥 批次匯入長客</h3>
+                <button onclick="window.closeModal('loy-import-modal')" class="theme-muted text-3xl hover:text-rose-500">&times;</button>
+            </div>
+            <div class="overflow-y-auto flex-1 no-scrollbar py-4 space-y-4 text-sm">
+                <p class="theme-muted">貼上或選擇 CSV，每列四欄：<b class="theme-title">顧客、小組、品項、組數</b>（小組可寫路徑，例如「千晉-亓大哥」，以最後一個名字對應組織圖）。</p>
+                <div class="flex flex-wrap gap-3 items-center">
+                    <input type="file" accept=".csv,.txt" onchange="window.loyImportFile(this)" class="text-xs theme-title">
+                    <label class="text-xs theme-muted">啟動日期 <input type="date" id="loy-import-date" class="theme-subcard border-theme border rounded-lg p-1.5 text-xs theme-title"></label>
+                </div>
+                <textarea id="loy-import-text" rows="5" placeholder="顧客,小組,品項,組數" class="w-full theme-subcard border-theme border rounded-xl p-3 text-xs theme-title font-mono"></textarea>
+                <button onclick="window.loyImportPreview()" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-bold">預覽</button>
+                <div id="loy-import-preview" class="space-y-3"></div>
             </div>
         </div>
     </div>
@@ -2205,6 +2225,103 @@
                 html += `<div class="theme-subcard border border-amber-400 rounded-xl p-3 mb-2"><div class="font-black text-amber-700">⚠️ 未歸屬（${nq} 組 · ${fmtPV(npv)} PV）</div><div class="text-xs theme-muted">這些顧客的歸屬小組已不在組織圖裡，請重新選一個小組。</div>${none.map(personHTML).join('')}</div>`;
             }
             container.innerHTML = html;
+        }
+
+
+        // ===== 長客批次匯入 =====
+        window.openLoyImport = function() {
+            const sel = document.getElementById('bv-month-select'); const cm = document.getElementById('bv-custom-month-input');
+            const m = (sel && sel.value && sel.value !== 'custom') ? sel.value : ((cm && cm.value) || getLocalMonthString());
+            document.getElementById('loy-import-date').value = m + '-01';
+            document.getElementById('loy-import-preview').innerHTML = '';
+            window._loyImp = null;
+            window.openModal('loy-import-modal');
+        }
+        window.loyImportFile = function(inp) {
+            const f = inp.files && inp.files[0]; if(!f) return;
+            const r = new FileReader();
+            r.onload = () => { document.getElementById('loy-import-text').value = String(r.result || '').replace(/^﻿/, ''); window.loyImportPreview(); };
+            r.readAsText(f, 'utf-8');
+        }
+        function loyParseLine(line) {
+            const delim = line.indexOf('\t') >= 0 ? '\t' : ',';
+            const out = []; let cur = '', q = false;
+            for(let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if(q) { if(ch === '"') { if(line[i+1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+                else if(ch === '"') q = true;
+                else if(ch === delim) { out.push(cur.trim()); cur = ''; }
+                else cur += ch;
+            }
+            out.push(cur.trim()); return out;
+        }
+        window.loyImportPreview = function(keepMap) {
+            const txt = document.getElementById('loy-import-text').value;
+            const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            const rows = [];
+            lines.forEach(l => { const c = loyParseLine(l); if(c.length >= 4 && c[0] !== '顧客') rows.push({ name: c[0], gtext: c[1], pname: c[2], qty: parseInt(c[3]) || 0 }); });
+            const prev = (keepMap && window._loyImp) ? window._loyImp.groupMap : {};
+            window._loyImp = { rows, groupMap: prev || {} };
+            loyImportRender();
+        }
+        function loyImportRender() {
+            const imp = window._loyImp; const box = document.getElementById('loy-import-preview');
+            if(!imp || !imp.rows.length) { box.innerHTML = '<div class="theme-muted">沒有讀到資料，請確認每列有四欄。</div>'; return; }
+            const hasTree = !!(state.treeData && state.treeData.id);
+            if(!hasTree) { box.innerHTML = '<div class="text-rose-500">找不到組織圖。</div>'; return; }
+            const nodes = []; const walk = (n, parent) => { nodes.push({ n, parent }); (n.children||[]).forEach(c => walk(c, n)); }; walk(state.treeData, null);
+            const resolveGroup = (g) => {
+                if(g in imp.groupMap) return imp.groupMap[g] || null;
+                const segs = String(g).split(/[-－—\/／>＞]/).map(x => x.trim()).filter(Boolean);
+                if(!segs.length) return null;
+                const last = segs[segs.length-1], up = segs[segs.length-2];
+                if(last === state.treeData.name || last === '自己' || last === '我') return state.treeData.id;
+                const cands = nodes.filter(x => x.n.name === last);
+                if(!cands.length) return null;
+                if(cands.length > 1 && up) { const pm = cands.find(x => x.parent && x.parent.name === up); if(pm) return pm.n.id; }
+                return cands[0].n.id;
+            };
+            const myCustWithLoy = {}; state.customers.filter(c => !c.isTrashed && c.owner === sessionUser.email && c.loyaltyItems && c.loyaltyItems.length).forEach(c => myCustWithLoy[c.name] = true);
+            const date = document.getElementById('loy-import-date').value || (getLocalMonthString() + '-01');
+            let okN = 0, okQ = 0, okPV = 0; const skip = []; const unG = {}; const unP = {};
+            imp.rows.forEach(r => {
+                r.gid = resolveGroup(r.gtext);
+                const p = state.products.find(x => x.name === r.pname); r.pid = p ? p.id : null;
+                r.status = 'ok'; r.reason = '';
+                if(!r.name || r.qty < 1) { r.status = 'skip'; r.reason = '姓名或組數不正確'; }
+                else if(!p) { r.status = 'skip'; r.reason = '找不到品項「' + r.pname + '」'; unP[r.pname] = 1; }
+                else if(!r.gid) { r.status = 'skip'; r.reason = '小組「' + r.gtext + '」對不到組織圖'; unG[r.gtext] = 1; }
+                else if(myCustWithLoy[r.name]) { r.status = 'skip'; r.reason = '名單裡已有這個人的長客'; }
+                else if((state.subGroupLoyalties||[]).some(x => x.partnerName === r.name && x.productId === r.pid && (x.groupId || '') === r.gid && !x.endDate)) { r.status = 'skip'; r.reason = '已補登過'; }
+                if(r.status === 'ok') { okN++; okQ += r.qty; okPV += p.bv * r.qty / PV_RATIO; } else skip.push(r);
+            });
+            const exist = `目前已有：個人直轄 ${(state.myDirectLoyalties||[]).length} 筆、補登 ${(state.subGroupLoyalties||[]).length} 筆、名單長客 ${Object.keys(myCustWithLoy).length} 人`;
+            const optsFor = (sel) => '<option value="">略過這個小組</option>' + nodes.map(x => `<option value="${esc(x.n.id)}">${esc(x.n.name)}</option>`).join('');
+            const fixes = Object.keys(unG).map(g => `<div class="flex items-center gap-2 text-xs"><span class="theme-title font-bold">小組「${esc(g)}」</span><select onchange="window.loyImpMap(this.dataset.g, this.value)" data-g="${esc(g)}" class="theme-card border-theme border rounded-lg px-2 py-1 theme-title"><option value="" selected disabled>選擇對應的組織圖成員…</option>${optsFor()}</select></div>`).join('');
+            box.innerHTML = `<div class="theme-subcard border-theme border rounded-xl p-3 space-y-1"><div class="font-bold theme-title">可匯入 ${okN} 筆（${okQ} 組、${fmtPV(okPV)} PV）${skip.length ? `，略過 ${skip.length} 筆` : ''}</div><div class="text-xs theme-muted">${exist}。若已經有舊資料，請先確認不會重複，匯入後無法一鍵復原（只能逐筆刪除）。</div></div>
+                ${fixes ? `<div class="space-y-2"><div class="text-xs font-bold text-amber-700">下列小組對不到組織圖，請指定：</div>${fixes}</div>` : ''}
+                ${skip.length ? `<details class="text-xs"><summary class="cursor-pointer theme-muted font-bold">查看略過的 ${skip.length} 筆</summary><div class="mt-2 space-y-1 theme-title">${skip.map(r => `<div>${esc(r.name)} / ${esc(r.gtext)} / ${esc(r.pname)} ×${esc(r.qty)}：<span class="text-rose-500">${esc(r.reason)}</span></div>`).join('')}</div></details>` : ''}
+                <button onclick="window.loyImportConfirm()" ${okN ? '' : 'disabled'} class="${okN ? 'bg-emerald-600' : 'bg-slate-400'} text-white px-5 py-2.5 rounded-xl text-sm font-bold w-full">確認匯入 ${okN} 筆</button>`;
+        }
+        window.loyImpMap = function(g, gid) { window._loyImp.groupMap[g] = gid; loyImportRender(); }
+        window.loyImportConfirm = async function() {
+            const imp = window._loyImp; if(!imp || window._loyImporting) return;
+            const ok = imp.rows.filter(r => r.status === 'ok'); if(!ok.length) return;
+            window._loyImporting = true;
+            const date = document.getElementById('loy-import-date').value || (getLocalMonthString() + '-01');
+            const btn = document.querySelector('#loy-import-preview button:last-child');
+            try {
+                let i = 0;
+                for(const r of ok) {
+                    i++; if(btn) btn.textContent = `匯入中… ${i}/${ok.length}`;
+                    const gnode = findTreeNode(r.gid);
+                    const item = { id: 'sub_' + Date.now() + '_' + i, owner: sessionUser.email, partnerName: r.name, referrer: gnode ? gnode.name : '', groupId: r.gid, productId: r.pid, qty: r.qty, date, endDate: '' };
+                    state.subGroupLoyalties.push(item);
+                    await cloudUpsert('sub_group_loyalties', item);
+                }
+                window.closeModal('loy-import-modal'); renderBVReport();
+                window.showToast(`✅ 已匯入 ${ok.length} 筆長客`);
+            } finally { window._loyImporting = false; }
         }
 
         window.ltToggle = function(id) { const s = window._ltOpen; if(s.has(id)) s.delete(id); else s.add(id); renderBVReport(); }
