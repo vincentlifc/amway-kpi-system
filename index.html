@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-23b loyalty-unify -->
+<!-- build: 2026-10-23c loyalty-link -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -470,6 +470,7 @@
 
                 <div>
                     <h4 class="font-bold theme-title mb-1 text-lg">📊 小組長客組織樹</h4><p class="text-xs theme-muted mb-3">＋展開下一層；「明細」看這個人底下的顧客與品項，可在明細裡改歸屬小組。</p>
+                    <div id="loy-link-banner"></div>
                     <div id="bv-report-container" class="space-y-4"></div>
                 </div>
             </div>
@@ -2066,7 +2067,7 @@
             const selectedMonth = (selVal === 'custom') ? (customInputVal || getLocalMonthString()) : selVal;
 
             let totalPV = 0; let totalQty = 0;
-            updateReferrerDropdowns();
+            updateReferrerDropdowns(); renderLoyLinkBanner();
 
             const isEligible = (startDate, endDate, targetMonth) => {
                 const s = String(startDate || '').substring(0,7);
@@ -2262,7 +2263,8 @@
                 else if((state.subGroupLoyalties||[]).some(x => x.partnerName === r.name && x.productId === r.pid && (x.groupId || '') === r.gid && !x.endDate)) { r.status = 'skip'; r.reason = '已補登過'; }
                 if(r.status === 'ok') { okN++; okQ += r.qty; okPV += p.bv * r.qty / PV_RATIO; } else skip.push(r);
             });
-            const exist = `目前已有：個人直轄 ${(state.myDirectLoyalties||[]).length} 筆、補登 ${(state.subGroupLoyalties||[]).length} 筆、名單長客 ${Object.keys(myCustWithLoy).length} 人`;
+            const inListN = new Set(imp.rows.filter(r => r.status === 'ok' && state.customers.some(c => c.owner === sessionUser.email && !c.isTrashed && c.name === r.name)).map(r => r.name)).size;
+            const exist = (inListN ? `其中 ${inListN} 位和你的名單同名，長客會直接記在他們名下。` : '') + `目前已有：個人直轄 ${(state.myDirectLoyalties||[]).length} 筆、補登 ${(state.subGroupLoyalties||[]).length} 筆、名單長客 ${Object.keys(myCustWithLoy).length} 人`;
             const optsFor = (sel) => '<option value="">略過這個小組</option>' + nodes.map(x => `<option value="${esc(x.n.id)}">${esc(x.n.name)}</option>`).join('');
             const fixes = Object.keys(unG).map(g => `<div class="flex items-center gap-2 text-xs"><span class="theme-title font-bold">小組「${esc(g)}」</span><select onchange="window.loyImpMap(this.dataset.g, this.value)" data-g="${esc(g)}" class="theme-card border-theme border rounded-lg px-2 py-1 theme-title"><option value="" selected disabled>選擇對應的組織圖成員…</option>${optsFor()}</select></div>`).join('');
             box.innerHTML = `<div class="theme-subcard border-theme border rounded-xl p-3 space-y-1"><div class="font-bold theme-title">可匯入 ${okN} 筆（${okQ} 組、${fmtPV(okPV)} PV）${skip.length ? `，略過 ${skip.length} 筆` : ''}</div><div class="text-xs theme-muted">${exist}。若已經有舊資料，請先確認不會重複，匯入後無法一鍵復原（只能逐筆刪除）。</div></div>
@@ -2278,17 +2280,59 @@
             const date = document.getElementById('loy-import-date').value || (getLocalMonthString() + '-01');
             const btn = document.querySelector('#loy-import-preview button:last-child');
             try {
-                let i = 0;
+                const root = loyRootId(); const stamp = Date.now(); let i = 0; let toList = 0;
+                const byCust = new Map();
                 for(const r of ok) {
                     i++; if(btn) btn.textContent = `匯入中… ${i}/${ok.length}`;
-                    const gnode = findTreeNode(r.gid);
-                    const item = { id: 'sub_' + Date.now() + '_' + i, owner: sessionUser.email, partnerName: r.name, referrer: gnode ? gnode.name : '', groupId: r.gid, productId: r.pid, qty: r.qty, date, endDate: '' };
-                    state.subGroupLoyalties.push(item);
-                    await cloudUpsert('sub_group_loyalties', item);
+                    const c = state.customers.find(x => x.owner === sessionUser.email && !x.isTrashed && x.name === r.name);
+                    if(c) {
+                        if(!c.loyaltyItems) c.loyaltyItems = [];
+                        c.loyaltyItems.push({ id: 'ly_' + stamp + '_' + i, productId: r.pid, qty: r.qty, date, endDate: '' });
+                        if(!byCust.has(c.id)) { c.loyaltyGroupId = (r.gid === root) ? '' : r.gid; byCust.set(c.id, c); }
+                        toList++;
+                    } else {
+                        const gnode = findTreeNode(r.gid);
+                        const item = { id: 'sub_' + stamp + '_' + i, owner: sessionUser.email, partnerName: r.name, referrer: gnode ? gnode.name : '', groupId: r.gid, productId: r.pid, qty: r.qty, date, endDate: '' };
+                        state.subGroupLoyalties.push(item);
+                        await cloudUpsert('sub_group_loyalties', item);
+                    }
                 }
-                window.closeModal('loy-import-modal'); renderBVReport();
-                window.showToast(`✅ 已匯入 ${ok.length} 筆長客`);
+                for(const c of byCust.values()) await cloudUpsert('customers', c);
+                window.closeModal('loy-import-modal'); renderAll(); renderBVReport();
+                window.showToast(`✅ 已匯入 ${ok.length} 筆長客${toList ? `（其中 ${toList} 筆記在名單裡的人名下）` : ''}`);
             } finally { window._loyImporting = false; }
+        }
+
+        // 補登的人如果名字和名單裡的人相同，可以一鍵移到名單裡（長客記在名單那個人名下）
+        function loyLinkCandidates() {
+            const out = new Map();
+            (state.subGroupLoyalties || []).forEach(it => {
+                const c = state.customers.find(x => x.owner === sessionUser.email && !x.isTrashed && x.name === it.partnerName);
+                if(c) { if(!out.has(c.id)) out.set(c.id, { c, items: [] }); out.get(c.id).items.push(it); }
+            });
+            return out;
+        }
+        function renderLoyLinkBanner() {
+            const box = document.getElementById('loy-link-banner'); if(!box) return;
+            const cand = loyLinkCandidates();
+            if(!cand.size) { box.innerHTML = ''; return; }
+            const n = [...cand.values()].reduce((t, x) => t + x.items.length, 0);
+            box.innerHTML = `<div class="theme-subcard border border-amber-400 rounded-xl p-3 flex items-center justify-between gap-3 mb-3"><div class="text-xs theme-title leading-relaxed">🔗 有 <b>${cand.size}</b> 位補登的人（${n} 筆）和你名單裡的人同名，但長客還沒記在名單裡。</div><button onclick="window.loyLinkToList()" class="shrink-0 bg-amber-500 text-white text-xs font-bold px-3 py-2 rounded-lg">移到名單</button></div>`;
+        }
+        window.loyLinkToList = async function() {
+            const cand = loyLinkCandidates(); if(!cand.size) return;
+            const names = [...cand.values()].map(x => x.c.name);
+            if(!confirm(`要把這 ${cand.size} 位的長客移到名單裡嗎？\n${names.slice(0, 15).join('、')}${names.length > 15 ? '…' : ''}\n\n（總組數與 PV 不會改變，只是記錄位置換到名單裡的人名下）`)) return;
+            const root = loyRootId();
+            for(const { c, items } of cand.values()) {
+                if(!c.loyaltyItems) c.loyaltyItems = [];
+                const first = items.find(it => it.groupId && findTreeNode(it.groupId));
+                if(first) c.loyaltyGroupId = (first.groupId === root) ? '' : first.groupId;
+                items.forEach(it => c.loyaltyItems.push({ id: it.id, productId: it.productId, qty: it.qty, date: it.date, endDate: it.endDate || '' }));
+                await cloudUpsert('customers', c);
+                for(const it of items) { state.subGroupLoyalties = state.subGroupLoyalties.filter(x => x.id !== it.id); await cloudDelete('sub_group_loyalties', it.id); }
+            }
+            renderAll(); renderBVReport(); window.showToast(`✅ 已把 ${cand.size} 位的長客移到名單裡`);
         }
 
         window.ltToggle = function(id) { const s = window._ltOpen; if(s.has(id)) s.delete(id); else s.add(id); renderBVReport(); }
