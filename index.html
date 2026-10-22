@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-23a import-note -->
+<!-- build: 2026-10-23b loyalty-unify -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -215,7 +215,7 @@
                         <div onclick="window.filterDashboardMetric('leads')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-indigo-500"><span>🚀 開發量</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-leads-count">0</div></div>
                         <div onclick="window.showBreakthroughList()" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-sky-500"><span>🎯 破題人數</span><span class="text-xs opacity-70">名單日誌</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-bt-count">0 人</div><div class="text-[11px] theme-muted mt-1" id="kpi-bt-total"></div></div>
                         <div onclick="window.showOppLogHistory()" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-purple-500"><span>🗣️ 講 336 / OPP</span><span class="text-xs opacity-70">日誌</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-opp-count">0 次</div></div>
-                        <div onclick="window.filterDashboardMetric('loyalty')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-emerald-500"><span>📦 長客總組數</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-loyalty-count">0 組</div></div>
+                        <div onclick="window.showLoyaltyNew()" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-emerald-500"><span>📦 新增長客</span><span class="text-xs opacity-70">明細</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-loyalty-count">0 組</div><div class="text-xs theme-muted mt-1" id="kpi-loyalty-sub"></div></div>
                         <div onclick="window.filterDashboardMetric('rec')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-amber-500"><span>🤝 推薦人數(累計)</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-rec-count">0 人</div></div>
                     </div>
                 </div>
@@ -406,7 +406,7 @@
                 <div><label class="block font-bold theme-title mb-1.5">🏷️ 套用活動標籤 (輸入按 Enter 套用)</label><div class="theme-subcard border-theme border rounded-xl p-3 flex flex-wrap gap-2 items-center" id="field-tags-container"><input type="text" id="field-tag-input" onkeydown="window.handleTagInput(event)" placeholder="輸入標籤..." class="bg-transparent text-sm theme-title outline-none w-36 flex-1"></div><div id="available-tags-chips" class="mt-2 flex flex-wrap gap-2"></div></div>
                 <div><label class="block font-bold theme-title mb-1.5">備註 / 痛點</label><textarea id="field-notes" rows="2" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></textarea></div>
 
-                <div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="block font-bold theme-title text-sm">📦 名下長客品項</label><button type="button" onclick="window.addLoyaltyItemField()" class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg shadow">+ 新增品項</button></div><div id="loyalty-items-list" class="space-y-3"></div></div>
+                <div class="theme-subcard border-theme border rounded-xl p-4 space-y-2"><div class="flex justify-between items-center"><label class="block font-bold theme-title text-sm">📦 名下長客</label><button type="button" id="loy-summary-add-btn" onclick="window.openLoyAddForCurrent()" class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg shadow">＋ 新增長客</button></div><div id="loyalty-items-list" class="text-sm space-y-1 theme-title"></div><p class="text-xs theme-muted">終止或刪除，請到「長客專區」處理。</p></div>
 
                 <div class="pt-4 border-t border-theme flex justify-between items-center shrink-0"><button type="button" id="delete-in-modal-btn" onclick="window.deleteCurrentCustomerFromModal()" class="bg-rose-500/10 text-rose-600 border border-rose-500/20 px-5 py-2.5 rounded-xl font-bold">🗑️ 永久刪除名單</button><div class="flex gap-3"><button type="button" onclick="window.closeModal('modal')" class="theme-subcard border-theme border theme-title font-bold px-5 py-2.5 rounded-xl">取消</button><button type="submit" class="bg-indigo-600 text-white font-bold px-6 py-2.5 rounded-xl shadow">儲存資料</button></div></div>
             </form>
@@ -438,7 +438,15 @@
 
     <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="font-bold theme-title mb-1.5 block">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="font-bold theme-title mb-1.5 block">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="font-bold theme-title mb-1.5 block">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="font-bold theme-title mb-1.5 block">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div></div>
 
-    <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[85vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客打卡</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">選擇夥伴 *</label><select id="loyalty-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">長客備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認長客打卡</button></div></form></div></div>
+    <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[88vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">顧客姓名 *</label><input type="text" id="loyalty-name-input" list="loy-name-list" required autocomplete="off" oninput="window.loyAddHint()" onchange="window.loyAddNameChange()" placeholder="選擇名單裡的人，或直接輸入姓名" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><datalist id="loy-name-list"></datalist></div><div><label class="block font-bold theme-title mb-1.5">歸屬小組 *</label><select id="loyalty-group-select" onchange="window.loyAddHint()" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="root">我</option></select><p id="loy-add-hint" class="text-xs theme-muted mt-1.5 leading-relaxed"></p></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認新增</button></div></form></div></div>
+
+    <div id="loy-new-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">📦 新增長客明細</h3><button onclick="window.closeModal('loy-new-modal')" class="theme-muted text-2xl">&times;</button></div>
+            <div id="loy-new-summary" class="text-xs theme-muted"></div>
+            <div id="loy-new-items" class="overflow-y-auto flex-1 space-y-2 no-scrollbar text-sm"></div>
+        </div>
+    </div>
 
     <!-- ✅ BV 統計視窗 -->
     <div id="bv-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
@@ -458,27 +466,7 @@
                     <div class="bg-indigo-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月小組總 PV</p><div class="text-4xl font-black mt-2" id="total-bv-display">0</div></div>
                 </div>
 
-                <div class="theme-subcard border-theme border rounded-2xl p-4 space-y-3">
-                    <span class="font-bold theme-title text-sm block">👑 新增我自己的直轄長客</span>
-                    <div class="flex flex-wrap gap-3 items-center">
-                        <input type="date" id="my-loyalty-date" class="theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
-                        <select id="my-loyalty-prod" class="flex-1 min-w-[150px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"></select>
-                        <input type="number" id="my-loyalty-qty" min="1" value="1" class="w-16 theme-card border-theme border rounded-xl p-2.5 text-sm theme-title font-bold text-center">
-                        <button onclick="window.addMyDirectLoyalty()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow">新增直轄</button>
-                    </div>
-                </div>
-
-                <div class="theme-subcard border-theme border rounded-2xl p-4 space-y-3">
-                    <div class="flex justify-between items-center"><span class="font-bold theme-title text-sm block">➕ 補登夥伴小組的顧客長客</span><button onclick="window.openLoyImport()" class="text-xs bg-slate-500/15 theme-title px-3 py-1.5 rounded-lg font-bold">📥 批次匯入</button></div><p class="text-xs theme-muted">夥伴的顧客不用進名單，在這裡補登；選好「歸屬小組」，下方組織樹就會自動加總。我自己名單裡的人，請從名單裡新增長客。</p>
-                    <div class="flex flex-wrap gap-3 items-center">
-                        <input type="date" id="sub-partner-date" class="theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
-                        <input type="text" id="sub-partner-name" placeholder="顧客姓名" class="flex-1 min-w-[110px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title">
-                        <select id="sub-partner-group" class="w-36 theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"><option value="root">歸屬小組…</option></select>
-                        <select id="sub-prod-select" class="flex-1 min-w-[140px] theme-card border-theme border rounded-xl p-2.5 text-sm theme-title"></select>
-                        <input type="number" id="sub-prod-qty" min="1" value="1" class="w-16 theme-card border-theme border rounded-xl p-2.5 text-sm theme-title font-bold text-center">
-                        <button onclick="window.addManualSubLoyalty()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow">補登</button>
-                    </div>
-                </div>
+                <div class="flex gap-3"><button onclick="window.openLoyAdd()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-bold shadow">＋ 新增長客</button><button onclick="window.openLoyImport()" class="theme-subcard border-theme border theme-title px-4 rounded-xl font-bold text-sm">📥 批次匯入</button></div>
 
                 <div>
                     <h4 class="font-bold theme-title mb-1 text-lg">📊 小組長客組織樹</h4><p class="text-xs theme-muted mb-3">＋展開下一層；「明細」看這個人底下的顧客與品項，可在明細裡改歸屬小組。</p>
@@ -1418,7 +1406,9 @@
             const actives = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed);
             const leads = actives.filter(c => c.date >= sd && c.date <= ed).length;
             const opps = state.checkinLogs.filter(l => l.user_name === sessionUser.email && l.type === 'opp' && l.date >= sd && l.date <= ed).length;
-            const loyalty = actives.reduce((sum, c) => sum + (c.loyaltyItems ? c.loyaltyItems.reduce((s,i)=>s+(parseInt(i.qty)||0),0) : 0), 0);
+            const loyNew = loyNewEntries(sd, ed); const loyalty = loyNew.reduce((t, x) => t + x.qty, 0);
+            const loyMine = loyNew.filter(x => x.mine).reduce((t, x) => t + x.qty, 0);
+            document.getElementById('kpi-loyalty-sub').textContent = loyalty ? `我 ${loyMine} 組・夥伴小組 ${loyalty - loyMine} 組` : '';
             const recs = actives.filter(c => c.memberType === '生活會員' || c.memberType === '直銷商').length;
             const btAll = state.customers.filter(c => c.owner === sessionUser.email && isBreakthrough(c));
             const btRange = btAll.filter(c => c.breakthroughDate && c.breakthroughDate >= sd && c.breakthroughDate <= ed).length;
@@ -1428,6 +1418,41 @@
             document.getElementById('kpi-leads-count').textContent = leads; document.getElementById('kpi-opp-count').textContent = `${opps} 次`; document.getElementById('kpi-loyalty-count').textContent = `${loyalty} 組`; document.getElementById('kpi-rec-count').textContent = `${recs} 人`;
             renderFunnel();
         }
+        // 區間內新增的長客（含我自己、名單、補登的夥伴小組），依啟動日期計
+        function loyNewEntries(sd, ed) {
+            const root = loyRootId(); const out = [];
+            const inR = d => d && d >= sd && d <= ed;
+            const addE = (name, gid, item, date) => {
+                const p = state.products.find(x => x.id === item.productId); if(!p) return;
+                const qty = parseInt(item.qty) || 0; const gnode = gid ? findTreeNode(gid) : null;
+                out.push({ name, gid, gname: gnode ? gnode.name : '未歸屬', mine: gid === root, prodName: p.name, qty, date, pv: p.bv * qty / PV_RATIO });
+            };
+            state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed).forEach(c => {
+                const gid = (c.loyaltyGroupId && findTreeNode(c.loyaltyGroupId)) ? c.loyaltyGroupId : root;
+                (c.loyaltyItems || []).forEach(i => { const d = String(i.date || c.date || '').slice(0,10); if(inR(d)) addE(c.name, gid, i, d); });
+            });
+            const myName = userProfilesMap[sessionUser.email] || sessionUser.email.split('@')[0];
+            (state.myDirectLoyalties || []).forEach(i => { const d = String(i.date || '').slice(0,10); if(inR(d)) addE(myName + '（我的直轄）', root, i, d); });
+            (state.subGroupLoyalties || []).forEach(i => {
+                let gid = null;
+                if(i.groupId) gid = findTreeNode(i.groupId) ? i.groupId : null;
+                else if(!i.referrer || i.referrer === '自己') gid = root;
+                else { let f = null; const walk = n => { if(!f && n.name === i.referrer) f = n.id; (n.children||[]).forEach(walk); }; if(state.treeData && state.treeData.id) walk(state.treeData); gid = f; }
+                const d = String(i.date || '').slice(0,10); if(inR(d)) addE(i.partnerName, gid, i, d);
+            });
+            return out;
+        }
+        window.showLoyaltyNew = function() {
+            const { sd, ed, label } = getDashRange();
+            const list = loyNewEntries(sd, ed);
+            const total = list.reduce((t, x) => t + x.qty, 0), mine = list.filter(x => x.mine).reduce((t, x) => t + x.qty, 0);
+            const people = {}; list.forEach(x => { const k = (x.gid || '__none') + '|' + x.name; (people[k] = people[k] || { name: x.name, gname: x.gname, mine: x.mine, qty: 0, pv: 0, items: [] }); const p = people[k]; p.qty += x.qty; p.pv += x.pv; p.items.push(x); });
+            const arr = Object.values(people).sort((a, b) => (b.mine - a.mine) || a.gname.localeCompare(b.gname, 'zh-Hant') || a.name.localeCompare(b.name, 'zh-Hant'));
+            document.getElementById('loy-new-summary').textContent = `${label}：新增 ${total} 組、${arr.length} 位（我 ${mine} 組・夥伴小組 ${total - mine} 組；排行榜只計「我」的組數）`;
+            document.getElementById('loy-new-items').innerHTML = arr.length ? arr.map(p => `<div class="p-3 rounded-xl theme-subcard border-theme border"><div class="flex justify-between items-center gap-2"><span class="font-bold theme-title">${esc(p.name)} <span class="text-xs font-bold ${p.mine ? 'text-emerald-600' : 'text-amber-600'}">${p.mine ? '我' : esc(p.gname)}</span></span><span class="text-xs theme-muted">${p.qty} 組・${fmtPV(p.pv)} PV</span></div><div class="text-xs theme-muted mt-1">${p.items.map(i => esc(i.prodName) + '×' + i.qty + '（' + esc(i.date) + '）').join('、')}</div></div>`).join('') : '<div class="text-center theme-muted py-6">這個區間還沒有新增長客</div>';
+            window.openModal('loy-new-modal');
+        };
+
         window.filterDashboardMetric = function(t) { const s = document.getElementById('search-input'); if(t==='leads') s.value = getLocalMonthString(); else if(t==='loyalty') s.value = '長客'; else if(t==='rec') s.value = '會員'; renderList(); }
 
         function isNodeInTree(node, contactId) { if(node.contactId === contactId) return true; if(node.children) { for(let child of node.children) { if(isNodeInTree(child, contactId)) return true; } } return false; }
@@ -1532,7 +1557,7 @@
 
             window.onBreakthroughChange(document.getElementById('field-breakthrough'), true);
             tempTagsForModal = [];
-            document.getElementById('loyalty-items-list').innerHTML = '';
+            renderLoyaltySummary(null);
             renderTagsInModal();
             window.openModal('modal');
         };
@@ -1595,8 +1620,7 @@
             document.getElementById('field-notes').value = c.notes||'';
             document.getElementById('delete-in-modal-btn').classList.remove('hidden');
             tempTagsForModal = [...(c.tags||[])]; renderTagsInModal();
-            const loyList = document.getElementById('loyalty-items-list'); loyList.innerHTML = '';
-            (c.loyaltyItems||[]).forEach((item) => addLoyaltyItemField(item.id, item.productId, item.qty, item.date, item.endDate));
+            renderLoyaltySummary(c);
             window.openModal('modal');
         };
 
@@ -1629,61 +1653,23 @@
         }
         window.removeTagFromModal = function(t) { tempTagsForModal = tempTagsForModal.filter(x=>x!==t); renderTagsInModal(); }; window.addTagToModal = function(t) { if(!tempTagsForModal.includes(t)) tempTagsForModal.push(t); renderTagsInModal(); };
 
-        window.addLoyaltyItemField = function(loyId = '', pId = '', qty = 1, date = '', endDate = '') {
-            const currentId = loyId || 'ly_' + Date.now() + Math.random().toString().substring(2,6);
-            const initDate = date || document.getElementById('field-date').value || getLocalDateString();
-            const div = document.createElement('div'); div.className = "flex gap-2 items-center loyalty-item-row bg-black/5 dark:bg-white/5 p-2 rounded-xl flex-wrap sm:flex-nowrap";
-
-            let btnAction = `<button type="button" onclick="window.terminateLoyaltyItem(this)" class="text-xs bg-amber-500/20 text-amber-700 px-3 py-1.5 rounded font-bold whitespace-nowrap">終止</button>`;
-            if (endDate) btnAction = `<span class="text-xs text-amber-600 font-bold whitespace-nowrap">終止於 ${esc(endDate)}</span>`;
-
-            div.innerHTML = `
-                <input type="hidden" class="loy-id-input" value="${esc(currentId)}">
-                <div class="flex flex-col gap-1 w-full sm:w-36">
-                    <label class="text-[10px] theme-muted font-bold">啟動日期</label>
-                    <input type="date" class="theme-card border-theme border rounded-lg p-1.5 text-xs theme-title loy-date-input" value="${esc(initDate)}">
-                </div>
-                <div class="flex flex-col gap-1 flex-1 min-w-[120px]">
-                    <label class="text-[10px] theme-muted font-bold">長客品項</label>
-                    <select class="theme-card border-theme border rounded-lg p-1.5 text-xs theme-title loy-prod-select w-full"><option value="" disabled selected>選擇品項...</option>${state.products.map(p => `<option value="${esc(p.id)}" ${p.id===pId?'selected':''}>${esc(p.name)}</option>`).join('')}</select>
-                </div>
-                <div class="flex flex-col gap-1 w-16">
-                    <label class="text-[10px] theme-muted font-bold">數量</label>
-                    <input type="number" min="1" value="${esc(qty)}" class="theme-card border-theme border rounded-lg p-1.5 text-xs theme-title loy-qty-input text-center">
-                </div>
-                <input type="hidden" class="loy-end-date-input" value="${esc(endDate)}">
-                <div class="flex gap-2 items-end pt-4 sm:pt-0">
-                    ${btnAction}
-                    <button type="button" onclick="window.deleteLoyaltyItem(this)" class="text-xs bg-rose-500/10 text-rose-600 px-3 py-1.5 rounded font-bold whitespace-nowrap">刪除</button>
-                </div>
-            `;
-            document.getElementById('loyalty-items-list').appendChild(div);
+        function renderLoyaltySummary(c) {
+            const box = document.getElementById('loyalty-items-list'); const btn = document.getElementById('loy-summary-add-btn');
+            if(!box) return;
+            if(!c) { box.innerHTML = '<div class="theme-muted">先儲存名單，才能新增長客。</div>'; if(btn) btn.classList.add('hidden'); return; }
+            if(btn) btn.classList.remove('hidden');
+            const items = c.loyaltyItems || [];
+            const gnode = c.loyaltyGroupId ? findTreeNode(c.loyaltyGroupId) : null;
+            if(!items.length) { box.innerHTML = '<div class="theme-muted">尚未有長客。</div>'; return; }
+            box.innerHTML = items.map(i => {
+                const p = state.products.find(x => x.id === i.productId);
+                return `<div class="flex justify-between gap-2"><span>${esc(p ? p.name : '（已刪除品項）')} <b class="text-emerald-600">×${esc(i.qty)}</b></span><span class="text-xs theme-muted">啟動 ${esc(String(i.date || c.date || '').slice(0,10))}${i.endDate ? '・已終止 ' + esc(i.endDate) : ''}</span></div>`;
+            }).join('') + (gnode ? `<div class="text-xs theme-muted pt-1">歸屬小組：${esc(gnode.name)}</div>` : '');
         }
-
-        window.terminateLoyaltyItem = function(btnEl) {
-            const row = btnEl.closest('.loyalty-item-row');
-            const targetMonth = prompt('請輸入「終止月份」，該月份起將不再統計積分。\n(格式範例：2026-08)', getLocalMonthString());
-            if (targetMonth && targetMonth.match(/^\d{4}-\d{2}$/)) {
-                row.querySelector('.loy-end-date-input').value = targetMonth;
-                btnEl.outerHTML = `<span class="text-xs text-amber-600 font-bold whitespace-nowrap">終止於 ${esc(targetMonth)}</span>`;
-            } else if (targetMonth) { alert('格式錯誤，請輸入 YYYY-MM'); }
-        }
-
-        window.deleteLoyaltyItem = async function(btnEl) {
-            if(confirm('確定要刪除此長客紀錄嗎？\n(如果這是當月建檔的長客，將會同步自雲端捷報中抹除對應積分)')) {
-                const row = btnEl.closest('.loyalty-item-row');
-                const rowId = row.querySelector('.loy-id-input').value;
-
-                // 溯源抹除法：尋找對應此 loy_id 的 feed 並刪除
-                const feedToDel = state.feeds.find(f => f.loyalty_item_id === rowId);
-                if(feedToDel) {
-                    state.feeds = state.feeds.filter(item => item.id !== feedToDel.id);
-                    await cloudDelete('feeds', feedToDel.id);
-                }
-                row.remove();
-                renderAll();
-                window.showToast('🗑️ 長客項目與對應積分已抹除');
-            }
+        window.openLoyAddForCurrent = function() {
+            const id = document.getElementById('field-id').value; const c = state.customers.find(x => x.id === id);
+            if(!c) return window.showToast('請先儲存名單');
+            window.openLoyAdd({ name: c.name });
         }
 
         window.handleFormSubmit = async function(e) {
@@ -1696,30 +1682,15 @@
             const referrerValue = (refType === '代為跟進') ? `代為跟進:${refName}` : '自己';
             const isDelegated = (refType === '代為跟進');
 
-            const loyItems = [];
-            document.querySelectorAll('.loyalty-item-row').forEach(row => {
-                const loyId = row.querySelector('.loy-id-input').value;
-                const pid = row.querySelector('.loy-prod-select').value;
-                const qty = parseInt(row.querySelector('.loy-qty-input').value) || 0;
-                const date = row.querySelector('.loy-date-input').value || document.getElementById('field-date').value;
-                const endDate = row.querySelector('.loy-end-date-input').value;
-                if(pid && qty>0) loyItems.push({id: loyId, productId: pid, qty, date, endDate});
-            });
+            const savedCust = id ? state.customers.find(x=>x.id===id) : null;
+            const loyItems = savedCust ? (savedCust.loyaltyItems || []) : [];
 
             const newCustomerId = id || 'c_' + Date.now();
             const existingCust = id ? state.customers.find(x=>x.id===id) : null;
             let timeline = existingCust ? (existingCust.timeline || []) : [{date: document.getElementById('field-date').value, text:'建立名單'}];
 
-            let totalLoyaltyQty = loyItems.reduce((sum, item) => sum + parseInt(item.qty), 0);
-            if (!id && totalLoyaltyQty > 0) {
-                timeline.unshift({
-                    date: loyItems[0].date || document.getElementById('field-date').value,
-                    text: `[新增長客] +${totalLoyaltyQty}組.`
-                });
-            }
-
             const data = {
-                id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: referrerValue, level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, followUpNote: document.getElementById('field-next-followup').value ? document.getElementById('field-followup-note').value.trim() : '', breakthrough: document.getElementById('field-breakthrough').value, breakthroughDate: document.getElementById('field-breakthrough').value === '已破題' ? document.getElementById('field-breakthrough-date').value : '', notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, isTrashed: isTrashProgress, timeline: timeline
+                id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: referrerValue, level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, followUpNote: document.getElementById('field-next-followup').value ? document.getElementById('field-followup-note').value.trim() : '', breakthrough: document.getElementById('field-breakthrough').value, breakthroughDate: document.getElementById('field-breakthrough').value === '已破題' ? document.getElementById('field-breakthrough-date').value : '', notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, loyaltyGroupId: savedCust ? (savedCust.loyaltyGroupId || '') : '', isTrashed: isTrashProgress, timeline: timeline
             };
 
             const currentMonth = getLocalMonthString();
@@ -1733,17 +1704,6 @@
                     state.feeds.unshift(fd1); await cloudUpsert('feeds', fd1);
                 }
 
-                if (totalLoyaltyQty > 0) {
-                    const firstLoyDate = loyItems[0].date || currentMonth;
-                    if (firstLoyDate.startsWith(currentMonth)) {
-                        const firstProd = state.products.find(p => p.id === loyItems[0].productId);
-                        const prodNameStr = firstProd ? firstProd.name : '長客';
-                        const actionText = totalLoyaltyQty === 1 ? `新增了一組 ${prodNameStr} 長客` : `新增了 ${totalLoyaltyQty} 組 ${prodNameStr} 長客`;
-
-                        const fd2 = {id:'f_loy_' + newCustomerId, user_name: sessionUser.email, customer_id: newCustomerId, loyalty_item_id: loyItems[0].id, action: actionText, pts:10*totalLoyaltyQty, time:new Date().toISOString()};
-                        state.feeds.unshift(fd2); await cloudUpsert('feeds', fd2);
-                    }
-                }
             }
             await cloudUpsert('customers', data); renderAll(); window.closeModal('modal'); window.showToast(isTrashProgress ? '📦 已移至封存區' : '💾 資料已維護儲存');
         };
@@ -1767,7 +1727,8 @@
             } else if(t==='rec') {
                 document.getElementById('rec-partner-select').innerHTML = opts; document.getElementById('rec-checkin-date').value = today; document.getElementById('rec-checkin-notes').value = ''; window.openModal('checkin-rec-modal');
             } else if(t==='loyalty') {
-                document.getElementById('loyalty-partner-select').innerHTML = opts; document.getElementById('loyalty-checkin-date').value = today; document.getElementById('loyalty-checkin-notes').value = ''; document.getElementById('checkin-loyalty-rows').innerHTML = ''; addCheckinLoyaltyRow(); window.openModal('checkin-loyalty-modal');
+                const dc = state.customers.find(c => c.id === defaultId);
+                window.openLoyAdd({ name: dc ? dc.name : '' });
             }
         };
 
@@ -1833,76 +1794,100 @@
             renderAll(); window.closeModal('checkin-rec-modal'); window.showToast('🎉 推薦打卡成功');
         };
 
-        window.submitLoyaltyCheckin = async function(e) {
-            e.preventDefault(); const partnerName = document.getElementById('loyalty-partner-select').value;
-            const c = state.customers.find(x=>x.name === partnerName && x.owner === sessionUser.email);
-            if(!c) return alert('找不到此夥伴名單');
-            if(!c.loyaltyItems) c.loyaltyItems = []; let totalAdded = 0;
-            const checkinDate = document.getElementById('loyalty-checkin-date').value;
-
-            let firstProdName = '長客';
-            document.querySelectorAll('.checkin-loy-row').forEach((row, idx) => {
-                const pId = row.querySelector('.checkin-prod-select').value;
-                const qty = parseInt(row.querySelector('.checkin-qty-input').value)||1;
-                if(pId && qty>0) {
-                    c.loyaltyItems.push({id: 'ly_'+Date.now()+Math.random().toString().substring(2,6), productId: pId, qty: qty, date: checkinDate, endDate: ''});
-                    totalAdded += qty;
-                    if(idx === 0) {
-                        const pObj = state.products.find(p => p.id === pId);
-                        if(pObj) firstProdName = pObj.name;
-                    }
-                }
-            });
-            const note = document.getElementById('loyalty-checkin-notes').value;
-            if(!c.timeline) c.timeline=[]; c.timeline.unshift({date:checkinDate, text:`[新增長客] +${totalAdded}組. ${note}`}); await cloudUpsert('customers', c);
-
-            const currentMonth = getLocalMonthString();
-            if (checkinDate.startsWith(currentMonth)) {
-                const actionText = totalAdded === 1 ? `新增了一組 ${firstProdName} 長客` : `新增了 ${totalAdded} 組 ${firstProdName} 長客`;
-                const fd = {id:'f_loy_chk_' + Date.now(), user_name: sessionUser.email, customer_id: c.id, action: actionText, pts:10*totalAdded, time:new Date().toISOString()};
-                state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
-            }
-            renderAll(); window.closeModal('checkin-loyalty-modal'); window.showToast(`🎉 長客打卡成功 (+${totalAdded}組)`);
-        };
-
-        window.addMyDirectLoyalty = async function() {
-            const date = document.getElementById('my-loyalty-date').value || getLocalDateString();
-            const productId = document.getElementById('my-loyalty-prod').value;
-            const qty = parseInt(document.getElementById('my-loyalty-qty').value) || 1;
-            if(!productId) return alert('請選擇長客品項！');
-
-            const item = { id: 'my_ly_' + Date.now(), owner: sessionUser.email, productId, qty, date, endDate: '' };
-            state.myDirectLoyalties.push(item);
-            await cloudUpsert('my_direct_loyalties', item);
-
-            const currentMonth = getLocalMonthString();
-            if (date.startsWith(currentMonth)) {
-                const pObj = state.products.find(p => p.id === productId);
-                const prodName = pObj ? pObj.name : '長客';
-                const actionText = qty === 1 ? `新增個人直轄 ${prodName} 長客` : `新增個人直轄 ${qty} 組 ${prodName} 長客`;
-                const fd = {id:'f_my_ly_' + item.id, user_name: sessionUser.email, action: actionText, pts: 10 * qty, time: new Date().toISOString()};
-                state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
-            }
-
-            renderBVReport();
-            window.showToast('🎉 個人直轄長客新增成功！');
+        function loyRootId() { return (state.treeData && state.treeData.id) || 'root'; }
+        function loyActionText(prodName, qty) { return qty === 1 ? `新增了一組 ${prodName} 長客` : `新增了 ${qty} 組 ${prodName} 長客`; }
+        // 目前這個人的歸屬小組（名單裡的人看 loyaltyGroupId；補登的人看已存在的補登紀錄）
+        function loyGroupForName(name) {
+            const root = loyRootId();
+            const c = state.customers.find(x => x.owner === sessionUser.email && !x.isTrashed && x.name === name);
+            if(c) return { inList: true, gid: (c.loyaltyGroupId && findTreeNode(c.loyaltyGroupId)) ? c.loyaltyGroupId : root };
+            const sub = (state.subGroupLoyalties || []).find(x => x.partnerName === name && x.groupId && findTreeNode(x.groupId));
+            return { inList: false, gid: sub ? sub.groupId : null };
+        }
+        window.openLoyAdd = function(opts) {
+            opts = opts || {};
+            const names = new Set();
+            state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed).forEach(c => names.add(c.name));
+            (state.subGroupLoyalties || []).forEach(x => names.add(x.partnerName));
+            document.getElementById('loy-name-list').innerHTML = [...names].filter(Boolean).map(n => `<option value="${esc(n)}"></option>`).join('');
+            updateReferrerDropdowns();
+            document.getElementById('loyalty-name-input').value = opts.name || '';
+            document.getElementById('loyalty-checkin-date').value = getLocalDateString();
+            document.getElementById('loyalty-checkin-notes').value = '';
+            document.getElementById('checkin-loyalty-rows').innerHTML = ''; addCheckinLoyaltyRow();
+            document.getElementById('loyalty-group-select').value = opts.groupId || loyRootId();
+            if(!opts.groupId && opts.name) window.loyAddNameChange();
+            window.loyAddHint();
+            window.openModal('checkin-loyalty-modal');
+        }
+        window.loyAddNameChange = function() {
+            const name = document.getElementById('loyalty-name-input').value.trim();
+            const g = loyGroupForName(name);
+            if(g.gid) document.getElementById('loyalty-group-select').value = g.gid;
+            window.loyAddHint();
+        }
+        window.loyAddHint = function() {
+            const name = document.getElementById('loyalty-name-input').value.trim();
+            const gid = document.getElementById('loyalty-group-select').value;
+            const mine = gid === loyRootId();
+            const g = name ? loyGroupForName(name) : null;
+            const who = !name ? '' : (g.inList ? '✔ 名單裡的人，長客會記在他名下。' : '不在名單裡，會以補登方式記錄。');
+            const pts = mine ? '歸屬「我」：當月新增，每組 +10 排行榜積分。' : '歸屬夥伴小組：不計排行榜積分，但會計入長客與 KPI。';
+            document.getElementById('loy-add-hint').textContent = (who ? who + ' ' : '') + pts;
         }
 
-        window.addManualSubLoyalty = async function() {
-            const partnerName = document.getElementById('sub-partner-name').value.trim();
-            const groupId = document.getElementById('sub-partner-group').value || 'root';
-            const productId = document.getElementById('sub-prod-select').value;
-            const qty = parseInt(document.getElementById('sub-prod-qty').value)||1;
-            const date = document.getElementById('sub-partner-date').value || getLocalDateString();
+        window.submitLoyaltyCheckin = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('loyalty-name-input').value.trim();
+            if(!name) return window.showToast('請輸入顧客姓名');
+            const gid = document.getElementById('loyalty-group-select').value || loyRootId();
+            const date = document.getElementById('loyalty-checkin-date').value || getLocalDateString();
+            const note = document.getElementById('loyalty-checkin-notes').value.trim();
+            const picks = [];
+            document.querySelectorAll('.checkin-loy-row').forEach(row => {
+                const pId = row.querySelector('.checkin-prod-select').value; const qty = parseInt(row.querySelector('.checkin-qty-input').value) || 0;
+                const prod = state.products.find(p => p.id === pId);
+                if(prod && qty > 0) picks.push({ prod, qty });
+            });
+            if(!picks.length) return window.showToast('請選擇至少一個長客品項');
 
-            if(!partnerName) { window.showToast('請輸入顧客姓名'); return; }
-            if(!productId) { window.showToast('請選擇長客品項'); return; }
-            const gnode = findTreeNode(groupId);
-            const newItem = { id: 'sub_'+Date.now(), owner: sessionUser.email, partnerName, referrer: gnode ? gnode.name : '', groupId, productId, qty, date, endDate: '' };
-            state.subGroupLoyalties.push(newItem);
-            await cloudUpsert('sub_group_loyalties', newItem);
-            document.getElementById('sub-partner-name').value = '';
-            renderBVReport(); window.showToast(`🎉 已補登：${partnerName}（${gnode ? gnode.name : '未歸屬'}）`);
+            const mine = gid === loyRootId();
+            const scoring = mine && date.startsWith(getLocalMonthString());
+            const gnode = findTreeNode(gid);
+            const c = state.customers.find(x => x.owner === sessionUser.email && !x.isTrashed && x.name === name);
+            const stamp = Date.now(); const items = [];
+            picks.forEach((pk, i) => {
+                const id = (c ? 'ly_' : 'sub_') + stamp + '_' + i;
+                items.push(c ? { id, productId: pk.prod.id, qty: pk.qty, date, endDate: '' }
+                             : { id, owner: sessionUser.email, partnerName: name, referrer: gnode ? gnode.name : '', groupId: gid, productId: pk.prod.id, qty: pk.qty, date, endDate: '' });
+            });
+            const totalQty = picks.reduce((t, pk) => t + pk.qty, 0);
+            if(c) {
+                if(!c.loyaltyItems) c.loyaltyItems = [];
+                items.forEach(it => c.loyaltyItems.push(it));
+                c.loyaltyGroupId = mine ? '' : gid;
+                if(!c.timeline) c.timeline = [];
+                c.timeline.unshift({ date, text: `[新增長客] +${totalQty}組（${picks.map(pk => pk.prod.name + '×' + pk.qty).join('、')}）${note ? '. ' + note : ''}`, refs: items.map(it => it.id) });
+                await cloudUpsert('customers', c);
+            } else {
+                for(const it of items) { state.subGroupLoyalties.push(it); await cloudUpsert('sub_group_loyalties', it); }
+            }
+            if(scoring) {
+                for(let i = 0; i < items.length; i++) {
+                    const it = items[i]; const fd = { id: 'f_ly_' + it.id, user_name: sessionUser.email, customer_id: c ? c.id : null, loyalty_item_id: it.id, action: loyActionText(picks[i].prod.name, picks[i].qty), pts: 10 * picks[i].qty, time: new Date().toISOString() };
+                    state.feeds.unshift(fd); await cloudUpsert('feeds', fd);
+                }
+            }
+            renderAll(); renderBVReport();
+            const fid = document.getElementById('field-id'); if(fid && fid.value && c && c.id === fid.value) renderLoyaltySummary(c);
+            window.closeModal('checkin-loyalty-modal');
+            window.showToast(`🎉 已新增長客：${name} +${totalQty}組${scoring ? `（+${10 * totalQty} 分）` : mine ? '' : '（歸屬夥伴小組，不計積分）'}`);
+        };
+
+        async function loyRemoveFeeds(itemId, legacyIds) {
+            const gone = state.feeds.filter(f => f.id === 'f_ly_' + itemId || f.loyalty_item_id === itemId || (legacyIds || []).includes(f.id));
+            for(const f of gone) { state.feeds = state.feeds.filter(x => x.id !== f.id); await cloudDelete('feeds', f.id); }
+            return gone.length;
         }
 
         window.terminateDirectLoyaltyItem = async function(custId, loyId) {
@@ -1916,16 +1901,16 @@
         }
 
         window.deleteDirectLoyaltyItem = async function(custId, loyId) {
-            if(confirm('確定要刪除此長客品項嗎？\n(系統將會同步從軌跡中抹除此項紀錄與對應積分)')) {
+            if(confirm('確定要刪除此長客品項嗎？\n(若當月新增時有計分，會一併扣除這一筆的積分)')) {
                 const c = state.customers.find(x=>x.id===custId); if(!c) return;
                 c.loyaltyItems = (c.loyaltyItems||[]).filter(x=>x.id!==loyId);
                 if(c.timeline) {
-                    c.timeline = c.timeline.filter(t => {
-                        const txt = typeof t === 'string' ? t : (t.text || '');
-                        return !txt.includes('[新增長客]');
-                    });
+                    c.timeline = c.timeline.map(t => (t && typeof t === 'object' && Array.isArray(t.refs)) ? { ...t, refs: t.refs.filter(r => r !== loyId) } : t)
+                                           .filter(t => !(t && typeof t === 'object' && Array.isArray(t.refs) && t.refs.length === 0));
                 }
-                await cloudUpsert('customers', c); renderBVReport(); window.showToast('🗑️ 已刪除長客品項與對應軌跡');
+                await cloudUpsert('customers', c);
+                await loyRemoveFeeds(loyId);
+                renderAll(); renderBVReport(); window.showToast('🗑️ 已刪除長客品項與對應積分');
             }
         }
 
@@ -1942,15 +1927,8 @@
             if(confirm('確定要刪除此個人直轄長客嗎？')) {
                 state.myDirectLoyalties = state.myDirectLoyalties.filter(x=>x.id!==myId);
                 await cloudDelete('my_direct_loyalties', myId);
-
-                // 溯源抹除對應 feed
-                const feedToDel = state.feeds.find(f => f.id === 'f_my_ly_' + myId);
-                if(feedToDel) {
-                    state.feeds = state.feeds.filter(item => item.id !== feedToDel.id);
-                    await cloudDelete('feeds', feedToDel.id);
-                }
-
-                renderBVReport(); window.showToast('🗑️ 已刪除');
+                await loyRemoveFeeds(myId, ['f_my_ly_' + myId]);
+                renderAll(); renderBVReport(); window.showToast('🗑️ 已刪除');
             }
         }
 
@@ -1965,7 +1943,7 @@
 
         window.deleteSubLoyalty = async function(subId) {
             if(confirm('確定要永久刪除此補登紀錄嗎？')) {
-                state.subGroupLoyalties = state.subGroupLoyalties.filter(x=>x.id!==subId); await cloudDelete('sub_group_loyalties', subId); renderBVReport(); window.showToast('🗑️ 已刪除');
+                state.subGroupLoyalties = state.subGroupLoyalties.filter(x=>x.id!==subId); await cloudDelete('sub_group_loyalties', subId); await loyRemoveFeeds(subId); renderAll(); renderBVReport(); window.showToast('🗑️ 已刪除');
             }
         }
 
@@ -1983,7 +1961,7 @@
         }
 
         function updateReferrerDropdowns() {
-            const sel = document.getElementById('sub-partner-group');
+            const sel = document.getElementById('loyalty-group-select');
             if(!sel) return;
             const prev = sel.value;
             let html = ''; const ids = [];
@@ -2086,17 +2064,6 @@
             const selVal = document.getElementById('bv-month-select').value;
             const customInputVal = document.getElementById('bv-custom-month-input').value;
             const selectedMonth = (selVal === 'custom') ? (customInputVal || getLocalMonthString()) : selVal;
-
-            const prodOpts = `<option value="" disabled selected>選擇品項...</option>` + state.products.map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${fmtPV(p.bv/PV_RATIO)} PV)</option>`).join('');
-            document.getElementById('sub-prod-select').innerHTML = prodOpts;
-            document.getElementById('my-loyalty-prod').innerHTML = prodOpts;
-
-            // ✅ 使用者體驗連動：當切換上方檢視月份時，下方的補登日期自動連動至該月份的第一天
-            const linkedDefaultDate = selectedMonth + '-01';
-            const myLoyInput = document.getElementById('my-loyalty-date');
-            const subLoyInput = document.getElementById('sub-partner-date');
-            if(myLoyInput) myLoyInput.value = linkedDefaultDate;
-            if(subLoyInput) subLoyInput.value = linkedDefaultDate;
 
             let totalPV = 0; let totalQty = 0;
             updateReferrerDropdowns();
@@ -2326,10 +2293,7 @@
 
         window.ltToggle = function(id) { const s = window._ltOpen; if(s.has(id)) s.delete(id); else s.add(id); renderBVReport(); }
         window.ltDetailToggle = function(id) { const s = window._ltDetail; if(s.has(id)) s.delete(id); else s.add(id); renderBVReport(); }
-        window.ltAddTo = function(id) {
-            const sel = document.getElementById('sub-partner-group'); if(sel) sel.value = id;
-            const nm = document.getElementById('sub-partner-name'); if(nm) { nm.scrollIntoView({ block: 'center', behavior: 'smooth' }); nm.focus(); }
-        }
+        window.ltAddTo = function(id) { window.openLoyAdd({ groupId: id }); }
         window.ltSetGroup = async function(key, gid) {
             const r = (window._ltReg || {})[key]; if(!r || !gid) return;
             const gnode = findTreeNode(gid); const gname = gnode ? gnode.name : '';
@@ -2574,7 +2538,7 @@
         }
 
         // 防連點：送出類函式執行中時，忽略重複觸發
-        ;['saveEvent','handleFormSubmit','submitOppCheckin','submitRecCheckin','submitLoyaltyCheckin','addMyDirectLoyalty','addManualSubLoyalty'].forEach(name => {
+        ;['saveEvent','handleFormSubmit','submitOppCheckin','submitRecCheckin','submitLoyaltyCheckin'].forEach(name => {
             const orig = window[name]; if (typeof orig !== 'function') return;
             window[name] = function(...args) {
                 if (args[0] && typeof args[0].preventDefault === 'function') args[0].preventDefault();
