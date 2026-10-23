@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-23c loyalty-link -->
+<!-- build: 2026-10-24a loyalty-create-list -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -438,7 +438,7 @@
 
     <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="font-bold theme-title mb-1.5 block">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="font-bold theme-title mb-1.5 block">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="font-bold theme-title mb-1.5 block">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="font-bold theme-title mb-1.5 block">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div></div>
 
-    <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[88vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">顧客姓名 *</label><input type="text" id="loyalty-name-input" list="loy-name-list" required autocomplete="off" oninput="window.loyAddHint()" onchange="window.loyAddNameChange()" placeholder="選擇名單裡的人，或直接輸入姓名" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><datalist id="loy-name-list"></datalist></div><div><label class="block font-bold theme-title mb-1.5">歸屬小組 *</label><select id="loyalty-group-select" onchange="window.loyAddHint()" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="root">我</option></select><p id="loy-add-hint" class="text-xs theme-muted mt-1.5 leading-relaxed"></p></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認新增</button></div></form></div></div>
+    <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[88vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">顧客姓名 *</label><input type="text" id="loyalty-name-input" list="loy-name-list" required autocomplete="off" oninput="window.loyAddHint()" onchange="window.loyAddNameChange()" placeholder="選擇名單裡的人，或直接輸入姓名" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><datalist id="loy-name-list"></datalist></div><div><label class="block font-bold theme-title mb-1.5">歸屬小組 *</label><select id="loyalty-group-select" onchange="window.loyAddHint()" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="root">我</option></select><p id="loy-add-hint" class="text-xs theme-muted mt-1.5 leading-relaxed"></p><label id="loy-create-wrap" class="hidden flex items-center gap-2 text-sm theme-title mt-2"><input type="checkbox" id="loy-create-list" checked class="rounded w-5 h-5"> 同時建立名單（我直接服務的人）</label></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認新增</button></div></form></div></div>
 
     <div id="loy-new-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[80vh] flex flex-col">
@@ -1815,6 +1815,7 @@
             document.getElementById('loyalty-name-input').value = opts.name || '';
             document.getElementById('loyalty-checkin-date').value = getLocalDateString();
             document.getElementById('loyalty-checkin-notes').value = '';
+            document.getElementById('loy-create-list').checked = true;
             document.getElementById('checkin-loyalty-rows').innerHTML = ''; addCheckinLoyaltyRow();
             document.getElementById('loyalty-group-select').value = opts.groupId || loyRootId();
             if(!opts.groupId && opts.name) window.loyAddNameChange();
@@ -1835,6 +1836,7 @@
             const who = !name ? '' : (g.inList ? '✔ 名單裡的人，長客會記在他名下。' : '不在名單裡，會以補登方式記錄。');
             const pts = mine ? '歸屬「我」：當月新增，每組 +10 排行榜積分。' : '歸屬夥伴小組：不計排行榜積分，但會計入長客與 KPI。';
             document.getElementById('loy-add-hint').textContent = (who ? who + ' ' : '') + pts;
+            const wrap = document.getElementById('loy-create-wrap'); if(wrap) wrap.classList.toggle('hidden', !(name && g && !g.inList && mine));
         }
 
         window.submitLoyaltyCheckin = async function(e) {
@@ -1855,7 +1857,9 @@
             const mine = gid === loyRootId();
             const scoring = mine && date.startsWith(getLocalMonthString());
             const gnode = findTreeNode(gid);
-            const c = state.customers.find(x => x.owner === sessionUser.email && !x.isTrashed && x.name === name);
+            let c = state.customers.find(x => x.owner === sessionUser.email && !x.isTrashed && x.name === name);
+            let created = false;
+            if(!c && mine && document.getElementById('loy-create-list').checked) { c = loyNewListCustomer(name, date); state.customers.unshift(c); created = true; }
             const stamp = Date.now(); const items = [];
             picks.forEach((pk, i) => {
                 const id = (c ? 'ly_' : 'sub_') + stamp + '_' + i;
@@ -1882,7 +1886,7 @@
             renderAll(); renderBVReport();
             const fid = document.getElementById('field-id'); if(fid && fid.value && c && c.id === fid.value) renderLoyaltySummary(c);
             window.closeModal('checkin-loyalty-modal');
-            window.showToast(`🎉 已新增長客：${name} +${totalQty}組${scoring ? `（+${10 * totalQty} 分）` : mine ? '' : '（歸屬夥伴小組，不計積分）'}`);
+            window.showToast(`🎉 已新增長客：${name}${created ? '（已建立名單）' : ''} +${totalQty}組${scoring ? `（+${10 * totalQty} 分）` : mine ? '' : '（歸屬夥伴小組，不計積分）'}`);
         };
 
         async function loyRemoveFeeds(itemId, legacyIds) {
@@ -2158,6 +2162,12 @@
                     const k = 'k' + (regN++); window._ltReg[k] = pe;
                     sel = `<select onchange="window.ltSetGroup('${k}', this.value)" class="theme-card border-theme border rounded-lg px-2 py-1 text-xs theme-title" title="歸屬小組">${pe.gid ? '' : '<option value="" selected disabled>選擇歸屬小組…</option>'}${nodeOptions(pe.gid)}</select>`;
                 }
+                let linkRow = '';
+                if(pe.kind === 'sub' && pe.gid === rootId && !state.customers.some(x => x.owner === sessionUser.email && !x.isTrashed && x.name === pe.name)) {
+                    const k2 = Object.keys(window._ltReg).find(kk => window._ltReg[kk] === pe);
+                    const custOpts = state.customers.filter(x => x.owner === sessionUser.email && !x.isTrashed).sort((a,b) => a.name.localeCompare(b.name, 'zh-Hant')).map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');
+                    linkRow = `<div class="flex items-center gap-2 flex-wrap mb-1 text-xs"><span class="text-amber-700 font-bold">不在名單裡</span><button onclick="window.ltCreateList('${k2}')" class="bg-amber-500 text-white px-2 py-1 rounded font-bold">建立名單</button><select onchange="window.ltLinkPerson('${k2}', this.value)" class="theme-card border-theme border rounded-lg px-2 py-1 theme-title"><option value="" selected disabled>連結到名單裡的人…</option>${custOpts}</select></div>`;
+                }
                 const rows = pe.items.map(i => {
                     const endLabel = i.endDate ? `已終止(${esc(i.endDate)})` : '終止';
                     let actionBtns = '';
@@ -2166,7 +2176,7 @@
                     else actionBtns = `<button onclick="window.terminateSubLoyalty('${sid(i.subId)}')" class="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded font-bold">${endLabel}</button><button onclick="window.deleteSubLoyalty('${sid(i.subId)}')" class="text-rose-500 font-bold text-lg ml-2">🗑️</button>`;
                     return `<div class="flex justify-between items-center text-sm theme-title py-2 border-b border-slate-300/10"><span>${i.pName} <span class="text-emerald-600 font-bold ml-2">x${esc(i.qty)}</span></span><div class="flex gap-2 items-center"><span class="theme-muted font-bold">+${fmtPV(i.rowPV)} PV</span>${actionBtns}</div></div>`;
                 }).join('');
-                return `<div class="mt-3 border-t border-theme pt-3"><div class="flex justify-between items-center gap-2 flex-wrap mb-1"><span class="font-black theme-title">${esc(pe.name)}</span><div class="flex items-center gap-2"><span class="text-indigo-600 font-extrabold text-sm">${fmtPV(pe.sumPV)} PV</span>${sel}</div></div>${rows}</div>`;
+                return `<div class="mt-3 border-t border-theme pt-3"><div class="flex justify-between items-center gap-2 flex-wrap mb-1"><span class="font-black theme-title">${esc(pe.name)}</span><div class="flex items-center gap-2"><span class="text-indigo-600 font-extrabold text-sm">${fmtPV(pe.sumPV)} PV</span>${sel}</div></div>${linkRow}${rows}</div>`;
             };
 
             const nodeHTML = (a, depth) => {
@@ -2335,6 +2345,43 @@
             renderAll(); renderBVReport(); window.showToast(`✅ 已把 ${cand.size} 位的長客移到名單裡`);
         }
 
+        function loyNewListCustomer(name, date) {
+            return { id: 'c_' + Date.now() + Math.random().toString().substring(2, 5), owner: sessionUser.email, date, name, referrer: '自己', level: '顧客', progress: '長客', memberType: '未加入', ig: '', threads: '', channels: [], otherChannel: '', tags: [], nextFollowUp: '', followUpNote: '', breakthrough: '未破題', breakthroughDate: '', notes: '', loyaltyItems: [], loyaltyGroupId: '', isTrashed: false, timeline: [{ date, text: '建立名單' }] };
+        }
+        function loyResolveSubGroup(it) {
+            const root = loyRootId();
+            if(it.groupId) return findTreeNode(it.groupId) ? it.groupId : null;
+            if(!it.referrer || it.referrer === '自己') return root;
+            let f = null; const walk = n => { if(!f && n.name === it.referrer) f = n.id; (n.children||[]).forEach(walk); };
+            if(state.treeData && state.treeData.id) walk(state.treeData);
+            return f;
+        }
+        // 同一個補登的人（同名、同歸屬）的所有紀錄，不限目前檢視的月份
+        function loySubItemsOf(name, gid) { return (state.subGroupLoyalties || []).filter(x => x.partnerName === name && loyResolveSubGroup(x) === gid); }
+        async function loyMoveSubsToCustomer(c, subs) {
+            if(!c.loyaltyItems) c.loyaltyItems = [];
+            subs.forEach(it => c.loyaltyItems.push({ id: it.id, productId: it.productId, qty: it.qty, date: it.date, endDate: it.endDate || '' }));
+            c.loyaltyGroupId = '';
+            await cloudUpsert('customers', c);
+            for(const it of subs) { state.subGroupLoyalties = state.subGroupLoyalties.filter(x => x.id !== it.id); await cloudDelete('sub_group_loyalties', it.id); }
+        }
+        window.ltCreateList = async function(key) {
+            const r = (window._ltReg || {})[key]; if(!r || r.kind !== 'sub') return;
+            if(state.customers.some(x => x.owner === sessionUser.email && !x.isTrashed && x.name === r.name)) return window.showToast('名單裡已經有同名的人，請用「連結名單」');
+            const subs = loySubItemsOf(r.name, loyRootId()); if(!subs.length) return;
+            const first = subs.map(x => String(x.date || '').slice(0,10)).filter(Boolean).sort()[0] || getLocalDateString();
+            const c = loyNewListCustomer(r.name, first); state.customers.unshift(c);
+            await loyMoveSubsToCustomer(c, subs);
+            renderAll(); renderBVReport(); window.showToast(`✅ 已建立名單：${r.name}`);
+        }
+        window.ltLinkPerson = async function(key, custId) {
+            const r = (window._ltReg || {})[key]; if(!r || r.kind !== 'sub' || !custId) return;
+            const c = state.customers.find(x => x.id === custId); if(!c) return;
+            const subs = loySubItemsOf(r.name, loyRootId()); if(!subs.length) return;
+            await loyMoveSubsToCustomer(c, subs);
+            renderAll(); renderBVReport(); window.showToast(`✅ 已連結到名單：${c.name}`);
+        }
+
         window.ltToggle = function(id) { const s = window._ltOpen; if(s.has(id)) s.delete(id); else s.add(id); renderBVReport(); }
         window.ltDetailToggle = function(id) { const s = window._ltDetail; if(s.has(id)) s.delete(id); else s.add(id); renderBVReport(); }
         window.ltAddTo = function(id) { window.openLoyAdd({ groupId: id }); }
@@ -2346,8 +2393,8 @@
                 c.loyaltyGroupId = (state.treeData && gid === state.treeData.id) ? '' : gid;
                 await cloudUpsert('customers', c);
             } else if(r.kind === 'sub') {
-                for(const sid_ of r.subIds) {
-                    const it = state.subGroupLoyalties.find(x => x.id === sid_); if(!it) continue;
+                const all = loySubItemsOf(r.name, r.gid);
+                for(const it of (all.length ? all : r.subIds.map(i => state.subGroupLoyalties.find(x => x.id === i)).filter(Boolean))) {
                     it.groupId = gid; it.referrer = gname;
                     await cloudUpsert('sub_group_loyalties', it);
                 }
