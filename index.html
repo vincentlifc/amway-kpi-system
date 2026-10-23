@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-24b loyalty-self -->
+<!-- build: 2026-10-25a score -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -140,6 +140,7 @@
             <div class="p-4 border-b border-theme flex justify-between items-center"><h2 class="font-extrabold theme-title text-lg">💎 進階功能</h2><button onclick="window.toggleDrawer()" class="theme-muted hover:theme-title text-2xl">&times;</button></div>
             <div class="flex-1 overflow-y-auto p-4 space-y-3 text-sm font-bold">
                 <button onclick="window.openModal('bv-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📦 小組長客與 PV 統計</button>
+                <button onclick="window.openScorePage(); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📊 查三數</button>
                 <button onclick="window.openModal('tag-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🏷️ 專屬標籤設定</button>
                 <button onclick="window.openModal('product-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🛍️ 產品與 PV 設定</button>
                 <button onclick="window.openAdminModal(); window.toggleDrawer()" id="drawer-admin-btn" class="hidden w-full text-left p-3 rounded-xl bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 hover:bg-indigo-500/20 transition items-center gap-3">👑 帳號管理（管理員）</button>
@@ -192,6 +193,14 @@
                             <button onclick="window.openAddCustomerModal()" class="bg-slate-800 dark:bg-slate-100 dark:text-slate-900 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow flex items-center justify-center gap-2">➕ 新增跟進名單</button>
                         </div>
                     </div>
+                </div>
+
+                <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-2 w-full">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2"><span class="text-xl">📊</span><h2 class="text-base font-bold theme-title">查三數</h2></div>
+                        <div class="flex gap-2"><button onclick="window.openScorePage()" class="theme-subcard border-theme border theme-title font-bold px-3 py-2 rounded-xl text-sm">查看</button><button onclick="window.openScoreEntry()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-sm shadow">✍️ 記錄</button></div>
+                    </div>
+                    <div id="score-card-body" class="text-sm"></div>
                 </div>
 
                 <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-3 w-full">
@@ -440,6 +449,26 @@
 
     <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[88vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">顧客姓名 *</label><input type="text" id="loyalty-name-input" list="loy-name-list" required autocomplete="off" oninput="window.loyAddHint()" onchange="window.loyAddNameChange()" placeholder="選擇名單裡的人，或直接輸入姓名" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><datalist id="loy-name-list"></datalist></div><div><label class="block font-bold theme-title mb-1.5">歸屬小組 *</label><select id="loyalty-group-select" onchange="window.loyAddHint()" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="root">我</option></select><p id="loy-add-hint" class="text-xs theme-muted mt-1.5 leading-relaxed"></p><div id="loy-create-wrap" class="hidden mt-2 space-y-2"><label class="flex items-center gap-2 text-sm theme-title"><input type="checkbox" id="loy-create-list" checked class="rounded w-5 h-5"> 同時建立名單（我直接服務的人）</label><div class="flex items-center gap-2 text-xs theme-muted pl-7">已破題 ・ 會員類別 <select id="loy-create-member" class="theme-card border-theme border rounded-lg px-2 py-1 theme-title"><option value="直銷商" selected>直銷商</option><option value="生活會員">生活會員</option></select></div></div></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認新增</button></div></form></div></div>
 
+    <div id="score-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-lg rounded-2xl p-5 border-theme border shadow-2xl flex flex-col max-h-[88vh]">
+            <div class="flex justify-between border-b border-theme pb-3 shrink-0"><h3 class="font-bold theme-title text-lg">📊 查三數</h3><button onclick="window.closeModal('score-modal')" class="theme-muted text-2xl">&times;</button></div>
+            <div id="score-body" class="overflow-y-auto flex-1 no-scrollbar pt-4 space-y-4 text-sm"></div>
+            <input type="file" id="sc-import-file" accept=".csv,.txt" class="hidden" onchange="window.scImportFile(this)">
+        </div>
+    </div>
+
+    <div id="score-entry-modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-lg rounded-2xl p-5 border-theme border shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between border-b border-theme pb-3 shrink-0"><h3 class="font-bold theme-title text-lg">✍️ 記錄分數</h3><button onclick="window.closeModal('score-entry-modal')" class="theme-muted text-2xl">&times;</button></div>
+            <div class="pt-3 shrink-0 space-y-2">
+                <label class="flex items-center gap-2 text-sm font-bold theme-title">日期 <input type="date" id="sc-entry-date" onchange="window.scEntryDateChange()" class="theme-subcard border-theme border rounded-lg p-2 theme-title"></label>
+                <p class="text-xs theme-muted leading-relaxed">照 Amcard 組織網上每個人旁邊的「小組積分」填寫；沒追蹤的人留空即可。「個人」由系統自動算：小組積分 − 下一層的小組積分（含你沒追蹤的下線）。</p>
+            </div>
+            <div id="sc-entry-rows" class="overflow-y-auto flex-1 no-scrollbar py-3 space-y-2"></div>
+            <div class="flex justify-end gap-3 pt-3 border-t border-theme shrink-0"><button type="button" onclick="window.closeModal('score-entry-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="button" onclick="window.saveScoreEntry()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold">儲存</button></div>
+        </div>
+    </div>
+
     <div id="loy-new-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-lg rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[80vh] flex flex-col">
             <div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">📦 新增長客明細</h3><button onclick="window.closeModal('loy-new-modal')" class="theme-muted text-2xl">&times;</button></div>
@@ -485,7 +514,7 @@
                 <button onclick="window.closeModal('loy-import-modal')" class="theme-muted text-3xl hover:text-rose-500">&times;</button>
             </div>
             <div class="overflow-y-auto flex-1 no-scrollbar py-4 space-y-4 text-sm">
-                <p class="theme-muted">貼上或選擇 CSV，每列四欄：<b class="theme-title">顧客、小組、品項、組數</b>。</p>
+                <p class="theme-muted">貼上或選擇 CSV，第一列是標題，每列四欄：<b class="theme-title">顧客、小組、品項、組數</b>。「小組」要是五心組織圖裡有的名字；自己的長客顧客欄寫「我自己」。 <button type="button" onclick="window.loyDownloadTemplate()" class="text-indigo-600 font-bold underline">📄 下載範本</button></p>
                 <div class="flex flex-wrap gap-3 items-center">
                     <input type="file" accept=".csv,.txt" onchange="window.loyImportFile(this)" class="text-xs theme-title">
                     <label class="text-xs theme-muted">啟動日期 <input type="date" id="loy-import-date" class="theme-subcard border-theme border rounded-lg p-1.5 text-xs theme-title"></label>
@@ -952,6 +981,26 @@
         const PAST_BT_STAGES = ['OPP','七天法則','加入','體驗產品','長客'];
         function isBreakthrough(c) { return !!c && c.breakthrough === '已破題'; }
         function markBreakthrough(c, date) { if (isBreakthrough(c)) return false; c.breakthrough = '已破題'; c.breakthroughDate = date || ''; return true; }
+        // 標準 CSV 解析（支援引號、引號內逗號與換行、CRLF）
+        function csvParse(text, delim) {
+            const rows = []; let row = [], cur = '', q = false;
+            const pushRow = () => { row.push(cur); cur = ''; if(row.some(c => c.trim() !== '')) rows.push(row.map(c => c.trim())); row = []; };
+            for(let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if(q) { if(ch === '"') { if(text[i+1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+                else if(ch === '"') q = true;
+                else if(ch === delim) { row.push(cur); cur = ''; }
+                else if(ch === '\n' || ch === '\r') { if(ch === '\r' && text[i+1] === '\n') i++; pushRow(); }
+                else cur += ch;
+            }
+            if(cur !== '' || row.length) pushRow();
+            return rows;
+        }
+        function csvDelim(text) { return (String(text).split(/\r?\n/)[0] || '').includes('\t') ? '\t' : ','; }
+        function csvDownload(filename, rows) {
+            const csv = "﻿" + rows.map(r => r.map(csvCell).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; link.click();
+        }
         function csvCell(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
         const _busy = new Set();
         async function guardRun(key, fn, self, args) { if (_busy.has(key)) return; _busy.add(key); try { return await fn.apply(self, args); } finally { _busy.delete(key); } }
@@ -984,6 +1033,11 @@
                 const evRes = await db.from('events').select('*').eq('owner', sessionUser.email);
                 state.eventsReady = !evRes.error; state.events = evRes.error ? [] : (evRes.data || []);
             } catch (e) { state.eventsReady = false; state.events = []; }
+            try {
+                const scRes = await db.from('score_snapshots').select('*').eq('owner', sessionUser.email);
+                state.scoreReady = !scRes.error; state.scoreSnapshots = scRes.error ? [] : (scRes.data || []);
+            } catch (e) { state.scoreReady = false; state.scoreSnapshots = []; }
+            { const sc = (sets || []).find(x => x.id === `score_cfg_${sessionUser.email}`); state.scoreCfg = (sc && sc.data && typeof sc.data.target === 'number') ? sc.data : { target: -1 }; }
             // 新欄位是否已建立（select * 會回傳所有欄位，包含值為 null 的）
             const hasBtCol = state.customers.length === 0 || ('breakthrough' in state.customers[0]);
             if (!hasBtCol) {
@@ -1038,7 +1092,7 @@
         }
 
         function renderAll() {
-            updateFilterOptions(); renderFollowupBanner(); renderEventsCard(); renderDashboard(); renderList();
+            updateFilterOptions(); renderFollowupBanner(); renderEventsCard(); renderScoreCard(); renderDashboard(); renderList();
             renderTrashCount(); renderTagsLobby(); renderProductsLobby(); renderBVReport(); updateReferrerDropdowns();
             renderLeaderboard();
         }
@@ -2234,23 +2288,17 @@
             r.onload = () => { document.getElementById('loy-import-text').value = String(r.result || '').replace(/^﻿/, ''); window.loyImportPreview(); };
             r.readAsText(f, 'utf-8');
         }
-        function loyParseLine(line) {
-            const delim = line.indexOf('\t') >= 0 ? '\t' : ',';
-            const out = []; let cur = '', q = false;
-            for(let i = 0; i < line.length; i++) {
-                const ch = line[i];
-                if(q) { if(ch === '"') { if(line[i+1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
-                else if(ch === '"') q = true;
-                else if(ch === delim) { out.push(cur.trim()); cur = ''; }
-                else cur += ch;
-            }
-            out.push(cur.trim()); return out;
+        window.loyDownloadTemplate = function() {
+            const root = (state.treeData && state.treeData.name) || '我';
+            const kid = (state.treeData && state.treeData.children && state.treeData.children[0] && state.treeData.children[0].name) || root;
+            const p1 = (state.products[0] && state.products[0].name) || '優蛋白', p2 = (state.products[1] && state.products[1].name) || p1;
+            csvDownload('長客匯入範本.csv', [['顧客', '小組', '品項', '組數'], ['王小明', root, p1, 1], ['李小華', kid, p2, 2], ['我自己', root, p1, 1]]);
+            window.showToast('📥 長客匯入範本已下載');
         }
         window.loyImportPreview = function(keepMap) {
             const txt = document.getElementById('loy-import-text').value;
-            const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-            const rows = [];
-            lines.forEach(l => { const c = loyParseLine(l); if(c.length >= 4 && c[0] !== '顧客') rows.push({ name: c[0], gtext: c[1], pname: c[2], qty: parseInt(c[3]) || 0 }); });
+            const clean = txt.replace(/^\uFEFF/, ''); const rows = [];
+            csvParse(clean, csvDelim(clean)).forEach(c => { if(c.length >= 4 && c[0] !== '顧客') rows.push({ name: c[0], gtext: c[1], pname: c[2], qty: parseInt(c[3]) || 0 }); });
             const prev = (keepMap && window._loyImp) ? window._loyImp.groupMap : {};
             window._loyImp = { rows, groupMap: prev || {} };
             loyImportRender();
@@ -2469,56 +2517,49 @@
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `五心名單_${sessionUser.email.split('@')[0]}.csv`; link.click();
         }
 
+        const LIST_CSV_HEAD = ['認識日期', '姓名', '誰的朋友', '等級定位', '跟進進度', '會員類別', 'IG', 'Threads', '活動標籤', '備註', '破題狀態', '破題日期', '下次跟進日', '跟進內容'];
         window.downloadCsvTemplate = function() {
-            const headers = ['認識日期', '姓名', '誰的朋友', '等級定位', '跟進進度', '會員類別', 'IG', 'Threads', '活動標籤', '備註'];
-            const sampleRow = ['2026-08-01', '王小明', '自己', 'A級', '新開發/待跟進', '生活會員', 'ming_ig', 'ming_threads', '營養班;交流會', '備註範例文字'];
-            const csv = "﻿" + [headers.join(','), sampleRow.join(',')].join('\n');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `五心名單_匯入範本.csv`; link.click();
-            window.showToast('📥 標準匯入範本已下載！');
+            const sample = ['2026-08-01', '王小明', '自己', 'A級', '新開發/待跟進', '生活會員', 'ming_ig', 'ming_threads', '營養班;交流會', '備註範例文字', '已破題', '2026-08-15', '2026-11-01', '約聊近況'];
+            csvDownload('五心名單_匯入範本.csv', [LIST_CSV_HEAD, sample]);
+            window.showToast('📥 標準匯入範本已下載！（欄位與匯出的 Excel 相同）');
         }
 
         window.importExcel = function(e) {
             const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
             reader.onload = async function(ev) {
-                const lines = ev.target.result.split('\n').filter(l => l.trim().length > 0);
-                if(lines.length < 2) return alert('🚨 匯入檔案格式錯誤或無資料！');
-
-                let count = 0; let errorCount = 0;
-                for (let i = 1; i < lines.length; i++) {
-                    const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
-                    const name = cols[1];
-                    const date = cols[0];
-
-                    if (name && date && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        const data = {
-                            id: 'c_' + Date.now() + '_' + i,
-                            owner: sessionUser.email,
-                            date: date,
-                            name: name,
-                            referrer: cols[2]||'自己',
-                            level: cols[3]||'未分類',
-                            progress: cols[4]||'新開發/待跟進',
-                            memberType: cols[5]||'未加入',
-                            ig: cols[6]||'',
-                            threads: cols[7]||'',
-                            tags: cols[8]?cols[8].split(';').filter(Boolean):[],
-                            notes: cols[9]||'',
-                            isTrashed: false,
-                            timeline: [{date: getLocalDateString(), text: '自 Excel 匯入'}]
-                        };
-                        state.customers.unshift(data);
-                        await cloudUpsert('customers', data);
-                        count++;
-                    } else {
-                        errorCount++;
-                    }
+                const text = String(ev.target.result || '').replace(/^﻿/, '');
+                const rows = csvParse(text, csvDelim(text));
+                if(rows.length < 2) return alert('🚨 匯入檔案格式錯誤或無資料！');
+                // 依標題列對應欄位；沒有標題時依固定順序
+                const hdr = rows[0]; const hasHdr = hdr.includes('姓名');
+                const col = h => hasHdr ? hdr.indexOf(h) : LIST_CSV_HEAD.indexOf(h);
+                const get = (r, h) => { const j = col(h); return j >= 0 ? (r[j] || '') : ''; };
+                const isDate = v => /^\d{4}-\d{2}-\d{2}$/.test(v);
+                const existing = new Set(state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed).map(c => c.name));
+                let count = 0, errorCount = 0, dupCount = 0;
+                for (let i = hasHdr ? 1 : 0; i < rows.length; i++) {
+                    const r = rows[i]; const name = get(r, '姓名'); const date = get(r, '認識日期');
+                    if(!(name && isDate(date))) { errorCount++; continue; }
+                    if(existing.has(name)) { dupCount++; continue; }
+                    existing.add(name);
+                    const bt = get(r, '破題狀態') === '已破題'; const btd = get(r, '破題日期'); const nf = get(r, '下次跟進日');
+                    const data = {
+                        id: 'c_' + Date.now() + '_' + i, owner: sessionUser.email, date, name,
+                        referrer: get(r, '誰的朋友') || '自己', level: get(r, '等級定位') || '未分類', progress: get(r, '跟進進度') || '新開發/待跟進', memberType: get(r, '會員類別') || '未加入',
+                        ig: get(r, 'IG'), threads: get(r, 'Threads'), tags: get(r, '活動標籤') ? get(r, '活動標籤').split(';').filter(Boolean) : [], notes: get(r, '備註'),
+                        breakthrough: bt ? '已破題' : '未破題', breakthroughDate: (bt && isDate(btd)) ? btd : '',
+                        nextFollowUp: isDate(nf) ? nf : '', followUpNote: isDate(nf) ? get(r, '跟進內容') : '',
+                        loyaltyItems: [], loyaltyGroupId: '', isTrashed: false,
+                        timeline: [{date: getLocalDateString(), text: '自 Excel 匯入'}]
+                    };
+                    state.customers.unshift(data);
+                    await cloudUpsert('customers', data);
+                    count++;
                 }
+                e.target.value = '';
                 renderAll();
-                if(errorCount > 0) {
-                    window.showToast(`⚠️ 成功匯入 ${count} 筆，略過 ${errorCount} 筆格式不符資料`);
-                } else {
-                    window.showToast(`🎉 成功匯入 ${count} 筆名單！`);
-                }
+                const extra = [dupCount ? `${dupCount} 筆姓名已存在` : '', errorCount ? `${errorCount} 筆格式不符（需有姓名與 YYYY-MM-DD 認識日期）` : ''].filter(Boolean).join('、');
+                window.showToast(extra ? `⚠️ 成功匯入 ${count} 筆，略過 ${extra}` : `🎉 成功匯入 ${count} 筆名單！`);
             }; reader.readAsText(file);
         }
 
@@ -2658,8 +2699,248 @@
             }, 300);
         }
 
+        /* ---------- 查三數 ---------- */
+        const SC_TIERS = [[200,3],[600,6],[1000,9],[2000,12],[4000,15],[7000,18],[10000,21]];
+        function scTierOf(v) { let t = -1; SC_TIERS.forEach((x, i) => { if (v >= x[0]) t = i; }); return t; }
+        function scSnaps() { return state.scoreSnapshots || []; }
+        function scDates() { return [...new Set(scSnaps().map(s => s.snap_date))].sort(); }
+        function scVal(date, nid) { const s = scSnaps().find(x => x.snap_date === date && x.node_id === nid); return s ? Number(s.group_pv) : null; }
+        function scMonthDates(m) { return scDates().filter(d => d.substring(0, 7) === m); }
+        function scMonthEnd(m, nid) { const ds = scMonthDates(m).filter(d => scVal(d, nid) !== null); return ds.length ? scVal(ds[ds.length - 1], nid) : null; }
+        function scAddMonths(m, n) { const p = m.split('-').map(Number); return getLocalMonthString(new Date(p[0], p[1] - 1 + n, 1)); }
+        function scPrev3Min(nid, m) { const v = [1, 2, 3].map(i => scMonthEnd(scAddMonths(m, -i), nid)).filter(x => x !== null); return v.length ? Math.min.apply(null, v) : null; }
+        function scNodes() { const out = []; const walk = (n, d) => { out.push({ n, depth: d }); (n.children || []).forEach(c => walk(c, d + 1)); }; if (state.treeData && state.treeData.id) walk(state.treeData, 0); return out; }
+        function scPersonal(n, valFn) {
+            const g = valFn(n.id); if (g === null || g === undefined) return null;
+            let s = 0; (n.children || []).forEach(c => { const v = valFn(c.id); if (v !== null && v !== undefined) s += v; });
+            return g - s;
+        }
+        function scCfg() { return state.scoreCfg || { target: -1 }; }
+        function scFmtDate(d) { return d ? d.substring(5).replace('-', '/') : ''; }
+        // 目前這個月：最新一次有「我」小組積分的紀錄
+        function scCur() {
+            const m = getLocalMonthString(), root = loyRootId();
+            const ds = scMonthDates(m).filter(d => scVal(d, root) !== null);
+            const d = ds.length ? ds[ds.length - 1] : null;
+            return { m, d, v: d ? scVal(d, root) : null };
+        }
+        function scProgress() {
+            const c = scCur(), v = c.v || 0, cur = scTierOf(v), cfg = scCfg();
+            let tgt = cfg.target >= 0 ? cfg.target : Math.min(cur + 1, SC_TIERS.length - 1);
+            if (tgt < 0) tgt = 0;
+            const gap = Math.max(0, SC_TIERS[tgt][0] - v);
+            const now = new Date(), last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), left = last - now.getDate();
+            const all = scDates(), lastDate = all.length ? all[all.length - 1] : null;
+            const ago = lastDate ? -daysUntil(lastDate) : null;
+            return { c, v, cur, tgt, gap, left, lastDate, ago };
+        }
+        // 長客彙總（指定月份）：每個節點「個人」與「小組合計」的組數與 PV
+        function scLoyByNode(m) {
+            const root = loyRootId(), nodes = scNodes(), nodeMap = {}, nameMap = {};
+            nodes.forEach(x => { nodeMap[x.n.id] = x.n; if (!(x.n.name in nameMap)) nameMap[x.n.name] = x.n.id; });
+            const el = (s, e) => { const sm = String(s || '').substring(0, 7); if (m < sm) return false; if (e && m >= e) return false; return true; };
+            const own = {}; const add = (gid, q, pv) => { const k = gid || '__none'; own[k] = own[k] || { q: 0, pv: 0 }; own[k].q += q; own[k].pv += pv; };
+            const pvOf = (pid, q) => { const p = state.products.find(x => x.id === pid); return p ? p.bv * q / PV_RATIO : null; };
+            (state.myDirectLoyalties || []).forEach(it => { if (el(it.date, it.endDate)) { const pv = pvOf(it.productId, it.qty); if (pv !== null) add(root, parseInt(it.qty) || 0, pv); } });
+            state.customers.filter(c => !c.isTrashed && c.owner === sessionUser.email).forEach(c => {
+                const gid = (c.loyaltyGroupId && nodeMap[c.loyaltyGroupId]) ? c.loyaltyGroupId : root;
+                (c.loyaltyItems || []).forEach(it => { if (el(it.date || c.date, it.endDate)) { const pv = pvOf(it.productId, it.qty); if (pv !== null) add(gid, parseInt(it.qty) || 0, pv); } });
+            });
+            (state.subGroupLoyalties || []).forEach(it => {
+                if (!el(it.date || (m + '-01'), it.endDate)) return;
+                const pv = pvOf(it.productId, it.qty); if (pv === null) return;
+                let gid = null; if (it.groupId) gid = nodeMap[it.groupId] ? it.groupId : null; else if (!it.referrer || it.referrer === '自己') gid = root; else gid = nameMap[it.referrer] || null;
+                add(gid, parseInt(it.qty) || 0, pv);
+            });
+            const res = {};
+            const agg = n => { const o = own[n.id] || { q: 0, pv: 0 }; let tq = o.q, tpv = o.pv; (n.children || []).forEach(c => { const k = agg(c); tq += k.tq; tpv += k.tpv; }); res[n.id] = { oq: o.q, opv: o.pv, tq, tpv }; return res[n.id]; };
+            if (state.treeData && state.treeData.id) agg(state.treeData);
+            return res;
+        }
+        function renderScoreCard() {
+            const box = document.getElementById('score-card-body'); if (!box) return;
+            const p = scProgress();
+            if (!scDates().length) { box.innerHTML = '<div class="theme-muted text-center py-2">還沒有記錄。每週看一次 Amcard 組織網，按右上角「✍️ 記錄」輸入小組積分，就能追蹤進度與領導人。</div>'; return; }
+            const t = p.cur >= 0 ? SC_TIERS[p.cur][1] + '%' : '未達 3%';
+            let html = `<div class="flex items-end justify-between gap-2"><div><div class="text-xs theme-muted">本月小組積分（${scFmtDate(p.c.d) || '本月尚未記錄'}）</div><div class="text-2xl font-extrabold theme-title">${p.c.d ? fmtPV(p.v) : '—'} <span class="text-xs font-bold text-indigo-500">PV</span></div></div><div class="text-right"><div class="text-xs theme-muted">目前月結</div><div class="text-xl font-extrabold text-emerald-600">${p.c.d ? t : '—'}</div></div></div>`;
+            if (p.c.d) html += `<div class="text-xs theme-muted mt-1">${p.gap > 0 ? `距 ${SC_TIERS[p.tgt][1]}%（${fmtPV(SC_TIERS[p.tgt][0])}）還差 <b class="theme-title">${fmtPV(p.gap)}</b> PV${p.left > 0 ? `，本月剩 ${p.left} 天` : '，今天月底'}` : `已達標 ${SC_TIERS[p.tgt][1]}% 🎉`}</div>`;
+            if (p.ago !== null && p.ago >= 7) html += `<div class="text-xs text-amber-600 font-bold mt-1">⏰ 已 ${p.ago} 天沒記錄分數了</div>`;
+            box.innerHTML = html;
+        }
+
+        window.scSetTarget = async function(v) {
+            state.scoreCfg = { target: parseInt(v) };
+            await cloudUpsert('system_settings', { id: `score_cfg_${sessionUser.email}`, setting_type: 'user', data: state.scoreCfg });
+            renderScoreCard(); renderScorePage();
+        };
+        window.openScorePage = function() { renderScorePage(); window.openModal('score-modal'); };
+        function scTrendSVG() {
+            const root = loyRootId(), months = [...new Set(scDates().map(d => d.substring(0, 7)))];
+            const ayOf = m => { const y = +m.substring(0, 4), mo = +m.substring(5, 7); return mo >= 9 ? y + 1 : y; };
+            const ays = [...new Set(months.map(ayOf))].sort().slice(-3);
+            if (!ays.length) return '';
+            const series = ays.map(ay => { const arr = new Array(12).fill(null); months.filter(m => ayOf(m) === ay).forEach(m => { const mo = +m.substring(5, 7); arr[(mo + 3) % 12] = scMonthEnd(m, root); }); return { ay, arr }; });
+            let max = 1; series.forEach(s => s.arr.forEach(v => { if (v !== null && v > max) max = v; }));
+            max = max * 1.1;
+            const W = 320, H = 150, L = 36, R = 8, T = 8, B = 20, X = i => L + (W - L - R) * i / 11, Y = v => T + (H - T - B) * (1 - v / max);
+            const colors = ['#94a3b8', '#f59e0b', '#4f46e5'], lab = ['9', '10', '11', '12', '1', '2', '3', '4', '5', '6', '7', '8'];
+            let g = '';
+            [0, 0.5, 1].forEach(f => { const y = Y(max / 1.1 * f); g += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="currentColor" opacity="0.12"/><text x="${L - 4}" y="${y + 3}" font-size="9" text-anchor="end" fill="currentColor" opacity="0.6">${Math.round(max / 1.1 * f)}</text>`; });
+            lab.forEach((t, i) => { g += `<text x="${X(i)}" y="${H - 6}" font-size="9" text-anchor="middle" fill="currentColor" opacity="0.6">${t}</text>`; });
+            const off = colors.length - series.length;
+            series.forEach((s, si) => {
+                const col = colors[si + off]; let d = '', pen = false, dots = '';
+                s.arr.forEach((v, i) => { if (v === null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1) + ' '; pen = true; dots += `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="2.5" fill="${col}"/>`; });
+                g += `<path d="${d}" fill="none" stroke="${col}" stroke-width="2"/>` + dots;
+            });
+            const legend = series.map((s, si) => `<span class="inline-flex items-center gap-1"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${colors[si + off]}"></span>AY${s.ay}</span>`).join('　');
+            return `<svg viewBox="0 0 ${W} ${H}" class="w-full theme-title" role="img" aria-label="月底小組積分趨勢">${g}</svg><div class="text-xs theme-muted mt-1">${legend}　<span class="opacity-70">橫軸為月份（9 月起算的業績年度）</span></div>`;
+        }
+        function renderScorePage() {
+            const box = document.getElementById('score-body'); if (!box) return;
+            const p = scProgress(), m = p.c.m, d = p.c.d;
+            const nodes = scNodes(), loy = scLoyByNode(m), root = loyRootId();
+            const tgtOpts = SC_TIERS.map((t, i) => `<option value="${i}" ${i === p.tgt ? 'selected' : ''}>${t[1]}%（${fmtPV(t[0])}）</option>`).join('');
+            let html = `<div class="theme-subcard border-theme border rounded-xl p-4 space-y-2"><div class="flex justify-between items-center"><div class="font-bold theme-title">${m} 月結進度</div><label class="text-xs theme-muted">目標 <select onchange="window.scSetTarget(this.value)" class="theme-card border-theme border rounded-lg px-2 py-1 theme-title">${tgtOpts}</select></label></div>`;
+            if (d) {
+                const pct = Math.min(100, p.v / SC_TIERS[p.tgt][0] * 100);
+                html += `<div class="text-2xl font-extrabold theme-title">${fmtPV(p.v)} <span class="text-xs text-indigo-500">PV</span> <span class="text-sm text-emerald-600">${p.cur >= 0 ? SC_TIERS[p.cur][1] + '%' : '未達 3%'}</span></div><div class="h-2 rounded-full bg-slate-500/20 overflow-hidden"><div class="h-2 bg-indigo-500" style="width:${pct}%"></div></div>`;
+                if (p.gap > 0) {
+                    html += `<div class="text-xs theme-muted">還差 <b class="theme-title">${fmtPV(p.gap)}</b> PV 到 ${SC_TIERS[p.tgt][1]}%`;
+                    if (p.left > 0) html += `，剩 ${p.left} 天，平均每天約 ${Math.ceil(p.gap / p.left)}，每週約 ${Math.ceil(p.gap / p.left * 7)}`;
+                    html += '</div>';
+                } else html += '<div class="text-xs text-emerald-600 font-bold">已達標 🎉</div>';
+                html += `<div class="text-xs theme-muted">最新記錄：${d}</div>`;
+            } else html += '<div class="text-xs theme-muted">本月還沒有記錄，按下面「記錄分數」開始。</div>';
+            html += '</div>';
+            html += `<div class="flex flex-wrap gap-2"><button onclick="window.openScoreEntry()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-sm">✍️ 記錄分數</button><button onclick="window.scExport()" class="theme-subcard border-theme border theme-title font-bold px-3 py-2 rounded-xl text-sm">⬇️ 匯出 CSV</button><button onclick="window.scTemplate()" class="theme-subcard border-theme border theme-title font-bold px-3 py-2 rounded-xl text-sm">📄 匯入範本</button><button onclick="document.getElementById('sc-import-file').click()" class="theme-subcard border-theme border theme-title font-bold px-3 py-2 rounded-xl text-sm">⬆️ 匯入歷史</button></div>`;
+            // 領導人
+            html += `<div><div class="font-bold theme-title mb-1">領導人（${m}）</div><div class="text-[11px] theme-muted mb-2 leading-relaxed">「前三月最低」＝過去三個月、該人月底小組積分的最低值。「個人」＝小組積分 − 下一層小組積分，含你沒追蹤的下線。</div><div class="space-y-2">`;
+            const val = id => d ? scVal(d, id) : null;
+            const prevDates = scMonthDates(m).filter(x => d && x < d);
+            const prevD = prevDates.length ? prevDates[prevDates.length - 1] : null;
+            nodes.forEach(x => {
+                const n = x.n, g = val(n.id), pm = scPrev3Min(n.id, m), per = scPersonal(n, val), l = loy[n.id] || { oq: 0, opv: 0, tq: 0, tpv: 0 };
+                const pg = prevD ? scVal(prevD, n.id) : null;
+                const chg = (g !== null && pg !== null) ? g - pg : null;
+                let status = '';
+                if (g !== null && pm !== null) status = g >= pm ? `<span class="text-emerald-600 font-bold">✅ 已達前三月最低</span>` : `<span class="text-amber-600 font-bold">還差 ${fmtPV(pm - g)}</span>`;
+                const nm = x.depth === 0 ? '團隊總分（我）' : esc(n.name);
+                html += `<div class="theme-subcard border-theme border rounded-xl p-3" style="margin-left:${Math.min(x.depth, 4) * 10}px"><div class="flex justify-between items-baseline gap-2"><div class="font-bold theme-title truncate">${nm}</div><div class="font-extrabold theme-title shrink-0">${g !== null ? fmtPV(g) : '—'}${chg !== null && chg !== 0 ? ` <span class="text-xs ${chg > 0 ? 'text-emerald-600' : 'text-rose-500'}">${chg > 0 ? '▲' : '▼'}${fmtPV(Math.abs(chg))}</span>` : ''}</div></div><div class="text-xs theme-muted mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5"><div>個人 ${per !== null ? (per < 0 ? `<span class="text-rose-500">${fmtPV(per)}（?）</span>` : fmtPV(per)) : '—'}</div><div>前三月最低 ${pm !== null ? fmtPV(pm) : '—'}</div><div>長客 個人 ${l.oq}組 / ${fmtPV(l.opv)}</div><div>長客 小組 ${l.tq}組 / ${fmtPV(l.tpv)}</div></div>${status ? `<div class="text-xs mt-1">${status}</div>` : ''}</div>`;
+            });
+            if (nodes.length <= 1) html += '<div class="text-xs theme-muted">五心組織圖裡還沒有夥伴，先到組織圖新增要追蹤的領導人。</div>';
+            html += '</div></div>';
+            const trend = scTrendSVG();
+            if (trend) html += `<div class="theme-subcard border-theme border rounded-xl p-4"><div class="font-bold theme-title mb-2">月底小組積分走勢</div>${trend}</div>`;
+            const ds = scDates().slice().reverse();
+            if (ds.length) html += `<details class="theme-subcard border-theme border rounded-xl p-3"><summary class="font-bold theme-title cursor-pointer">記錄日期（${ds.length}）</summary><div class="pt-2 space-y-1">${ds.slice(0, 60).map(x => `<div class="flex justify-between items-center"><button onclick="window.openScoreEntry('${sid(x)}')" class="text-indigo-600 font-bold">${esc(x)}　✏️</button><button onclick="window.scDeleteDate('${sid(x)}')" class="text-rose-500 text-xs">🗑️ 刪除</button></div>`).join('')}</div></details>`;
+            box.innerHTML = html;
+        }
+        window.scDeleteDate = function(date) {
+            window.openConfirmModal(`確定刪除 ${date} 的所有分數記錄嗎？`, async () => {
+                const del = scSnaps().filter(s => s.snap_date === date);
+                state.scoreSnapshots = scSnaps().filter(s => s.snap_date !== date);
+                renderScoreCard(); renderScorePage();
+                for (const s of del) await cloudDelete('score_snapshots', s.id);
+                window.showToast('🗑️ 已刪除');
+            });
+        };
+        // ---- 記錄分數 ----
+        window.openScoreEntry = function(date) {
+            if (state.scoreReady === false) return window.showToast('⚠️ 資料庫尚未建立「分數記錄」資料表，請先執行查三數的 SQL');
+            document.getElementById('sc-entry-date').value = date || getLocalDateString();
+            window.scEntryDateChange(); window.openModal('score-entry-modal');
+        };
+        window.scEntryDateChange = function() {
+            const date = document.getElementById('sc-entry-date').value || getLocalDateString();
+            const nodes = scNodes(); window._scRows = nodes;
+            const same = scSnaps().some(s => s.snap_date === date);
+            const before = scDates().filter(x => x < date), lastD = before.length ? before[before.length - 1] : null;
+            const useD = same ? date : (lastD && lastD.substring(0, 7) === date.substring(0, 7) ? lastD : null);
+            const hintD = !useD && lastD ? lastD : null;
+            document.getElementById('sc-entry-rows').innerHTML = nodes.map((x, i) => {
+                const v = useD ? scVal(useD, x.n.id) : null, hv = hintD ? scVal(hintD, x.n.id) : null;
+                return `<div style="margin-left:${Math.min(x.depth, 4) * 10}px" class="theme-subcard border-theme border rounded-xl p-2.5"><div class="flex items-center justify-between gap-2"><div class="font-bold theme-title text-sm truncate">${x.depth === 0 ? '團隊總分（我）' : esc(x.n.name)}</div><input type="text" inputmode="decimal" id="sc-in-${i}" value="${v !== null ? v : ''}" placeholder="${hv !== null ? '上次 ' + hv : '小組積分'}" oninput="window.scEntryCalc()" class="w-28 theme-card border-theme border rounded-lg p-2 text-right theme-title"></div><div id="sc-per-${i}" class="text-xs theme-muted text-right mt-1"></div></div>`;
+            }).join('');
+            window.scEntryCalc();
+        };
+        function scReadInputs() {
+            const m = {}; (window._scRows || []).forEach((x, i) => {
+                const el = document.getElementById('sc-in-' + i); const raw = el ? el.value.replace(/[,\s]/g, '') : '';
+                m[x.n.id] = (raw === '' || isNaN(Number(raw))) ? null : Number(raw);
+            }); return m;
+        }
+        window.scEntryCalc = function() {
+            const vals = scReadInputs(); const valFn = id => vals[id];
+            (window._scRows || []).forEach((x, i) => {
+                const el = document.getElementById('sc-per-' + i); if (!el) return;
+                const per = scPersonal(x.n, valFn);
+                el.innerHTML = per === null ? '' : per < 0 ? `<span class="text-rose-500">個人 ${fmtPV(per)}（比下一層還小，請確認）</span>` : `個人 <b class="theme-title">${fmtPV(per)}</b>`;
+            });
+        };
+        window.saveScoreEntry = async function() {
+            const date = document.getElementById('sc-entry-date').value; if (!date) return window.showToast('請選擇日期');
+            const vals = scReadInputs(); const nodes = window._scRows || [];
+            const ups = [], dels = [];
+            nodes.forEach(x => {
+                const id = `ss_${date}_${x.n.id}`, v = vals[x.n.id], ex = scSnaps().find(s => s.id === id);
+                if (v === null) { if (ex) dels.push(ex); }
+                else ups.push({ id, owner: sessionUser.email, snap_date: date, node_id: x.n.id, node_name: x.n.name, group_pv: v });
+            });
+            if (!ups.length && !dels.length) return window.showToast('還沒有輸入任何分數');
+            const keep = scSnaps().filter(s => !(dels.some(d => d.id === s.id) || ups.some(u => u.id === s.id)));
+            state.scoreSnapshots = keep.concat(ups);
+            renderScoreCard(); renderScorePage(); window.closeModal('score-entry-modal');
+            for (const u of ups) await cloudUpsert('score_snapshots', u);
+            for (const d of dels) await cloudDelete('score_snapshots', d.id);
+            window.showToast(`💾 已記錄 ${date}（${ups.length} 筆）`);
+        };
+        // ---- 匯出 / 範本 / 匯入歷史 ----
+        window.scExport = function() {
+            const nameOf = id => { const n = scNodes().find(x => x.n.id === id); return n ? (n.depth === 0 ? '我' : n.n.name) : ''; };
+            const rows = [['日期', '姓名', '小組積分']];
+            scSnaps().slice().sort((a, b) => a.snap_date.localeCompare(b.snap_date)).forEach(s => rows.push([s.snap_date, nameOf(s.node_id) || s.node_name, s.group_pv]));
+            csvDownload(`查三數記錄_${getLocalDateString()}.csv`, rows);
+        };
+        window.scTemplate = function() {
+            const rows = [['日期', '姓名', '小組積分']]; const dt = getLocalDateString();
+            scNodes().forEach(x => rows.push([dt, x.depth === 0 ? '我' : x.n.name, '']));
+            csvDownload('查三數匯入範本.csv', rows);
+        };
+        window.scImportFile = function(inp) {
+            const f = inp.files && inp.files[0]; if (!f) return;
+            const r = new FileReader();
+            r.onload = async () => {
+                inp.value = '';
+                const text = String(r.result || '').replace(/^﻿/, ''); const rows = csvParse(text, csvDelim(text));
+                const nodes = scNodes(), byName = {}; nodes.forEach(x => { if (!(x.n.name in byName)) byName[x.n.name] = x.n.id; });
+                const root = loyRootId(), rootName = (state.treeData && state.treeData.name) || '';
+                const ups = [], skipped = new Set(); let bad = 0;
+                rows.forEach((r2, idx) => {
+                    if (idx === 0 && /日期|date/i.test(String(r2[0]))) return;
+                    const date = String(r2[0] || '').trim().replace(/\//g, '-').replace(/^(\d{4})-(\d{1,2})-(\d{1,2})$/, (a, y, mo, dd) => `${y}-${mo.padStart(2, '0')}-${dd.padStart(2, '0')}`);
+                    const name = String(r2[1] || '').trim(), raw = String(r2[2] || '').replace(/[,\s]/g, '');
+                    if (!name && !raw) return;
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || raw === '' || isNaN(Number(raw))) { bad++; return; }
+                    const nid = (name === '我' || name === '團隊總分' || name === rootName) ? root : byName[name];
+                    if (!nid) { skipped.add(name); return; }
+                    ups.push({ id: `ss_${date}_${nid}`, owner: sessionUser.email, snap_date: date, node_id: nid, node_name: name === '我' ? rootName : name, group_pv: Number(raw) });
+                });
+                if (!ups.length) return window.showToast('⚠️ 沒有可匯入的資料（日期、姓名、小組積分三欄；姓名要和五心組織圖一致）');
+                const msg = `將匯入 ${ups.length} 筆分數（同一天同一人會覆蓋）` + (skipped.size ? `\n組織圖找不到的姓名（略過）：${[...skipped].slice(0, 8).join('、')}${skipped.size > 8 ? '…' : ''}` : '') + (bad ? `\n格式不符 ${bad} 筆（略過）` : '');
+                window.openConfirmModal(msg, async () => {
+                    const ids = new Set(ups.map(u => u.id));
+                    state.scoreSnapshots = scSnaps().filter(s => !ids.has(s.id)).concat(ups);
+                    renderScoreCard(); renderScorePage();
+                    for (const u of ups) await cloudUpsert('score_snapshots', u);
+                    window.showToast(`✅ 已匯入 ${ups.length} 筆`);
+                });
+            };
+            r.readAsText(f, 'utf-8');
+        };
+
         // 防連點：送出類函式執行中時，忽略重複觸發
-        ;['saveEvent','handleFormSubmit','submitOppCheckin','submitRecCheckin','submitLoyaltyCheckin'].forEach(name => {
+        ;['saveEvent','handleFormSubmit','submitOppCheckin','submitRecCheckin','submitLoyaltyCheckin','saveScoreEntry'].forEach(name => {
             const orig = window[name]; if (typeof orig !== 'function') return;
             window[name] = function(...args) {
                 if (args[0] && typeof args[0].preventDefault === 'function') args[0].preventDefault();
