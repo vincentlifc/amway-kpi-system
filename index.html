@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-25b tabs-tree -->
+<!-- build: 2026-10-25c nav5 -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -34,6 +34,19 @@
         .tag-chip { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; background: var(--bg-subcard); color: var(--accent); border: 1px solid var(--accent); margin-right: 0.25rem; margin-bottom: 0.25rem;}
         .tag-chip button { margin-left: 0.25rem; color: #ef4444; }
         #main-app { display: none; }
+        /* 分頁列：手機固定在下方、圖示在上文字在下；電腦在上方橫排 */
+        .tab-btn { flex:1 1 0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:60px; padding:6px 2px; color:var(--text-muted); font-weight:700; transition:color .15s; }
+        .tab-btn .tab-ic { font-size:1.45rem; line-height:1; filter:grayscale(.55); opacity:.8; }
+        .tab-btn .tab-tx { font-size:.75rem; line-height:1.1; }
+        .tab-btn.tab-active { color:#4f46e5; }
+        .tab-btn.tab-active .tab-ic { filter:none; opacity:1; }
+        .tab-btn.tab-active .tab-tx { font-weight:800; }
+        @media (min-width: 640px) {
+            .tab-btn { flex:none; flex-direction:row; gap:6px; min-height:0; padding:8px 16px; border-radius:.5rem; }
+            .tab-btn .tab-ic { font-size:1rem; filter:none; opacity:1; }
+            .tab-btn .tab-tx { font-size:.875rem; }
+            .tab-btn.tab-active { background:#4f46e5; color:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+        }
         /* 五心組織圖連接線 */
         :root { --tr-line: #94a3b8; }
         .tr-node { display:flex; flex-direction:column; align-items:center; position:relative; }
@@ -63,7 +76,7 @@
         /* 🖨️ 列印與 PDF 匯出專用排版 (強效防空白與手機偏左) */
         @media print {
             @page { size: portrait; margin: 10mm; }
-            html, body { height: 100%; overflow: hidden !important; background: #ffffff !important; }
+            html, body { height: auto !important; overflow: visible !important; background: #ffffff !important; }
             body * { visibility: hidden !important; }
             .no-print { display: none !important; }
 
@@ -82,7 +95,7 @@
             body.print-tree #tree-root-container * { visibility: visible !important; }
             body.print-tree #tree-root-container {
                 position: absolute !important; left: 0 !important; right: 0 !important; top: 10px !important;
-                margin: 0 auto !important; width: 100% !important;
+                margin: 0 auto !important; width: 100% !important; zoom: 0.85; overflow: visible !important;
                 display: flex !important; justify-content: center !important; align-items: flex-start !important;
                 background: transparent !important; box-shadow: none !important; padding: 0 !important;
                 page-break-inside: avoid !important;
@@ -163,8 +176,6 @@
         <div id="left-drawer" class="fixed inset-y-0 left-0 w-72 theme-card shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col">
             <div class="p-4 border-b border-theme flex justify-between items-center"><h2 class="font-extrabold theme-title text-lg">💎 進階功能</h2><button onclick="window.toggleDrawer()" class="theme-muted hover:theme-title text-2xl">&times;</button></div>
             <div class="flex-1 overflow-y-auto p-4 space-y-3 text-sm font-bold">
-                <button onclick="window.openModal('bv-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📦 小組長客與 PV 統計</button>
-                <button onclick="window.openScorePage(); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">📊 查三數</button>
                 <button onclick="window.openModal('tag-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🏷️ 專屬標籤設定</button>
                 <button onclick="window.openModal('product-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🛍️ 產品與 PV 設定</button>
                 <button onclick="window.openAdminModal(); window.toggleDrawer()" id="drawer-admin-btn" class="hidden w-full text-left p-3 rounded-xl bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 hover:bg-indigo-500/20 transition items-center gap-3">👑 帳號管理（管理員）</button>
@@ -193,20 +204,21 @@
                         <span class="text-xs text-indigo-500 ml-1">✏️</span>
                     </div>
                 </div>
-                <nav class="theme-card fixed bottom-0 left-0 right-0 z-30 sm:static sm:z-auto flex w-full sm:w-auto sm:bg-black/5 sm:dark:bg-white/10 p-1.5 sm:rounded-xl border-t sm:border border-theme text-center shadow-[0_-2px_10px_rgba(0,0,0,0.08)] sm:shadow-none">
-                    <button id="tab-my-list" onclick="window.switchTab('my-list')" class="flex-1 sm:flex-none px-1 sm:px-5 py-2 rounded-lg text-sm font-bold transition bg-indigo-600 text-white shadow">📁 我的名單</button>
-                    <button id="tab-tree" onclick="window.switchTab('tree')" class="flex-1 sm:flex-none px-1 sm:px-5 py-2 rounded-lg text-sm font-bold transition theme-muted hover:theme-title">💎 五心計畫</button>
-                    <button id="tab-score" onclick="window.switchTab('score')" class="flex-1 sm:flex-none px-1 sm:px-5 py-2 rounded-lg text-sm font-bold transition theme-muted hover:theme-title">📊 查三數<span id="tab-score-dot" class="hidden text-rose-500">●</span></button>
-                    <button id="tab-leaderboard" onclick="window.switchTab('leaderboard')" class="flex-1 sm:flex-none px-1 sm:px-5 py-2 rounded-lg text-sm font-bold transition theme-muted hover:theme-title">🏆 排行榜</button>
+                <nav class="theme-card fixed bottom-0 left-0 right-0 z-30 sm:static sm:z-auto flex w-full sm:w-auto sm:bg-black/5 sm:dark:bg-white/10 sm:p-1.5 sm:gap-1 sm:rounded-xl border-t sm:border border-theme text-center shadow-[0_-2px_12px_rgba(0,0,0,0.08)] sm:shadow-none" style="padding-bottom:env(safe-area-inset-bottom)">
+                    <button id="tab-my-list" onclick="window.switchTab('my-list')" class="tab-btn tab-active"><span class="tab-ic">📋</span><span class="tab-tx">名單</span></button>
+                    <button id="tab-tree" onclick="window.switchTab('tree')" class="tab-btn"><span class="tab-ic">🌳</span><span class="tab-tx">組織圖</span></button>
+                    <button id="tab-score" onclick="window.switchTab('score')" class="tab-btn"><span class="tab-ic">📊</span><span class="tab-tx">查三數<span id="tab-score-dot" class="hidden text-rose-500">●</span></span></button>
+                    <button id="tab-loyalty" onclick="window.switchTab('loyalty')" class="tab-btn"><span class="tab-ic">📦</span><span class="tab-tx">長客</span></button>
+                    <button id="tab-leaderboard" onclick="window.switchTab('leaderboard')" class="tab-btn"><span class="tab-ic">🏆</span><span class="tab-tx">排行榜</span></button>
                 </nav>
             </div>
         </header>
 
-        <main class="flex-1 w-full px-4 py-4 pb-24 sm:pb-4 space-y-4">
+        <main class="flex-1 w-full px-4 py-4 pb-28 sm:pb-4 space-y-4">
             <section id="sect-my-list" class="space-y-4 w-full block">
                 <div id="followup-banner-container"></div>
-                <div class="theme-card rounded-2xl p-4 shadow border border-theme w-full">
-                    <div class="flex flex-col space-y-3">
+                <div class="theme-card rounded-2xl p-3 sm:p-4 shadow border border-theme w-full">
+                    <div class="flex flex-col space-y-2">
                         <div class="flex justify-between items-center cursor-pointer select-none" onclick="window.toggleSection('checkin-content-box', 'checkin-toggle-icon')">
                             <div class="flex items-center gap-2"><span class="text-amber-500 font-bold text-xl">⚡</span><h2 class="text-base font-extrabold tracking-wide theme-title">每日打卡</h2></div>
                             <button type="button" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="checkin-toggle-icon">▲</span></button>
@@ -220,16 +232,16 @@
                     </div>
                 </div>
 
-                <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-3 w-full">
+                <div class="theme-card rounded-2xl p-3 sm:p-4 shadow border border-theme space-y-2 w-full">
                     <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2"><span class="text-xl">📅</span><h2 class="text-base font-bold theme-title">活動邀約</h2></div>
-                        <button onclick="window.openEventModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-sm shadow">＋ 新增活動</button>
+                        <div class="flex items-center gap-2 flex-1 cursor-pointer select-none" onclick="window.toggleSection('events-card-list', 'events-toggle-icon')"><span class="text-xl">📅</span><h2 class="text-base font-bold theme-title">活動邀約</h2></div>
+                        <div class="flex items-center gap-2"><button onclick="window.openEventModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-xl text-sm shadow">＋ 新增活動</button><button type="button" onclick="window.toggleSection('events-card-list', 'events-toggle-icon')" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="events-toggle-icon">▲</span></button></div>
                     </div>
                     <div id="events-card-list" class="space-y-2"></div>
                 </div>
 
-                <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-3 w-full">
-                    <div class="flex justify-between items-center border-b border-theme pb-3">
+                <div class="theme-card rounded-2xl p-3 sm:p-4 shadow border border-theme space-y-2 w-full">
+                    <div class="flex justify-between items-center border-b border-theme pb-2">
                         <div class="flex items-center gap-2"><span class="text-xl">📊</span><h2 class="text-base font-bold theme-title">KPI 指標</h2></div>
                         <div class="flex items-center gap-3">
                             <select id="dash-time-range" onchange="window.onDashTimeChange()" class="theme-subcard border-theme border text-sm font-bold rounded-lg px-3 py-1.5 theme-title focus:outline-none"><option value="month">📅 本月</option><option value="year">🗓️ 全年</option><option value="custom">🛠️ 自訂</option></select>
@@ -237,21 +249,21 @@
                             <button type="button" onclick="window.toggleSection('dash-content-box', 'dash-toggle-icon')" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="dash-toggle-icon">▲</span></button>
                         </div>
                     </div>
-                    <div id="dash-content-box" class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                        <div onclick="window.filterDashboardMetric('leads')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-indigo-500"><span>🚀 開發量</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-leads-count">0</div></div>
-                        <div onclick="window.showBreakthroughList()" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-sky-500"><span>🎯 破題人數</span><span class="text-xs opacity-70">名單日誌</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-bt-count">0 人</div><div class="text-[11px] theme-muted mt-1" id="kpi-bt-total"></div></div>
-                        <div onclick="window.showOppLogHistory()" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-purple-500"><span>🗣️ 講 336 / OPP</span><span class="text-xs opacity-70">日誌</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-opp-count">0 次</div></div>
-                        <div onclick="window.showLoyaltyNew()" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-emerald-500"><span>📦 新增長客</span><span class="text-xs opacity-70">明細</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-loyalty-count">0 組</div><div class="text-xs theme-muted mt-1" id="kpi-loyalty-sub"></div></div>
-                        <div onclick="window.filterDashboardMetric('rec')" class="theme-subcard border-theme border rounded-xl p-4 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-amber-500"><span>🤝 推薦人數(累計)</span><span class="text-xs opacity-70">速查</span></div><div class="text-3xl font-black theme-title mt-2" id="kpi-rec-count">0 人</div></div>
+                    <div id="dash-content-box" class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                        <div onclick="window.filterDashboardMetric('leads')" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-indigo-500"><span>🚀 開發量</span><span class="text-xs opacity-70">速查</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-leads-count">0</div></div>
+                        <div onclick="window.showBreakthroughList()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-sky-500"><span>🎯 破題人數</span><span class="text-xs opacity-70">名單日誌</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-bt-count">0 人</div><div class="text-[11px] theme-muted mt-1" id="kpi-bt-total"></div></div>
+                        <div onclick="window.showOppLogHistory()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-purple-500"><span>🗣️ 講 336 / OPP</span><span class="text-xs opacity-70">日誌</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-opp-count">0 次</div></div>
+                        <div onclick="window.showLoyaltyNew()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-emerald-500"><span>📦 新增長客</span><span class="text-xs opacity-70">明細</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-loyalty-count">0 組</div><div class="text-xs theme-muted mt-1" id="kpi-loyalty-sub"></div></div>
+                        <div onclick="window.filterDashboardMetric('rec')" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-amber-500"><span>🤝 推薦人數(累計)</span><span class="text-xs opacity-70">速查</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-rec-count">0 人</div></div>
                     </div>
                 </div>
 
-                <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-3 w-full">
+                <div class="theme-card rounded-2xl p-3 sm:p-4 shadow border border-theme space-y-2 w-full">
                     <div class="flex justify-between items-center cursor-pointer select-none" onclick="window.toggleSection('funnel-body', 'funnel-toggle-icon')">
                         <div class="flex items-center gap-2"><span class="text-xl">🔻</span><h2 class="text-base font-bold theme-title">轉換漏斗</h2><span id="funnel-range-label" class="text-xs theme-muted font-bold"></span></div>
-                        <button type="button" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="funnel-toggle-icon">▲</span></button>
+                        <button type="button" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="funnel-toggle-icon">▼</span></button>
                     </div>
-                    <div id="funnel-body" class="space-y-3 pt-3 border-t border-theme"></div>
+                    <div id="funnel-body" class="hidden space-y-3 pt-3 border-t border-theme"></div>
                 </div>
 
                 <div class="theme-card p-4 rounded-2xl border-theme border shadow space-y-4 w-full">
@@ -279,7 +291,7 @@
                 <div class="theme-card rounded-2xl border-theme border shadow overflow-hidden w-full">
                     <div class="hidden md:block overflow-x-auto no-scrollbar">
                         <table class="w-full text-left border-collapse">
-                            <thead><tr class="border-b border-theme theme-subcard text-sm font-bold theme-muted"><th class="px-5 py-4 w-12">選取</th><th class="px-5 py-4">姓名 / 聯繫跳轉</th><th class="px-5 py-4">誰的朋友</th><th class="px-5 py-4">等級 / 定位</th><th class="px-5 py-4">進度 / 會員</th><th class="px-5 py-4">長客 / 備註</th><th class="px-5 py-4 text-right">操作</th></tr></thead>
+                            <thead><tr class="border-b border-theme theme-subcard text-sm font-bold theme-muted"><th class="px-4 py-3 w-12">選取</th><th class="px-4 py-3">姓名 / 聯繫跳轉</th><th class="px-4 py-3">誰的朋友</th><th class="px-4 py-3">等級 / 定位</th><th class="px-4 py-3">進度 / 會員</th><th class="px-4 py-3">備註</th><th class="px-4 py-3 text-right">操作</th></tr></thead>
                             <tbody id="list-tbody" class="divide-y divide-slate-300/20 text-sm"></tbody>
                         </table>
                     </div>
@@ -302,6 +314,33 @@
                     <input type="file" id="sc-import-file" accept=".csv,.txt" class="hidden" onchange="window.scImportFile(this)">
                 </div>
             </section>
+
+    <section id="sect-loyalty" class="hidden space-y-4 w-full">
+        <div class="theme-card w-full max-w-3xl mx-auto rounded-2xl p-5 border-theme border shadow">
+            <div class="flex justify-between border-b border-theme pb-4 items-center">
+                <div class="flex items-center gap-3">
+                    <h3 class="font-bold theme-title text-lg">📦 長客</h3>
+                    <select id="bv-month-select" onchange="window.onBvMonthChange()" class="theme-subcard border-theme border text-sm font-bold rounded-xl px-3 py-1.5 theme-title outline-none"></select>
+                    <input type="month" id="bv-custom-month-input" onchange="window.renderBVReport()" class="hidden theme-subcard border-theme border text-sm font-bold rounded-xl px-3 py-1.5 theme-title outline-none">
+                </div>
+            </div>
+
+            <div class="space-y-5 py-4 text-base">
+                <div class="grid grid-cols-2 gap-5">
+                    <div class="bg-emerald-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月長客總組數</p><div class="text-4xl font-black mt-2" id="total-loyalty-qty-display">0 組</div></div>
+                    <div class="bg-indigo-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月小組總 PV</p><div class="text-4xl font-black mt-2" id="total-bv-display">0</div></div>
+                </div>
+
+                <div class="flex gap-3"><button onclick="window.openLoyAdd()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-bold shadow">＋ 新增長客</button><button onclick="window.openLoyImport()" class="theme-subcard border-theme border theme-title px-4 rounded-xl font-bold text-sm">📥 批次匯入</button></div>
+
+                <div>
+                    <h4 class="font-bold theme-title mb-1 text-lg">📊 小組長客組織樹</h4><p class="text-xs theme-muted mb-3">＋展開下一層；「明細」看這個人底下的顧客與品項，可在明細裡改歸屬小組。</p>
+                    <div id="loy-link-banner"></div>
+                    <div id="bv-report-container" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+    </section>
 
             <section id="sect-leaderboard" class="hidden space-y-4 w-full">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
@@ -495,33 +534,7 @@
     </div>
 
     <!-- ✅ BV 統計視窗 -->
-    <div id="bv-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4">
-        <div class="theme-card w-full max-w-3xl rounded-2xl p-6 border-theme border shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="flex justify-between border-b border-theme pb-4 shrink-0 items-center">
-                <div class="flex items-center gap-3">
-                    <h3 class="font-bold theme-title text-lg">📦 小組長客與 PV 統計</h3>
-                    <select id="bv-month-select" onchange="window.onBvMonthChange()" class="theme-subcard border-theme border text-sm font-bold rounded-xl px-3 py-1.5 theme-title outline-none"></select>
-                    <input type="month" id="bv-custom-month-input" onchange="window.renderBVReport()" class="hidden theme-subcard border-theme border text-sm font-bold rounded-xl px-3 py-1.5 theme-title outline-none">
-                </div>
-                <button onclick="window.closeModal('bv-modal')" class="theme-muted text-3xl hover:text-rose-500">&times;</button>
-            </div>
 
-            <div class="overflow-y-auto flex-1 space-y-5 no-scrollbar py-4 text-base">
-                <div class="grid grid-cols-2 gap-5">
-                    <div class="bg-emerald-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月長客總組數</p><div class="text-4xl font-black mt-2" id="total-loyalty-qty-display">0 組</div></div>
-                    <div class="bg-indigo-600 text-white rounded-2xl p-5 text-center shadow"><p class="text-sm font-bold opacity-80 uppercase">本月小組總 PV</p><div class="text-4xl font-black mt-2" id="total-bv-display">0</div></div>
-                </div>
-
-                <div class="flex gap-3"><button onclick="window.openLoyAdd()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-bold shadow">＋ 新增長客</button><button onclick="window.openLoyImport()" class="theme-subcard border-theme border theme-title px-4 rounded-xl font-bold text-sm">📥 批次匯入</button></div>
-
-                <div>
-                    <h4 class="font-bold theme-title mb-1 text-lg">📊 小組長客組織樹</h4><p class="text-xs theme-muted mb-3">＋展開下一層；「明細」看這個人底下的顧客與品項，可在明細裡改歸屬小組。</p>
-                    <div id="loy-link-banner"></div>
-                    <div id="bv-report-container" class="space-y-4"></div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- 長客批次匯入 -->
     <div id="loy-import-modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center hidden p-4">
@@ -707,21 +720,16 @@
         }
 
         window.switchTab = function(tabId) {
-            document.getElementById('sect-my-list').classList.add('hidden');
-            document.getElementById('sect-tree').classList.add('hidden');
-            document.getElementById('sect-leaderboard').classList.add('hidden');
-            document.getElementById('sect-score').classList.add('hidden');
-            document.getElementById('sect-' + tabId).classList.remove('hidden');
-            ['my-list', 'tree', 'score', 'leaderboard'].forEach(id => {
-                const btn = document.getElementById('tab-' + id);
-                if(btn) {
-                    if(id === tabId) { btn.classList.add('bg-indigo-600', 'text-white', 'shadow'); btn.classList.remove('theme-muted'); }
-                    else { btn.classList.remove('bg-indigo-600', 'text-white', 'shadow'); btn.classList.add('theme-muted'); }
-                }
+            const ids = ['my-list', 'tree', 'score', 'loyalty', 'leaderboard'];
+            ids.forEach(id => {
+                const sec = document.getElementById('sect-' + id); if (sec) sec.classList.toggle('hidden', id !== tabId);
+                const btn = document.getElementById('tab-' + id); if (btn) btn.classList.toggle('tab-active', id === tabId);
             });
             if(tabId === 'tree') renderTree();
             if(tabId === 'score') renderScorePage();
+            if(tabId === 'loyalty') { renderBVReport(); }
             if(tabId === 'leaderboard') renderLeaderboard();
+            window.scrollTo(0, 0);
         };
 
         window.toggleSection = function(boxId, iconId) {
@@ -732,7 +740,7 @@
             }
         };
 
-        window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); };
+        window.openModal = function(id) { if (id === 'bv-modal') { window.switchTab('loyalty'); return; } document.getElementById(id).classList.remove('hidden'); };
         window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
         window.toggleDrawer = function() { document.getElementById('left-drawer').classList.toggle('-translate-x-full'); document.getElementById('drawer-overlay').classList.toggle('hidden'); };
 
@@ -1571,11 +1579,11 @@
                 const levelBadge = `<span class="font-bold">${esc(c.level)}</span>` + (c.inTree ? `<br><span class="text-xs text-indigo-500 font-bold opacity-90">💎 五心計畫</span>` : '');
                 const progBadge = `<span class="font-bold text-indigo-600">${esc(c.progress)}</span>` + (isBreakthrough(c) ? `<br><span class="text-xs text-sky-500 font-bold opacity-90">🎯 已破題</span>` : '') + (c.memberType && c.memberType!=='未加入' ? `<br><span class="text-xs text-amber-600 font-bold opacity-90">${esc(c.memberType)}</span>` : '');
                 const followBadge = c.nextFollowUp ? `<span class="text-xs text-rose-500 font-bold block mb-1 truncate max-w-[150px]" title="${esc(c.followUpNote||'')}">📅 ${esc(c.nextFollowUp.slice(5))}${c.followUpNote ? ' ' + esc(c.followUpNote) : ''}</span>` : '';
-                const noteBadge = followBadge + (loyaltySum>0 ? `<span class="text-sm bg-emerald-500/10 text-emerald-600 font-bold px-2 py-0.5 rounded block w-max mb-1">長客 x${loyaltySum}</span>` : '') + `<span class="truncate block max-w-[150px] lg:max-w-[460px]" title="${esc(c.notes||'')}">${esc(c.notes||'-')}</span>`;
+                const noteBadge = followBadge + `<span class="truncate block max-w-[150px] lg:max-w-[560px]" title="${esc(c.notes||'')}">${esc(c.notes||'-')}</span>`;
                 if (isDesktop) {
-                    rows.push(`<tr class="hover:theme-subcard"><td class="px-5 py-4"><input type="checkbox" value="${esc(c.id)}" class="contact-checkbox w-5 h-5"></td><td class="px-5 py-4 font-bold theme-title">${esc(c.name)} ${links}</td><td class="px-5 py-4 theme-muted">${esc(c.referrer||'自己')}</td><td class="px-5 py-4">${levelBadge}</td><td class="px-5 py-4">${progBadge}</td><td class="px-5 py-4">${noteBadge}</td><td class="px-5 py-4 text-right space-x-4 whitespace-nowrap"><button onclick="window.openTimeline('${sid(c.id)}')" class="text-purple-600 font-bold text-base">📜 軌跡</button><button onclick="window.editCustomer('${sid(c.id)}')" class="text-indigo-600 font-bold text-base">📝 編輯</button></td></tr>`);
+                    rows.push(`<tr class="hover:theme-subcard"><td class="px-4 py-2"><input type="checkbox" value="${esc(c.id)}" class="contact-checkbox w-5 h-5"></td><td class="px-4 py-2 font-bold theme-title">${esc(c.name)} ${links}</td><td class="px-4 py-2 theme-muted">${esc(c.referrer||'自己')}</td><td class="px-4 py-2">${levelBadge}</td><td class="px-4 py-2">${progBadge}</td><td class="px-4 py-2">${noteBadge}</td><td class="px-4 py-2 text-right space-x-4 whitespace-nowrap"><button onclick="window.openTimeline('${sid(c.id)}')" class="text-purple-600 font-bold text-base">📜 軌跡</button><button onclick="window.editCustomer('${sid(c.id)}')" class="text-indigo-600 font-bold text-base">📝 編輯</button></td></tr>`);
                 } else {
-                    cards.push(`<div class="theme-card p-5 rounded-2xl border-theme border shadow-sm w-full"><div class="flex justify-between font-bold theme-title text-lg"><div class="flex items-center gap-3"><input type="checkbox" value="${esc(c.id)}" class="contact-checkbox w-5 h-5">${esc(c.name)} ${links}</div><div class="text-right text-base">${levelBadge}</div></div><div class="text-sm theme-muted mt-2">建立: ${esc(c.date)} | 來源: ${esc(c.referrer||'自己')}</div><div class="flex justify-between items-center mt-4 text-base border-t border-theme pt-3"><div class="text-indigo-600 font-bold">${progBadge}</div><div>${noteBadge}</div></div><div class="flex justify-end gap-5 mt-4 pt-3 border-t border-theme font-bold"><button onclick="window.openTimeline('${sid(c.id)}')" class="text-purple-600">📜 軌跡</button><button onclick="window.editCustomer('${sid(c.id)}')" class="text-indigo-600">📝 編輯</button></div></div>`);
+                                        cards.push(`<div class="theme-card px-3 py-2.5 rounded-xl border-theme border shadow-sm w-full"><div class="flex justify-between items-center gap-2"><label class="flex items-center gap-2 font-bold theme-title text-base min-w-0"><input type="checkbox" value="${esc(c.id)}" class="contact-checkbox w-5 h-5 shrink-0"><span class="truncate">${esc(c.name)}</span>${links}</label><div class="text-sm font-bold theme-title shrink-0">${esc(c.level)}${c.inTree ? ' 💎' : ''}</div></div><div class="flex justify-between items-center gap-2 mt-1"><div class="text-sm min-w-0"><span class="font-bold text-indigo-600">${esc(c.progress)}</span>${isBreakthrough(c) ? '<span class="text-sky-500 font-bold"> · 已破題</span>' : ''}${c.memberType && c.memberType!=='未加入' ? `<span class="text-amber-600 font-bold"> · ${esc(c.memberType)}</span>` : ''}${c.referrer && c.referrer!=='自己' ? `<span class="theme-muted text-xs"> · ${esc(c.referrer)}</span>` : ''}</div><div class="flex gap-1 shrink-0 text-sm font-bold"><button onclick="window.openTimeline('${sid(c.id)}')" class="text-purple-600 px-2 py-1.5">📜 軌跡</button><button onclick="window.editCustomer('${sid(c.id)}')" class="text-indigo-600 px-2 py-1.5">📝 編輯</button></div></div><div class="text-sm mt-0.5">${followBadge.replace('truncate max-w-[150px]','').replace('mb-1','mb-0.5')}<span class="theme-muted block leading-snug break-words" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${esc(c.notes||'')}</span></div></div>`);
                 }
             });
             tbody.innerHTML = rows.join(''); mobList.innerHTML = cards.join('');
@@ -2129,7 +2137,7 @@
             const lb = document.getElementById('leaderboard-container');
             const cats = [{id:'leads', n:'🚀開發王'},{id:'opps', n:'🗣️OPP王'},{id:'recs', n:'🤝推薦王'},{id:'loy', n:'📦長客王'}];
 
-            let html = `<div class="bg-amber-100/80 p-5 rounded-2xl border border-amber-300 flex justify-between items-center shadow-sm"><div class="flex items-center gap-4"><span class="text-4xl">👑</span><div><span class="text-sm font-bold text-amber-800 block">MVP 王者</span><span class="text-xl font-black text-amber-950">${esc(top.user)}</span></div></div><span class="text-3xl font-black text-amber-800">${top.pts} 分</span></div><div class="flex bg-black/5 dark:bg-white/5 p-2 rounded-xl gap-2 overflow-x-auto text-sm font-bold text-center mt-4">`;
+            let html = `<div class="bg-amber-100/80 p-5 rounded-2xl border border-amber-300 flex justify-between items-center shadow-sm"><div class="flex items-center gap-4"><span class="text-4xl">👑</span><div><span class="text-sm font-bold text-amber-800 block">MVP</span><span class="text-xl font-black text-amber-950">${esc(top.user)}</span></div></div><span class="text-3xl font-black text-amber-800">${top.pts} 分</span></div><div class="flex bg-black/5 dark:bg-white/5 p-2 rounded-xl gap-2 overflow-x-auto text-sm font-bold text-center mt-4">`;
             cats.forEach(c => html += `<button onclick="leaderboardCategory='${c.id}'; window.renderLeaderboard()" class="flex-1 py-2 rounded-lg ${leaderboardCategory===c.id?'bg-indigo-600 text-white shadow':'theme-muted'}">${c.n}</button>`); html += `</div><div class="space-y-3 mt-4">`;
 
             const rank = [...scores].sort((a,b)=>b[leaderboardCategory]-a[leaderboardCategory]);
@@ -2691,29 +2699,21 @@
             }
         }
 
-        // ✅ 加上 0.3 秒緩衝延遲，讓手機瀏覽器辨識為「手動點擊列印」，降低被系統彈窗阻擋的機率
-        window.exportTimelinePDF = function() {
-            document.body.classList.add('print-timeline');
-            const oldTitle = document.title;
-            const c = state.customers.find(x => x.id === currentActiveContactId);
-            if(c) { document.title = '帶線陪伴軌跡-' + c.name; }
-            setTimeout(() => {
-                window.print();
-                document.title = oldTitle;
-                setTimeout(() => document.body.classList.remove('print-timeline'), 1000);
-            }, 300);
+        // 列印：必須在「點擊當下」直接呼叫 window.print()，延遲呼叫會被手機瀏覽器當成非手動操作而擋掉
+        function doPrint(cls, title) {
+            const oldTitle = document.title; document.body.classList.add(cls); document.title = title;
+            let done = false;
+            const cleanup = () => { if (done) return; done = true; document.body.classList.remove(cls); document.title = oldTitle; window.removeEventListener('afterprint', cleanup); };
+            window.addEventListener('afterprint', cleanup);
+            setTimeout(cleanup, 120000);
+            try { window.print(); } catch (e) { cleanup(); window.showToast('⚠️ 此瀏覽器無法列印，請改用「分享 → 列印」或螢幕截圖'); }
         }
-
+        window.exportTimelinePDF = function() {
+            const c = state.customers.find(x => x.id === currentActiveContactId);
+            doPrint('print-timeline', c ? '帶線陪伴軌跡-' + c.name : '帶線陪伴軌跡');
+        }
         window.printTree = function() {
-            document.body.classList.add('print-tree');
-            const oldTitle = document.title;
-            const uName = document.getElementById('current-user-display').textContent;
-            document.title = '五心計畫圖-' + uName;
-            setTimeout(() => {
-                window.print();
-                document.title = oldTitle;
-                setTimeout(() => document.body.classList.remove('print-tree'), 1000);
-            }, 300);
+            doPrint('print-tree', '五心計畫圖-' + document.getElementById('current-user-display').textContent);
         }
 
         /* ---------- 查三數 ---------- */
@@ -2735,18 +2735,18 @@
         function scCfg() { return state.scoreCfg || { target: -1 }; }
         function scFmtDate(d) { return d ? d.substring(5).replace('-', '/') : ''; }
         // 目前這個月：最新一次有「我」小組積分的紀錄
-        function scCur() {
-            const m = getLocalMonthString(), root = loyRootId();
+        function scCur(mm) {
+            const m = mm || getLocalMonthString(), root = loyRootId();
             const ds = scMonthDates(m).filter(d => scVal(d, root) !== null);
             const d = ds.length ? ds[ds.length - 1] : null;
             return { m, d, v: d ? scVal(d, root) : null };
         }
-        function scProgress() {
-            const c = scCur(), v = c.v || 0, cur = scTierOf(v), cfg = scCfg();
+        function scProgress(mm) {
+            const c = scCur(mm), v = c.v || 0, cur = scTierOf(v), cfg = scCfg();
             let tgt = cfg.target >= 0 ? cfg.target : Math.min(cur + 1, SC_TIERS.length - 1);
             if (tgt < 0) tgt = 0;
             const gap = Math.max(0, SC_TIERS[tgt][0] - v);
-            const now = new Date(), last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), left = last - now.getDate();
+            const now = new Date(), last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), left = (c.m === getLocalMonthString()) ? last - now.getDate() : 0;
             const all = scDates(), lastDate = all.length ? all[all.length - 1] : null;
             const ago = lastDate ? -daysUntil(lastDate) : null;
             return { c, v, cur, tgt, gap, left, lastDate, ago };
@@ -2781,6 +2781,7 @@
             if (!document.getElementById('sect-score').classList.contains('hidden')) renderScorePage();
         }
 
+        window.scSetMonth = function(m) { state.scMonth = m; renderScorePage(); };
         window.scSetTarget = async function(v) {
             state.scoreCfg = { target: parseInt(v) };
             await cloudUpsert('system_settings', { id: `score_cfg_${sessionUser.email}`, setting_type: 'user', data: state.scoreCfg });
@@ -2811,10 +2812,14 @@
         }
         function renderScorePage() {
             const box = document.getElementById('score-body'); if (!box) return;
-            const p = scProgress(), m = p.c.m, d = p.c.d;
+            const curM = getLocalMonthString();
+            if (!state.scMonth) state.scMonth = curM;
+            const p = scProgress(state.scMonth), m = p.c.m, d = p.c.d;
+            const monthList = [...new Set(scDates().map(x => x.substring(0, 7)).concat([curM]))].sort().reverse();
+            const monthOpts = monthList.map(x => `<option value="${x}" ${x === m ? 'selected' : ''}>${x}${x === curM ? '（本月）' : ''}</option>`).join('');
             const nodes = scNodes(), loy = scLoyByNode(m), root = loyRootId();
             const tgtOpts = SC_TIERS.map((t, i) => `<option value="${i}" ${i === p.tgt ? 'selected' : ''}>${t[1]}%（${fmtPV(t[0])}）</option>`).join('');
-            let html = `<div class="theme-subcard border-theme border rounded-xl p-4 space-y-2"><div class="flex justify-between items-center"><div class="font-bold theme-title">${m} 月結進度</div><label class="text-xs theme-muted">目標 <select onchange="window.scSetTarget(this.value)" class="theme-card border-theme border rounded-lg px-2 py-1 theme-title">${tgtOpts}</select></label></div>`;
+            let html = `<div class="theme-subcard border-theme border rounded-xl p-4 space-y-2"><div class="flex justify-between items-center"><div class="flex items-center gap-2 font-bold theme-title"><select onchange="window.scSetMonth(this.value)" class="theme-card border-theme border rounded-lg px-2 py-1 theme-title font-bold">${monthOpts}</select>月結進度</div><label class="text-xs theme-muted">目標 <select onchange="window.scSetTarget(this.value)" class="theme-card border-theme border rounded-lg px-2 py-1 theme-title">${tgtOpts}</select></label></div>`;
             if (d) {
                 const pct = Math.min(100, p.v / SC_TIERS[p.tgt][0] * 100);
                 html += `<div class="text-2xl font-extrabold theme-title">${fmtPV(p.v)} <span class="text-xs text-indigo-500">PV</span> <span class="text-sm text-emerald-600">${p.cur >= 0 ? SC_TIERS[p.cur][1] + '%' : '未達 3%'}</span></div><div class="h-2 rounded-full bg-slate-500/20 overflow-hidden"><div class="h-2 bg-indigo-500" style="width:${pct}%"></div></div>`;
@@ -2824,7 +2829,7 @@
                     html += '</div>';
                 } else html += '<div class="text-xs text-emerald-600 font-bold">已達標 🎉</div>';
                 html += `<div class="text-xs theme-muted">最新記錄：${d}</div>`;
-            } else html += '<div class="text-xs theme-muted">本月還沒有記錄，按下面「記錄分數」開始。</div>';
+            } else html += '<div class="text-xs theme-muted">這個月還沒有記錄，按下面「記錄分數」開始。</div>';
             html += '</div>';
             html += `<div class="flex flex-wrap gap-2"><button onclick="window.openScoreEntry()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-sm">✍️ 記錄分數</button><button onclick="window.scExport()" class="theme-subcard border-theme border theme-title font-bold px-3 py-2 rounded-xl text-sm">⬇️ 匯出 CSV</button><button onclick="window.scTemplate()" class="theme-subcard border-theme border theme-title font-bold px-3 py-2 rounded-xl text-sm">📄 匯入範本</button><button onclick="document.getElementById('sc-import-file').click()" class="theme-subcard border-theme border theme-title font-bold px-3 py-2 rounded-xl text-sm">⬆️ 匯入歷史</button></div>`;
             // 領導人
