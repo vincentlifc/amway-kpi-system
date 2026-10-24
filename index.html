@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-25a score -->
+<!-- build: 2026-10-25b tabs-tree -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -34,6 +34,30 @@
         .tag-chip { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; background: var(--bg-subcard); color: var(--accent); border: 1px solid var(--accent); margin-right: 0.25rem; margin-bottom: 0.25rem;}
         .tag-chip button { margin-left: 0.25rem; color: #ef4444; }
         #main-app { display: none; }
+        /* 五心組織圖連接線 */
+        :root { --tr-line: #94a3b8; }
+        .tr-node { display:flex; flex-direction:column; align-items:center; position:relative; }
+        .tr-kids { display:flex; justify-content:center; padding-top:22px; position:relative; }
+        .tr-kids::before { content:''; position:absolute; top:0; left:50%; height:22px; border-left:2px solid var(--tr-line); }
+        .tr-child { position:relative; padding:22px 10px 0; display:flex; flex-direction:column; align-items:center; }
+        .tr-child::before, .tr-child::after { content:''; position:absolute; top:0; width:50%; height:22px; border-top:2px solid var(--tr-line); }
+        .tr-child::before { right:50%; }
+        .tr-child::after { left:50%; border-left:2px solid var(--tr-line); }
+        .tr-child:first-child::before, .tr-child:last-child::after { border:0 none; }
+        .tr-child:last-child::before { border-right:2px solid var(--tr-line); border-radius:0 8px 0 0; }
+        .tr-child:first-child::after { border-radius:8px 0 0 0; }
+        .tr-child:only-child { padding-top:0; }
+        .tr-child:only-child::before, .tr-child:only-child::after { display:none; }
+        .tr-pill-l1 { border-color:#6366f1 !important; }
+        .tr-pill-l2 { border-color:#0ea5e9 !important; }
+        .tr-pill-l3 { border-color:#10b981 !important; }
+        .tr-pill-l4 { border-color:#94a3b8 !important; }
+        /* 電腦版：小字稍微放大，避免大框配小字 */
+        @media (min-width: 1024px) {
+            .text-xs { font-size: 0.8125rem !important; line-height: 1.2rem !important; }
+            .text-sm { font-size: 0.9375rem !important; line-height: 1.4rem !important; }
+            .text-\[11px\] { font-size: 0.75rem !important; }
+        }
         .tree-action-btn { background: transparent !important; color: inherit !important; border: 1.5px solid currentColor !important; }
 
         /* 🖨️ 列印與 PDF 匯出專用排版 (強效防空白與手機偏左) */
@@ -169,15 +193,16 @@
                         <span class="text-xs text-indigo-500 ml-1">✏️</span>
                     </div>
                 </div>
-                <nav class="flex w-full sm:w-auto bg-black/5 dark:bg-white/10 p-1.5 rounded-xl border border-theme text-center">
-                    <button id="tab-my-list" onclick="window.switchTab('my-list')" class="flex-1 sm:flex-none px-5 py-2 rounded-lg text-sm font-bold transition bg-indigo-600 text-white shadow">📁 我的名單</button>
-                    <button id="tab-tree" onclick="window.switchTab('tree')" class="flex-1 sm:flex-none px-5 py-2 rounded-lg text-sm font-bold transition theme-muted hover:theme-title">💎 五心計畫</button>
-                    <button id="tab-leaderboard" onclick="window.switchTab('leaderboard')" class="flex-1 sm:flex-none px-5 py-2 rounded-lg text-sm font-bold transition theme-muted hover:theme-title">🏆 排行榜</button>
+                <nav class="theme-card fixed bottom-0 left-0 right-0 z-30 sm:static sm:z-auto flex w-full sm:w-auto sm:bg-black/5 sm:dark:bg-white/10 p-1.5 sm:rounded-xl border-t sm:border border-theme text-center shadow-[0_-2px_10px_rgba(0,0,0,0.08)] sm:shadow-none">
+                    <button id="tab-my-list" onclick="window.switchTab('my-list')" class="flex-1 sm:flex-none px-1 sm:px-5 py-2 rounded-lg text-sm font-bold transition bg-indigo-600 text-white shadow">📁 我的名單</button>
+                    <button id="tab-tree" onclick="window.switchTab('tree')" class="flex-1 sm:flex-none px-1 sm:px-5 py-2 rounded-lg text-sm font-bold transition theme-muted hover:theme-title">💎 五心計畫</button>
+                    <button id="tab-score" onclick="window.switchTab('score')" class="flex-1 sm:flex-none px-1 sm:px-5 py-2 rounded-lg text-sm font-bold transition theme-muted hover:theme-title">📊 查三數<span id="tab-score-dot" class="hidden text-rose-500">●</span></button>
+                    <button id="tab-leaderboard" onclick="window.switchTab('leaderboard')" class="flex-1 sm:flex-none px-1 sm:px-5 py-2 rounded-lg text-sm font-bold transition theme-muted hover:theme-title">🏆 排行榜</button>
                 </nav>
             </div>
         </header>
 
-        <main class="flex-1 w-full px-4 py-4 space-y-4">
+        <main class="flex-1 w-full px-4 py-4 pb-24 sm:pb-4 space-y-4">
             <section id="sect-my-list" class="space-y-4 w-full block">
                 <div id="followup-banner-container"></div>
                 <div class="theme-card rounded-2xl p-4 shadow border border-theme w-full">
@@ -193,14 +218,6 @@
                             <button onclick="window.openAddCustomerModal()" class="bg-slate-800 dark:bg-slate-100 dark:text-slate-900 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow flex items-center justify-center gap-2">➕ 新增跟進名單</button>
                         </div>
                     </div>
-                </div>
-
-                <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-2 w-full">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2"><span class="text-xl">📊</span><h2 class="text-base font-bold theme-title">查三數</h2></div>
-                        <div class="flex gap-2"><button onclick="window.openScorePage()" class="theme-subcard border-theme border theme-title font-bold px-3 py-2 rounded-xl text-sm">查看</button><button onclick="window.openScoreEntry()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-sm shadow">✍️ 記錄</button></div>
-                    </div>
-                    <div id="score-card-body" class="text-sm"></div>
                 </div>
 
                 <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-3 w-full">
@@ -275,6 +292,14 @@
                 <div class="theme-card rounded-2xl p-5 shadow border-theme border space-y-4 w-full">
                     <div class="flex justify-between items-center border-b border-theme pb-4"><h2 class="text-base sm:text-lg font-extrabold theme-title flex items-center gap-2"><span class="text-indigo-500">💎</span>五心團隊組織圖</h2><button onclick="window.printTree()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-lg text-sm shadow">📷 匯出/列印</button></div>
                     <div class="overflow-x-auto py-10 px-4 theme-subcard rounded-2xl border-theme border min-h-[500px] flex justify-center w-full relative"><div id="tree-root-container" class="w-full flex justify-center pb-20"></div></div>
+                </div>
+            </section>
+
+            <section id="sect-score" class="hidden space-y-4 w-full">
+                <div class="theme-card rounded-2xl p-5 shadow border-theme border w-full max-w-3xl mx-auto">
+                    <h2 class="text-lg font-extrabold theme-title mb-4">📊 查三數</h2>
+                    <div id="score-body" class="space-y-4 text-sm"></div>
+                    <input type="file" id="sc-import-file" accept=".csv,.txt" class="hidden" onchange="window.scImportFile(this)">
                 </div>
             </section>
 
@@ -448,14 +473,6 @@
     <div id="checkin-rec-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-sm rounded-2xl p-6 border-theme border shadow-2xl space-y-5"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3">🤝 推薦會員打卡</h3><form onsubmit="window.submitRecCheckin(event)" class="space-y-4 text-sm"><div><label class="font-bold theme-title mb-1.5 block">選擇夥伴 *</label><select id="rec-partner-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></select></div><div><label class="font-bold theme-title mb-1.5 block">推薦類別 *</label><select id="rec-type-select" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="生活會員">生活會員</option><option value="直銷商">直銷商</option></select></div><div><label class="font-bold theme-title mb-1.5 block">推薦日期 *</label><input type="date" id="rec-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div><label class="font-bold theme-title mb-1.5 block">辦卡備註</label><input type="text" id="rec-checkin-notes" placeholder="辦卡細節..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2"><button type="button" onclick="window.closeModal('checkin-rec-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-amber-500 text-black px-6 py-2.5 rounded-xl font-bold">確認推薦打卡</button></div></form></div></div>
 
     <div id="checkin-loyalty-modal" class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center hidden p-4"><div class="theme-card w-full max-w-md rounded-2xl p-6 border-theme border shadow-2xl space-y-5 max-h-[88vh] flex flex-col"><h3 class="font-extrabold theme-title text-lg border-b border-theme pb-3 shrink-0">📦 新增長客</h3><form onsubmit="window.submitLoyaltyCheckin(event)" class="space-y-4 text-sm overflow-y-auto flex-1 no-scrollbar"><div><label class="block font-bold theme-title mb-1.5">顧客姓名 *</label><input type="text" id="loyalty-name-input" list="loy-name-list" required autocomplete="off" oninput="window.loyAddHint()" onchange="window.loyAddNameChange()" placeholder="選擇名單裡的人，或直接輸入姓名" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><datalist id="loy-name-list"></datalist></div><div><label class="block font-bold theme-title mb-1.5">歸屬小組 *</label><select id="loyalty-group-select" onchange="window.loyAddHint()" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"><option value="root">我</option></select><p id="loy-add-hint" class="text-xs theme-muted mt-1.5 leading-relaxed"></p><div id="loy-create-wrap" class="hidden mt-2 space-y-2"><label class="flex items-center gap-2 text-sm theme-title"><input type="checkbox" id="loy-create-list" checked class="rounded w-5 h-5"> 同時建立名單（我直接服務的人）</label><div class="flex items-center gap-2 text-xs theme-muted pl-7">已破題 ・ 會員類別 <select id="loy-create-member" class="theme-card border-theme border rounded-lg px-2 py-1 theme-title"><option value="直銷商" selected>直銷商</option><option value="生活會員">生活會員</option></select></div></div></div><div><label class="block font-bold theme-title mb-1.5">啟動日期 *</label><input type="date" id="loyalty-checkin-date" required class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><div class="flex justify-between items-center"><label class="font-bold theme-title text-sm">長客品項與組數 *</label><button type="button" onclick="window.addCheckinLoyaltyRow()" class="text-xs bg-emerald-600 text-white px-4 py-1.5 rounded-lg">+ 新增品項</button></div><div id="checkin-loyalty-rows" class="space-y-3"></div></div><div><label class="block font-bold theme-title mb-1.5">備註</label><input type="text" id="loyalty-checkin-notes" placeholder="方案備註..." class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></div><div class="flex justify-end gap-3 pt-2 shrink-0"><button type="button" onclick="window.closeModal('checkin-loyalty-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold">確認新增</button></div></form></div></div>
-
-    <div id="score-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="theme-card w-full max-w-lg rounded-2xl p-5 border-theme border shadow-2xl flex flex-col max-h-[88vh]">
-            <div class="flex justify-between border-b border-theme pb-3 shrink-0"><h3 class="font-bold theme-title text-lg">📊 查三數</h3><button onclick="window.closeModal('score-modal')" class="theme-muted text-2xl">&times;</button></div>
-            <div id="score-body" class="overflow-y-auto flex-1 no-scrollbar pt-4 space-y-4 text-sm"></div>
-            <input type="file" id="sc-import-file" accept=".csv,.txt" class="hidden" onchange="window.scImportFile(this)">
-        </div>
-    </div>
 
     <div id="score-entry-modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-lg rounded-2xl p-5 border-theme border shadow-2xl flex flex-col max-h-[90vh]">
@@ -693,8 +710,9 @@
             document.getElementById('sect-my-list').classList.add('hidden');
             document.getElementById('sect-tree').classList.add('hidden');
             document.getElementById('sect-leaderboard').classList.add('hidden');
+            document.getElementById('sect-score').classList.add('hidden');
             document.getElementById('sect-' + tabId).classList.remove('hidden');
-            ['my-list', 'tree', 'leaderboard'].forEach(id => {
+            ['my-list', 'tree', 'score', 'leaderboard'].forEach(id => {
                 const btn = document.getElementById('tab-' + id);
                 if(btn) {
                     if(id === tabId) { btn.classList.add('bg-indigo-600', 'text-white', 'shadow'); btn.classList.remove('theme-muted'); }
@@ -702,6 +720,7 @@
                 }
             });
             if(tabId === 'tree') renderTree();
+            if(tabId === 'score') renderScorePage();
             if(tabId === 'leaderboard') renderLeaderboard();
         };
 
@@ -1552,7 +1571,7 @@
                 const levelBadge = `<span class="font-bold">${esc(c.level)}</span>` + (c.inTree ? `<br><span class="text-xs text-indigo-500 font-bold opacity-90">💎 五心計畫</span>` : '');
                 const progBadge = `<span class="font-bold text-indigo-600">${esc(c.progress)}</span>` + (isBreakthrough(c) ? `<br><span class="text-xs text-sky-500 font-bold opacity-90">🎯 已破題</span>` : '') + (c.memberType && c.memberType!=='未加入' ? `<br><span class="text-xs text-amber-600 font-bold opacity-90">${esc(c.memberType)}</span>` : '');
                 const followBadge = c.nextFollowUp ? `<span class="text-xs text-rose-500 font-bold block mb-1 truncate max-w-[150px]" title="${esc(c.followUpNote||'')}">📅 ${esc(c.nextFollowUp.slice(5))}${c.followUpNote ? ' ' + esc(c.followUpNote) : ''}</span>` : '';
-                const noteBadge = followBadge + (loyaltySum>0 ? `<span class="text-sm bg-emerald-500/10 text-emerald-600 font-bold px-2 py-0.5 rounded block w-max mb-1">長客 x${loyaltySum}</span>` : '') + `<span class="truncate block max-w-[150px]" title="${esc(c.notes||'')}">${esc(c.notes||'-')}</span>`;
+                const noteBadge = followBadge + (loyaltySum>0 ? `<span class="text-sm bg-emerald-500/10 text-emerald-600 font-bold px-2 py-0.5 rounded block w-max mb-1">長客 x${loyaltySum}</span>` : '') + `<span class="truncate block max-w-[150px] lg:max-w-[460px]" title="${esc(c.notes||'')}">${esc(c.notes||'-')}</span>`;
                 if (isDesktop) {
                     rows.push(`<tr class="hover:theme-subcard"><td class="px-5 py-4"><input type="checkbox" value="${esc(c.id)}" class="contact-checkbox w-5 h-5"></td><td class="px-5 py-4 font-bold theme-title">${esc(c.name)} ${links}</td><td class="px-5 py-4 theme-muted">${esc(c.referrer||'自己')}</td><td class="px-5 py-4">${levelBadge}</td><td class="px-5 py-4">${progBadge}</td><td class="px-5 py-4">${noteBadge}</td><td class="px-5 py-4 text-right space-x-4 whitespace-nowrap"><button onclick="window.openTimeline('${sid(c.id)}')" class="text-purple-600 font-bold text-base">📜 軌跡</button><button onclick="window.editCustomer('${sid(c.id)}')" class="text-indigo-600 font-bold text-base">📝 編輯</button></td></tr>`);
                 } else {
@@ -2048,12 +2067,12 @@
             sel.value = ids.includes(prev) ? prev : (ids[0] || 'root');
         }
 
-        function buildPillTreeHTML(node, isRoot = false) {
+        function buildPillTreeHTML(node, isRoot = false, depth = 0) {
             const hasChildren = node.children && node.children.length > 0; const coll = node.collapsed; let childHTML = '';
-            if (hasChildren && !coll) { childHTML = `<div class="flex pt-6 relative justify-center gap-8 border-t border-theme border-dashed mt-4">${node.children.map(c => buildPillTreeHTML(c, false)).join('')}</div>`; }
-            const pillClass = isRoot ? 'bg-amber-100 border-2 border-amber-400 text-amber-950 shadow-md' : 'theme-card border-2 border-theme theme-title shadow-sm';
+            if (hasChildren && !coll) { childHTML = `<div class="tr-kids">${node.children.map(c => `<div class="tr-child">${buildPillTreeHTML(c, false, depth + 1)}</div>`).join('')}</div>`; }
+            const pillClass = isRoot ? 'bg-amber-100 border-2 border-amber-400 text-amber-950 shadow-md' : 'theme-card border-2 border-theme theme-title shadow-sm tr-pill-l' + Math.min(depth, 4);
             const nid = sid(node.id);
-            return `<div class="flex flex-col items-center relative"><div class="px-6 py-3 rounded-full ${pillClass} min-w-[140px] text-center"><div class="text-base font-black whitespace-nowrap">${esc(node.name)}</div><div class="flex justify-center gap-3 mt-2">
+            return `<div class="tr-node"><div class="px-5 py-2.5 rounded-2xl ${pillClass} min-w-[120px] text-center"><div class="text-base font-black whitespace-nowrap">${esc(node.name)}</div><div class="flex justify-center gap-3 mt-2">
                 <button onclick="window.openAddTreeNodeModal('${nid}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold no-print">＋</button>
                 ${hasChildren ? `<button onclick="window.toggleTreeNode('${nid}')" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold no-print">${coll?'＋':'－'}</button>`:''}
                 ${!isRoot ? `<button onclick="window.openConfirmModal('確定要從五心組織圖中移除此成員嗎？（其底下成員會一併移除，他們的長客會移到「未歸屬」）', ()=>window.deleteTreeNode('${nid}'))" class="w-6 h-6 rounded-full tree-action-btn flex items-center justify-center text-xs font-bold no-print">×</button>`:''}
@@ -2756,14 +2775,10 @@
             return res;
         }
         function renderScoreCard() {
-            const box = document.getElementById('score-card-body'); if (!box) return;
+            const dot = document.getElementById('tab-score-dot'); if (!dot) return;
             const p = scProgress();
-            if (!scDates().length) { box.innerHTML = '<div class="theme-muted text-center py-2">還沒有記錄。每週看一次 Amcard 組織網，按右上角「✍️ 記錄」輸入小組積分，就能追蹤進度與領導人。</div>'; return; }
-            const t = p.cur >= 0 ? SC_TIERS[p.cur][1] + '%' : '未達 3%';
-            let html = `<div class="flex items-end justify-between gap-2"><div><div class="text-xs theme-muted">本月小組積分（${scFmtDate(p.c.d) || '本月尚未記錄'}）</div><div class="text-2xl font-extrabold theme-title">${p.c.d ? fmtPV(p.v) : '—'} <span class="text-xs font-bold text-indigo-500">PV</span></div></div><div class="text-right"><div class="text-xs theme-muted">目前月結</div><div class="text-xl font-extrabold text-emerald-600">${p.c.d ? t : '—'}</div></div></div>`;
-            if (p.c.d) html += `<div class="text-xs theme-muted mt-1">${p.gap > 0 ? `距 ${SC_TIERS[p.tgt][1]}%（${fmtPV(SC_TIERS[p.tgt][0])}）還差 <b class="theme-title">${fmtPV(p.gap)}</b> PV${p.left > 0 ? `，本月剩 ${p.left} 天` : '，今天月底'}` : `已達標 ${SC_TIERS[p.tgt][1]}% 🎉`}</div>`;
-            if (p.ago !== null && p.ago >= 7) html += `<div class="text-xs text-amber-600 font-bold mt-1">⏰ 已 ${p.ago} 天沒記錄分數了</div>`;
-            box.innerHTML = html;
+            dot.classList.toggle('hidden', !(p.ago === null || p.ago >= 7));
+            if (!document.getElementById('sect-score').classList.contains('hidden')) renderScorePage();
         }
 
         window.scSetTarget = async function(v) {
@@ -2771,7 +2786,7 @@
             await cloudUpsert('system_settings', { id: `score_cfg_${sessionUser.email}`, setting_type: 'user', data: state.scoreCfg });
             renderScoreCard(); renderScorePage();
         };
-        window.openScorePage = function() { renderScorePage(); window.openModal('score-modal'); };
+        window.openScorePage = function() { window.switchTab('score'); };
         function scTrendSVG() {
             const root = loyRootId(), months = [...new Set(scDates().map(d => d.substring(0, 7)))];
             const ayOf = m => { const y = +m.substring(0, 4), mo = +m.substring(5, 7); return mo >= 9 ? y + 1 : y; };
