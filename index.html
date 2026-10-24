@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-25d print-fix -->
+<!-- build: 2026-10-25e kpi-modal -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -140,6 +140,38 @@
         </div>
     </div>
 
+    <div id="kpi-modal" class="fixed inset-0 bg-black/60 z-50 hidden overflow-y-auto p-3 sm:p-6">
+        <div class="max-w-4xl mx-auto space-y-3">
+            <div class="flex justify-between items-center"><h3 class="text-white font-bold text-lg">📈 KPI 指標與轉換漏斗</h3><button onclick="window.closeModal('kpi-modal')" class="text-white text-3xl leading-none px-2">&times;</button></div>
+                <div class="theme-card rounded-2xl p-3 sm:p-4 shadow border border-theme space-y-2 w-full">
+                    <div class="flex justify-between items-center border-b border-theme pb-2">
+                        <div class="flex items-center gap-2"><span class="text-xl">📊</span><h2 class="text-base font-bold theme-title">KPI 指標</h2></div>
+                        <div class="flex items-center gap-3">
+                            <select id="dash-time-range" onchange="window.onDashTimeChange()" class="theme-subcard border-theme border text-sm font-bold rounded-lg px-3 py-1.5 theme-title focus:outline-none"><option value="month">📅 本月</option><option value="year">🗓️ 全年</option><option value="custom">🛠️ 自訂</option></select>
+                            <div id="custom-date-picker" class="hidden flex items-center gap-2 text-sm"><input type="date" id="dash-start-date" onchange="window.renderDashboard()" class="theme-subcard border-theme border rounded px-2 py-1 theme-title"><span class="theme-muted">至</span><input type="date" id="dash-end-date" onchange="window.renderDashboard()" class="theme-subcard border-theme border rounded px-2 py-1 theme-title"></div>
+                            <button type="button" onclick="window.toggleSection('dash-content-box', 'dash-toggle-icon')" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="dash-toggle-icon">▲</span></button>
+                        </div>
+                    </div>
+                    <div id="dash-content-box" class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                        <div onclick="window.filterDashboardMetric('leads')" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-indigo-500"><span>🚀 開發量</span><span class="text-xs opacity-70">速查</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-leads-count">0</div></div>
+                        <div onclick="window.showBreakthroughList()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-sky-500"><span>🎯 破題人數</span><span class="text-xs opacity-70">名單日誌</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-bt-count">0 人</div><div class="text-[11px] theme-muted mt-1" id="kpi-bt-total"></div></div>
+                        <div onclick="window.showOppLogHistory()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-purple-500"><span>🗣️ 講 336 / OPP</span><span class="text-xs opacity-70">日誌</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-opp-count">0 次</div></div>
+                        <div onclick="window.showLoyaltyNew()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-emerald-500"><span>📦 新增長客</span><span class="text-xs opacity-70">明細</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-loyalty-count">0 組</div><div class="text-xs theme-muted mt-1" id="kpi-loyalty-sub"></div></div>
+                        <div onclick="window.filterDashboardMetric('rec')" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-amber-500"><span>🤝 推薦人數(累計)</span><span class="text-xs opacity-70">速查</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-rec-count">0 人</div></div>
+                    </div>
+                </div>
+
+                <div class="theme-card rounded-2xl p-3 sm:p-4 shadow border border-theme space-y-2 w-full">
+                    <div class="flex justify-between items-center cursor-pointer select-none" onclick="window.toggleSection('funnel-body', 'funnel-toggle-icon')">
+                        <div class="flex items-center gap-2"><span class="text-xl">🔻</span><h2 class="text-base font-bold theme-title">轉換漏斗</h2><span id="funnel-range-label" class="text-xs theme-muted font-bold"></span></div>
+                        <button type="button" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="funnel-toggle-icon">▲</span></button>
+                    </div>
+                    <div id="funnel-body" class="space-y-3 pt-3 border-t border-theme"></div>
+                </div>
+
+        </div>
+    </div>
+
     <div id="admin-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-2xl rounded-2xl p-6 border-theme border shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
             <div class="flex justify-between border-b border-theme pb-3"><h3 class="font-bold theme-title text-lg">👑 帳號管理</h3><button onclick="window.closeModal('admin-modal')" class="theme-muted text-2xl">&times;</button></div>
@@ -158,6 +190,7 @@
         <div id="left-drawer" class="fixed inset-y-0 left-0 w-72 theme-card shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col">
             <div class="p-4 border-b border-theme flex justify-between items-center"><h2 class="font-extrabold theme-title text-lg">💎 進階功能</h2><button onclick="window.toggleDrawer()" class="theme-muted hover:theme-title text-2xl">&times;</button></div>
             <div class="flex-1 overflow-y-auto p-4 space-y-3 text-sm font-bold">
+                <button onclick="window.openModal('kpi-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 hover:bg-indigo-500/20 transition flex items-center gap-3">📈 KPI 指標與轉換漏斗</button>
                 <button onclick="window.openModal('tag-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🏷️ 專屬標籤設定</button>
                 <button onclick="window.openModal('product-modal'); window.toggleDrawer()" class="w-full text-left p-3 rounded-xl theme-subcard theme-title hover:opacity-80 transition flex items-center gap-3">🛍️ 產品與 PV 設定</button>
                 <button onclick="window.openAdminModal(); window.toggleDrawer()" id="drawer-admin-btn" class="hidden w-full text-left p-3 rounded-xl bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 hover:bg-indigo-500/20 transition items-center gap-3">👑 帳號管理（管理員）</button>
@@ -220,32 +253,6 @@
                         <div class="flex items-center gap-2"><button onclick="window.openEventModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-xl text-sm shadow">＋ 新增活動</button><button type="button" onclick="window.toggleSection('events-card-list', 'events-toggle-icon')" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="events-toggle-icon">▲</span></button></div>
                     </div>
                     <div id="events-card-list" class="space-y-2"></div>
-                </div>
-
-                <div class="theme-card rounded-2xl p-3 sm:p-4 shadow border border-theme space-y-2 w-full">
-                    <div class="flex justify-between items-center border-b border-theme pb-2">
-                        <div class="flex items-center gap-2"><span class="text-xl">📊</span><h2 class="text-base font-bold theme-title">KPI 指標</h2></div>
-                        <div class="flex items-center gap-3">
-                            <select id="dash-time-range" onchange="window.onDashTimeChange()" class="theme-subcard border-theme border text-sm font-bold rounded-lg px-3 py-1.5 theme-title focus:outline-none"><option value="month">📅 本月</option><option value="year">🗓️ 全年</option><option value="custom">🛠️ 自訂</option></select>
-                            <div id="custom-date-picker" class="hidden flex items-center gap-2 text-sm"><input type="date" id="dash-start-date" onchange="window.renderDashboard()" class="theme-subcard border-theme border rounded px-2 py-1 theme-title"><span class="theme-muted">至</span><input type="date" id="dash-end-date" onchange="window.renderDashboard()" class="theme-subcard border-theme border rounded px-2 py-1 theme-title"></div>
-                            <button type="button" onclick="window.toggleSection('dash-content-box', 'dash-toggle-icon')" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="dash-toggle-icon">▲</span></button>
-                        </div>
-                    </div>
-                    <div id="dash-content-box" class="grid grid-cols-2 lg:grid-cols-5 gap-3">
-                        <div onclick="window.filterDashboardMetric('leads')" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-indigo-500"><span>🚀 開發量</span><span class="text-xs opacity-70">速查</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-leads-count">0</div></div>
-                        <div onclick="window.showBreakthroughList()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-sky-500"><span>🎯 破題人數</span><span class="text-xs opacity-70">名單日誌</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-bt-count">0 人</div><div class="text-[11px] theme-muted mt-1" id="kpi-bt-total"></div></div>
-                        <div onclick="window.showOppLogHistory()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-purple-500"><span>🗣️ 講 336 / OPP</span><span class="text-xs opacity-70">日誌</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-opp-count">0 次</div></div>
-                        <div onclick="window.showLoyaltyNew()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-emerald-500"><span>📦 新增長客</span><span class="text-xs opacity-70">明細</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-loyalty-count">0 組</div><div class="text-xs theme-muted mt-1" id="kpi-loyalty-sub"></div></div>
-                        <div onclick="window.filterDashboardMetric('rec')" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center text-sm font-bold text-amber-500"><span>🤝 推薦人數(累計)</span><span class="text-xs opacity-70">速查</span></div><div class="text-2xl font-black theme-title mt-1" id="kpi-rec-count">0 人</div></div>
-                    </div>
-                </div>
-
-                <div class="theme-card rounded-2xl p-3 sm:p-4 shadow border border-theme space-y-2 w-full">
-                    <div class="flex justify-between items-center cursor-pointer select-none" onclick="window.toggleSection('funnel-body', 'funnel-toggle-icon')">
-                        <div class="flex items-center gap-2"><span class="text-xl">🔻</span><h2 class="text-base font-bold theme-title">轉換漏斗</h2><span id="funnel-range-label" class="text-xs theme-muted font-bold"></span></div>
-                        <button type="button" class="p-1 rounded theme-muted hover:theme-title text-sm"><span id="funnel-toggle-icon">▼</span></button>
-                    </div>
-                    <div id="funnel-body" class="hidden space-y-3 pt-3 border-t border-theme"></div>
                 </div>
 
                 <div class="theme-card p-4 rounded-2xl border-theme border shadow space-y-4 w-full">
@@ -1517,7 +1524,7 @@
             window.openModal('loy-new-modal');
         };
 
-        window.filterDashboardMetric = function(t) { const s = document.getElementById('search-input'); if(t==='leads') s.value = getLocalMonthString(); else if(t==='loyalty') s.value = '長客'; else if(t==='rec') s.value = '會員'; renderList(); }
+        window.filterDashboardMetric = function(t) { window.closeModal('kpi-modal'); window.switchTab('my-list'); const s = document.getElementById('search-input'); if(t==='leads') s.value = getLocalMonthString(); else if(t==='loyalty') s.value = '長客'; else if(t==='rec') s.value = '會員'; renderList(); }
 
         function isNodeInTree(node, contactId) { if(node.contactId === contactId) return true; if(node.children) { for(let child of node.children) { if(isNodeInTree(child, contactId)) return true; } } return false; }
 
@@ -2177,7 +2184,7 @@
             (state.myDirectLoyalties||[]).forEach(item => {
                 if (isEligible(item.date, item.endDate, selectedMonth)) {
                     const p = state.products.find(x=>x.id===item.productId);
-                    if(p) pushItem(myPerson, { type:'myDirect', id: item.id, pName: esc(p.name) + ` <span class="text-xs text-sky-600 font-bold ml-1">(${esc(String(item.date).substring(0,7))})</span>`, qty: item.qty, rowPV: p.bv * item.qty / PV_RATIO, endDate: item.endDate });
+                    if(p) pushItem(myPerson, { type:'myDirect', id: item.id, pName: `<span onclick="this.querySelector('.ld').classList.toggle('hidden')" class="cursor-pointer" style="border-bottom:1px dotted currentColor" title="點一下看啟動月份">` + esc(p.name) + ` <span class="ld hidden text-xs text-sky-600 font-bold ml-1">(${esc(String(item.date).substring(0,7))})</span></span>`, qty: item.qty, rowPV: p.bv * item.qty / PV_RATIO, endDate: item.endDate });
                 }
             });
             if(myPerson.items.length) persons.push(myPerson);
@@ -2188,7 +2195,7 @@
                     const itemDate = item.date || c.date;
                     if (isEligible(itemDate, item.endDate, selectedMonth)) {
                         const p = state.products.find(x=>x.id===item.productId);
-                        if(p) pushItem(person, { type:'customer', custId: c.id, loyId: item.id, pName: esc(p.name) + ` <span class="text-xs text-indigo-500 font-bold ml-1">(${esc(String(itemDate).substring(0,7))})</span>`, qty: item.qty, rowPV: p.bv * item.qty / PV_RATIO, endDate: item.endDate });
+                        if(p) pushItem(person, { type:'customer', custId: c.id, loyId: item.id, pName: `<span onclick="this.querySelector('.ld').classList.toggle('hidden')" class="cursor-pointer" style="border-bottom:1px dotted currentColor" title="點一下看啟動月份">` + esc(p.name) + ` <span class="ld hidden text-xs text-indigo-500 font-bold ml-1">(${esc(String(itemDate).substring(0,7))})</span></span>`, qty: item.qty, rowPV: p.bv * item.qty / PV_RATIO, endDate: item.endDate });
                     }
                 });
                 if(person.items.length) persons.push(person);
@@ -2203,7 +2210,7 @@
                     const key = (gid || '__none') + '|' + item.partnerName;
                     if(!subIndex[key]) { subIndex[key] = { kind:'sub', name: item.partnerName, gid, subIds: [], items: [], sumPV: 0, qty: 0 }; persons.push(subIndex[key]); }
                     const person = subIndex[key]; if(person.subIds.indexOf(item.id) < 0) person.subIds.push(item.id);
-                    pushItem(person, { type:'sub', subId: item.id, pName: esc(p.name) + ` <span class="text-xs text-amber-600 font-bold ml-1">(${esc(String(itemDate).substring(0,7))})</span>`, qty: item.qty, rowPV: p.bv * item.qty / PV_RATIO, endDate: item.endDate });
+                    pushItem(person, { type:'sub', subId: item.id, pName: `<span onclick="this.querySelector('.ld').classList.toggle('hidden')" class="cursor-pointer" style="border-bottom:1px dotted currentColor" title="點一下看啟動月份">` + esc(p.name) + ` <span class="ld hidden text-xs text-amber-600 font-bold ml-1">(${esc(String(itemDate).substring(0,7))})</span></span>`, qty: item.qty, rowPV: p.bv * item.qty / PV_RATIO, endDate: item.endDate });
                 }
             });
 
