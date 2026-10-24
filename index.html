@@ -2289,11 +2289,9 @@
             r.readAsText(f, 'utf-8');
         }
         window.loyDownloadTemplate = function() {
-            const root = (state.treeData && state.treeData.name) || '我';
-            const kid = (state.treeData && state.treeData.children && state.treeData.children[0] && state.treeData.children[0].name) || root;
             const p1 = (state.products[0] && state.products[0].name) || '優蛋白', p2 = (state.products[1] && state.products[1].name) || p1;
-            csvDownload('長客匯入範本.csv', [['顧客', '小組', '品項', '組數'], ['王小明', root, p1, 1], ['李小華', kid, p2, 2], ['我自己', root, p1, 1]]);
-            window.showToast('📥 長客匯入範本已下載');
+            csvDownload('長客匯入範本.csv', [['顧客', '小組', '品項', '組數'], ['王小明', '我', p1, 1], ['李小華', '我', p2, 2], ['我自己', '我', p1, 1]]);
+            window.showToast('📥 長客匯入範本已下載（小組欄填「我」或五心組織圖裡的名字）');
         }
         window.loyImportPreview = function(keepMap) {
             const txt = document.getElementById('loy-import-text').value;
@@ -2833,13 +2831,19 @@
             const trend = scTrendSVG();
             if (trend) html += `<div class="theme-subcard border-theme border rounded-xl p-4"><div class="font-bold theme-title mb-2">月底小組積分走勢</div>${trend}</div>`;
             const ds = scDates().slice().reverse();
-            if (ds.length) html += `<details class="theme-subcard border-theme border rounded-xl p-3"><summary class="font-bold theme-title cursor-pointer">記錄日期（${ds.length}）</summary><div class="pt-2 space-y-1">${ds.slice(0, 60).map(x => `<div class="flex justify-between items-center"><button onclick="window.openScoreEntry('${sid(x)}')" class="text-indigo-600 font-bold">${esc(x)}　✏️</button><button onclick="window.scDeleteDate('${sid(x)}')" class="text-rose-500 text-xs">🗑️ 刪除</button></div>`).join('')}</div></details>`;
+            if (ds.length) {
+                const months = [...new Set(ds.map(x => x.substring(0, 7)))];
+                html += `<details class="theme-subcard border-theme border rounded-xl p-3"><summary class="font-bold theme-title cursor-pointer">記錄管理（${ds.length} 天）</summary><div class="pt-2 space-y-2"><div class="flex justify-end"><button onclick="window.scDeleteAll()" class="text-rose-500 text-xs font-bold">🗑️ 全部清空</button></div>${months.map(mm => `<div class="border-t border-theme pt-2"><div class="flex justify-between items-center"><b class="theme-title">${esc(mm)}</b><button onclick="window.scDeleteMonth('${sid(mm)}')" class="text-rose-500 text-xs font-bold">🗑️ 刪整月</button></div>${ds.filter(x => x.substring(0, 7) === mm).map(x => `<div class="flex justify-between items-center pl-2 py-0.5"><button onclick="window.openScoreEntry('${sid(x)}')" class="text-indigo-600">${esc(x)}　✏️ 修改</button><button onclick="window.scDeleteDate('${sid(x)}')" class="text-rose-500 text-xs">🗑️ 刪這天</button></div>`).join('')}</div>`).join('')}</div></details>`;
+            }
             box.innerHTML = html;
         }
-        window.scDeleteDate = function(date) {
-            window.openConfirmModal(`確定刪除 ${date} 的所有分數記錄嗎？`, async () => {
-                const del = scSnaps().filter(s => s.snap_date === date);
-                state.scoreSnapshots = scSnaps().filter(s => s.snap_date !== date);
+        window.scDeleteDate = function(date) { scDeleteWhere(`${date} 的所有分數記錄`, s => s.snap_date === date); };
+        window.scDeleteMonth = function(mm) { scDeleteWhere(`${mm} 整個月的分數記錄`, s => s.snap_date.substring(0, 7) === mm); };
+        window.scDeleteAll = function() { scDeleteWhere('所有查三數分數記錄（無法復原）', () => true); };
+        function scDeleteWhere(label, pred) {
+            window.openConfirmModal(`確定刪除${label}嗎？`, async () => {
+                const del = scSnaps().filter(pred);
+                state.scoreSnapshots = scSnaps().filter(s => !pred(s));
                 renderScoreCard(); renderScorePage();
                 for (const s of del) await cloudDelete('score_snapshots', s.id);
                 window.showToast('🗑️ 已刪除');
@@ -2903,8 +2907,8 @@
             csvDownload(`查三數記錄_${getLocalDateString()}.csv`, rows);
         };
         window.scTemplate = function() {
-            const rows = [['日期', '姓名', '小組積分']]; const dt = getLocalDateString();
-            scNodes().forEach(x => rows.push([dt, x.depth === 0 ? '我' : x.n.name, '']));
+            const dt = getLocalDateString();
+            const rows = [['日期', '姓名', '小組積分'], [dt, '我', 4000], [dt, '小組甲', 3000], [dt, '小組乙', 2500]];
             csvDownload('查三數匯入範本.csv', rows);
         };
         window.scImportFile = function(inp) {
