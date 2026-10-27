@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-25e kpi-modal -->
+<!-- build: 2026-10-27a customers -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
@@ -221,6 +221,7 @@
                 </div>
                 <nav class="theme-card fixed bottom-0 left-0 right-0 z-30 sm:static sm:z-auto flex w-full sm:w-auto sm:bg-black/5 sm:dark:bg-white/10 sm:p-1.5 sm:gap-1 sm:rounded-xl border-t sm:border border-theme text-center shadow-[0_-2px_12px_rgba(0,0,0,0.08)] sm:shadow-none" style="padding-bottom:env(safe-area-inset-bottom)">
                     <button id="tab-my-list" onclick="window.switchTab('my-list')" class="tab-btn tab-active"><span class="tab-ic">📋</span><span class="tab-tx">名單</span></button>
+                    <button id="tab-customers" onclick="window.switchTab('customers')" class="tab-btn"><span class="tab-ic">🛎️</span><span class="tab-tx">顧客<span id="tab-svc-dot" class="hidden text-rose-500">●</span></span></button>
                     <button id="tab-tree" onclick="window.switchTab('tree')" class="tab-btn"><span class="tab-ic">🌳</span><span class="tab-tx">組織圖</span></button>
                     <button id="tab-score" onclick="window.switchTab('score')" class="tab-btn"><span class="tab-ic">📊</span><span class="tab-tx">查三數<span id="tab-score-dot" class="hidden text-rose-500">●</span></span></button>
                     <button id="tab-loyalty" onclick="window.switchTab('loyalty')" class="tab-btn"><span class="tab-ic">📦</span><span class="tab-tx">長客</span></button>
@@ -232,6 +233,7 @@
         <main class="flex-1 w-full px-4 py-4 pb-32 sm:pb-4 space-y-4">
             <section id="sect-my-list" class="space-y-4 w-full block">
                 <div id="followup-banner-container"></div>
+                <div id="svc-banner-container"></div>
                 <div class="theme-card rounded-2xl p-3 sm:p-4 shadow border border-theme w-full">
                     <div class="flex flex-col space-y-2">
                         <div class="flex justify-between items-center cursor-pointer select-none" onclick="window.toggleSection('checkin-content-box', 'checkin-toggle-icon')">
@@ -268,7 +270,7 @@
                             <select id="sort-select" onchange="window.renderList()" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 text-sm theme-title outline-none"><option value="followup">↕️ 排序：待跟進日（最急在前）</option><option value="touch">↕️ 排序：最近互動</option><option value="newest">↕️ 排序：最新建立</option><option value="oldest">↕️ 排序：最早建立</option><option value="name">↕️ 排序：姓名</option></select>
                         </div>
                         <div class="flex justify-between items-center pt-3 border-t border-theme text-sm">
-                            <label class="flex items-center gap-2 font-bold theme-title cursor-pointer"><input type="checkbox" id="select-all-checkbox" onchange="window.toggleSelectAll(this)" class="rounded text-indigo-600 w-5 h-5"> 全選</label>
+                            <label class="flex items-center gap-2 font-bold theme-title cursor-pointer"><input type="checkbox" id="select-all-checkbox" onchange="window.toggleSelectAll(this)" class="rounded text-indigo-600 w-5 h-5"> 全選</label><label class="flex items-center gap-2 text-sm theme-muted cursor-pointer ml-4"><input type="checkbox" id="show-customers" onchange="window.renderList()" class="rounded w-4 h-4"> 顯示顧客</label>
                             <div class="flex gap-3">
                                 <button onclick="window.bulkTrash()" class="bg-amber-500/10 text-amber-600 px-4 py-2 rounded-lg font-bold border border-amber-500/20">📦 批次封存</button>
                                 <button onclick="window.bulkDelete()" class="bg-rose-500/10 text-rose-600 px-4 py-2 rounded-lg font-bold border border-rose-500/20">🗑️ 批次刪除</button>
@@ -286,6 +288,22 @@
                     </div>
                     <div id="mobile-card-list" class="block md:hidden divide-y divide-slate-300/20 p-4 space-y-4"></div>
                     <div id="empty-state" class="hidden text-center py-16 theme-muted"><span class="text-4xl block mb-3">🌌</span><p class="text-base font-bold">目前無符合條件的名單</p></div>
+                </div>
+            </section>
+
+            <section id="sect-customers" class="hidden space-y-4 w-full">
+                <div class="theme-card rounded-2xl p-4 shadow border border-theme space-y-3 w-full max-w-3xl mx-auto">
+                    <div class="flex justify-between items-center gap-2 flex-wrap">
+                        <h2 class="font-extrabold theme-title text-lg">🛎️ 顧客</h2>
+                        <div class="flex gap-2"><button onclick="window.svcOpenPick()" class="theme-subcard border-theme border theme-title font-bold px-3 py-2 rounded-xl text-sm">＋ 從名單加入</button><button onclick="window.svcNew()" class="bg-indigo-600 text-white font-bold px-3 py-2 rounded-xl text-sm shadow">＋ 新增顧客</button><button onclick="window.svcOpenCfg()" class="theme-subcard border-theme border theme-title font-bold px-3 py-2 rounded-xl text-sm" title="提醒設定">⚙️</button></div>
+                    </div>
+                    <div id="svc-warn"></div>
+                    <div id="svc-todo"></div>
+                    <input id="svc-search" oninput="renderSvc()" placeholder="🔍 搜尋顧客姓名、電話、備註…" class="w-full theme-subcard border-theme border rounded-xl px-3 py-2.5 theme-title text-sm outline-none">
+                    <div id="svc-chips" class="flex gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+                    <select id="svc-product" onchange="window.svcSetProduct(this.value)" class="hidden w-full theme-subcard border-theme border rounded-xl px-3 py-2 text-sm theme-title"></select>
+                    <div id="svc-find-bar" class="hidden flex justify-between items-center gap-2 theme-subcard border-theme border rounded-xl px-3 py-2"></div>
+                    <div id="svc-list" class="space-y-2"></div>
                 </div>
             </section>
 
@@ -433,6 +451,41 @@
     </div>
 
     <!-- 新增/編輯跟進名單 Modal -->
+    <div id="svc-modal" class="fixed inset-0 bg-black/60 z-[45] flex items-center justify-center hidden p-3">
+        <div class="theme-card w-full max-w-lg rounded-2xl p-5 border-theme border shadow-2xl flex flex-col max-h-[92vh]">
+            <div class="flex justify-between border-b border-theme pb-3 shrink-0 items-center"><h3 id="svc-detail-title" class="font-bold theme-title text-lg">🛎️ 顧客</h3><button onclick="window.closeModal('svc-modal')" class="theme-muted text-3xl leading-none">&times;</button></div>
+            <div id="svc-detail-body" class="overflow-y-auto flex-1 no-scrollbar pt-3 space-y-3"></div>
+        </div>
+    </div>
+
+    <div id="svc-buy-modal" class="fixed inset-0 bg-black/60 z-[46] flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-sm rounded-2xl p-5 border-theme border shadow-2xl space-y-3 text-sm">
+            <h3 class="font-bold theme-title text-lg border-b border-theme pb-2">🛒 記錄購買</h3>
+            <div><label class="block font-bold theme-title mb-1">系列</label><select id="svc-buy-series" onchange="window.svcBuyChange()" class="w-full theme-subcard border-theme border rounded-xl p-2.5 theme-title"></select></div>
+            <div><label class="block font-bold theme-title mb-1">產品（可選，也可直接輸入）</label><input id="svc-buy-product" list="svc-buy-list" oninput="window.svcBuyChange()" onchange="window.svcBuyChange()" autocomplete="off" class="w-full theme-subcard border-theme border rounded-xl p-2.5 theme-title"><datalist id="svc-buy-list"></datalist></div>
+            <div class="grid grid-cols-2 gap-3"><div><label class="block font-bold theme-title mb-1">購買日期</label><input type="date" id="svc-buy-date" onchange="window.svcBuyChange()" class="w-full theme-subcard border-theme border rounded-xl p-2.5 theme-title"></div><div><label class="block font-bold theme-title mb-1">數量</label><input type="number" min="1" id="svc-buy-qty" class="w-full theme-subcard border-theme border rounded-xl p-2.5 theme-title"></div></div>
+            <div id="svc-buy-preview" class="text-xs theme-muted leading-relaxed"></div>
+            <div class="flex justify-end gap-3 pt-1"><button onclick="window.closeModal('svc-buy-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button onclick="window.svcSaveBuy()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold">儲存</button></div>
+        </div>
+    </div>
+
+    <div id="svc-pick-modal" class="fixed inset-0 bg-black/60 z-[45] flex items-center justify-center hidden p-4">
+        <div class="theme-card w-full max-w-md rounded-2xl p-5 border-theme border shadow-2xl flex flex-col max-h-[85vh] space-y-3">
+            <div class="flex justify-between items-center"><h3 class="font-bold theme-title text-lg">＋ 從名單加入顧客</h3><button onclick="window.closeModal('svc-pick-modal')" class="theme-muted text-3xl leading-none">&times;</button></div>
+            <input id="svc-pick-search" oninput="window.svcPickRender()" placeholder="🔍 搜尋名單姓名" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 theme-title text-sm outline-none">
+            <div id="svc-pick-list" class="overflow-y-auto flex-1 space-y-2 no-scrollbar"></div>
+        </div>
+    </div>
+
+    <div id="svc-cfg-modal" class="fixed inset-0 bg-black/60 z-[46] flex items-center justify-center hidden p-3">
+        <div class="theme-card w-full max-w-xl rounded-2xl p-5 border-theme border shadow-2xl flex flex-col max-h-[92vh]">
+            <div class="flex justify-between border-b border-theme pb-3 shrink-0 items-center"><h3 class="font-bold theme-title text-lg">⚙️ 提醒設定</h3><button onclick="window.closeModal('svc-cfg-modal')" class="theme-muted text-3xl leading-none">&times;</button></div>
+            <p class="text-xs theme-muted pt-2">記錄購買時，會依這裡的設定自動建立提醒。「重複」＝完成後自動排下一次；「首購才提醒」＝同一個顧客第一次買這個產品才提醒。</p>
+            <div id="svc-cfg-body" class="overflow-y-auto flex-1 no-scrollbar py-3 space-y-3"></div>
+            <div class="flex justify-end gap-3 pt-2 border-t border-theme shrink-0"><button onclick="window.closeModal('svc-cfg-modal')" class="theme-subcard border-theme border px-5 py-2.5 rounded-xl font-bold">取消</button><button onclick="window.svcSaveCfg()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold">儲存</button></div>
+        </div>
+    </div>
+
     <div id="modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="theme-card w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl border-theme border flex flex-col max-h-[90vh]">
             <div class="px-6 py-4 border-b border-theme flex justify-between items-center theme-subcard shrink-0"><h3 id="modal-title" class="text-base sm:text-lg font-bold theme-title">➕ 新增跟進名單</h3><button onclick="window.closeModal('modal')" class="theme-muted hover:theme-title text-2xl font-bold">&times;</button></div>
@@ -467,6 +520,8 @@
                 <div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><label class="block font-bold theme-title text-sm">🔗 聯絡方式與跳轉連結</label><div class="flex flex-wrap gap-3 items-center"><label class="flex items-center gap-2 theme-title"><input type="checkbox" id="field-has-line" class="rounded w-5 h-5"> LINE</label><input type="text" id="field-ig-link" placeholder="IG 帳號 (@abc)" class="w-36 theme-card border-theme border rounded-lg p-2 text-sm theme-title"><input type="text" id="field-threads-link" placeholder="Threads" class="w-36 theme-card border-theme border rounded-lg p-2 text-sm theme-title"><input type="text" id="field-other-channel" placeholder="其他管道" class="flex-1 theme-card border-theme border rounded-lg p-2 text-sm theme-title"></div></div>
                 <div><label class="block font-bold theme-title mb-1.5">🏷️ 套用活動標籤 (輸入按 Enter 套用)</label><div class="theme-subcard border-theme border rounded-xl p-3 flex flex-wrap gap-2 items-center" id="field-tags-container"><input type="text" id="field-tag-input" onkeydown="window.handleTagInput(event)" placeholder="輸入標籤..." class="bg-transparent text-sm theme-title outline-none w-36 flex-1"></div><div id="available-tags-chips" class="mt-2 flex flex-wrap gap-2"></div></div>
                 <div><label class="block font-bold theme-title mb-1.5">備註 / 痛點</label><textarea id="field-notes" rows="2" class="w-full theme-subcard border-theme border rounded-xl p-3 theme-title"></textarea></div>
+
+                <div class="theme-subcard border-theme border rounded-xl p-4 space-y-3"><label class="flex items-center gap-2 font-bold theme-title text-sm"><input type="checkbox" id="field-is-customer" class="rounded w-5 h-5"> 🛎️ 列為顧客（會出現在「顧客」分頁）</label><div class="grid grid-cols-2 gap-3"><input type="tel" id="field-phone" placeholder="電話" class="w-full theme-card border-theme border rounded-xl p-3 theme-title text-sm"><div><input type="date" id="field-birthday" title="生日" class="w-full theme-card border-theme border rounded-xl p-3 theme-title text-sm"><div class="text-[11px] theme-muted mt-0.5">生日</div></div></div><input type="text" id="field-address" placeholder="地址" class="w-full theme-card border-theme border rounded-xl p-3 theme-title text-sm"><input type="text" id="field-svc-note" placeholder="服務注意事項（例如：偏好週末聯絡）" class="w-full theme-card border-theme border rounded-xl p-3 theme-title text-sm"></div>
 
                 <div class="theme-subcard border-theme border rounded-xl p-4 space-y-2"><div class="flex justify-between items-center"><label class="block font-bold theme-title text-sm">📦 名下長客</label><button type="button" id="loy-summary-add-btn" onclick="window.openLoyAddForCurrent()" class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg shadow">＋ 新增長客</button></div><div id="loyalty-items-list" class="text-sm space-y-1 theme-title"></div><p class="text-xs theme-muted">終止或刪除，請到「長客專區」處理。</p></div>
 
@@ -709,11 +764,12 @@
         }
 
         window.switchTab = function(tabId) {
-            const ids = ['my-list', 'tree', 'score', 'loyalty', 'leaderboard'];
+            const ids = ['my-list', 'customers', 'tree', 'score', 'loyalty', 'leaderboard'];
             ids.forEach(id => {
                 const sec = document.getElementById('sect-' + id); if (sec) sec.classList.toggle('hidden', id !== tabId);
                 const btn = document.getElementById('tab-' + id); if (btn) btn.classList.toggle('tab-active', id === tabId);
             });
+            if(tabId === 'customers') renderSvc();
             if(tabId === 'tree') renderTree();
             if(tabId === 'score') renderScorePage();
             if(tabId === 'loyalty') { renderBVReport(); }
@@ -1053,6 +1109,12 @@
                 const scRes = await db.from('score_snapshots').select('*').eq('owner', sessionUser.email);
                 state.scoreReady = !scRes.error; state.scoreSnapshots = scRes.error ? [] : (scRes.data || []);
             } catch (e) { state.scoreReady = false; state.scoreSnapshots = []; }
+            try {
+                const rs = await Promise.all([db.from('customer_purchases').select('*').eq('owner', sessionUser.email), db.from('service_logs').select('*').eq('owner', sessionUser.email), db.from('service_reminders').select('*').eq('owner', sessionUser.email)]);
+                state.svcReady = !rs.some(r => r.error);
+                state.svcPurchases = rs[0].error ? [] : (rs[0].data || []); state.svcLogs = rs[1].error ? [] : (rs[1].data || []); state.svcReminders = rs[2].error ? [] : (rs[2].data || []);
+            } catch (e) { state.svcReady = false; state.svcPurchases = []; state.svcLogs = []; state.svcReminders = []; }
+            { const sv = (sets || []).find(x => x.id === `svc_cfg_${sessionUser.email}`); state.svcCfg = (sv && sv.data && Array.isArray(sv.data.series)) ? sv.data : null; }
             { const sc = (sets || []).find(x => x.id === `score_cfg_${sessionUser.email}`); state.scoreCfg = (sc && sc.data && typeof sc.data.target === 'number') ? sc.data : { target: -1 }; }
             // 新欄位是否已建立（select * 會回傳所有欄位，包含值為 null 的）
             const hasBtCol = state.customers.length === 0 || ('breakthrough' in state.customers[0]);
@@ -1108,7 +1170,7 @@
         }
 
         function renderAll() {
-            updateFilterOptions(); renderFollowupBanner(); renderEventsCard(); renderScoreCard(); renderDashboard(); renderList();
+            updateFilterOptions(); renderFollowupBanner(); renderEventsCard(); renderScoreCard(); renderSvc(); svcRefreshDetail(); renderDashboard(); renderList();
             renderTrashCount(); renderTagsLobby(); renderProductsLobby(); renderBVReport(); updateReferrerDropdowns();
             renderLeaderboard();
         }
@@ -1538,6 +1600,7 @@
             const filtered = state.customers.filter(c => {
                 if(c.owner !== sessionUser.email) return false;
                 if(pF === '名單封存(隱藏)') { if(!c.isTrashed) return false; } else { if(c.isTrashed) return false; }
+                if(!kw && pF !== '名單封存(隱藏)' && !(document.getElementById('show-customers') || {}).checked && isSvcCust(c)) return false;
                 const mK = (c.name||'').toLowerCase().includes(kw) || (c.notes && c.notes.toLowerCase().includes(kw)) || (c.tags && c.tags.some(t=>t.toLowerCase().includes(kw))) || (c.date||'').includes(kw) || (kw==='長客' && c.loyaltyItems && c.loyaltyItems.length>0) || (kw==='會員' && c.memberType!=='未加入');
                 const mP = pF === 'all' || pF === '名單封存(隱藏)' || c.progress === pF;
                 const mL = lF === 'all' || c.level === lF; const mT = tF === 'all' || (c.tags && c.tags.includes(tF));
@@ -1600,7 +1663,7 @@
                         await cloudDelete('feeds', f.id);
                     }
 
-                    await cloudDelete('customers', id);
+                    await cloudDelete('customers', id); await svcCascadeDelete(id);
                     await db.from('checkin_logs').delete().eq('customer_id', id);
                 }
 
@@ -1689,6 +1752,7 @@
             document.getElementById('field-breakthrough-date').value = c.breakthroughDate||'';
             window.onBreakthroughChange(document.getElementById('field-breakthrough'), true);
             document.getElementById('field-notes').value = c.notes||'';
+            document.getElementById('field-is-customer').checked = c.isCustomer === true || c.level === '顧客'; document.getElementById('field-phone').value = c.phone||''; document.getElementById('field-birthday').value = c.birthday||''; document.getElementById('field-address').value = c.address||''; document.getElementById('field-svc-note').value = c.svcNote||'';
             document.getElementById('delete-in-modal-btn').classList.remove('hidden');
             tempTagsForModal = [...(c.tags||[])]; renderTagsInModal();
             renderLoyaltySummary(c);
@@ -1705,7 +1769,7 @@
                     await cloudDelete('feeds', f.id);
                 }
 
-                await cloudDelete('customers', id);
+                await cloudDelete('customers', id); await svcCascadeDelete(id);
                 await db.from('checkin_logs').delete().eq('customer_id', id);
                 state.customers = state.customers.filter(c => c.id !== id);
                 state.checkinLogs = state.checkinLogs.filter(l => l.customer_id !== id);
@@ -1761,7 +1825,7 @@
             let timeline = existingCust ? (existingCust.timeline || []) : [{date: document.getElementById('field-date').value, text:'建立名單'}];
 
             const data = {
-                id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: referrerValue, level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, followUpNote: document.getElementById('field-next-followup').value ? document.getElementById('field-followup-note').value.trim() : '', breakthrough: document.getElementById('field-breakthrough').value, breakthroughDate: document.getElementById('field-breakthrough').value === '已破題' ? document.getElementById('field-breakthrough-date').value : '', notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, loyaltyGroupId: savedCust ? (savedCust.loyaltyGroupId || '') : '', isTrashed: isTrashProgress, timeline: timeline
+                id: newCustomerId, owner: sessionUser.email, date: document.getElementById('field-date').value, name: document.getElementById('field-name').value.trim(), referrer: referrerValue, level: document.getElementById('field-level').value, progress: isTrashProgress ? '新開發/待跟進' : document.getElementById('field-progress').value, memberType: document.getElementById('field-member-type').value, ig: document.getElementById('field-ig-link').value.trim(), threads: document.getElementById('field-threads-link').value.trim(), channels: document.getElementById('field-has-line').checked ? ['LINE'] : [], otherChannel: document.getElementById('field-other-channel').value.trim(), tags: [...tempTagsForModal], nextFollowUp: document.getElementById('field-next-followup').value, followUpNote: document.getElementById('field-next-followup').value ? document.getElementById('field-followup-note').value.trim() : '', breakthrough: document.getElementById('field-breakthrough').value, breakthroughDate: document.getElementById('field-breakthrough').value === '已破題' ? document.getElementById('field-breakthrough-date').value : '', notes: document.getElementById('field-notes').value.trim(), loyaltyItems: loyItems, loyaltyGroupId: savedCust ? (savedCust.loyaltyGroupId || '') : '', isCustomer: document.getElementById('field-is-customer').checked, phone: document.getElementById('field-phone').value.trim(), birthday: document.getElementById('field-birthday').value, address: document.getElementById('field-address').value.trim(), svcNote: document.getElementById('field-svc-note').value.trim(), isTrashed: isTrashProgress, timeline: timeline
             };
 
             const currentMonth = getLocalMonthString();
@@ -2516,7 +2580,7 @@
                     await cloudDelete('feeds', f.id);
                 }
 
-                await cloudDelete('customers', id);
+                await cloudDelete('customers', id); await svcCascadeDelete(id);
                 await db.from('checkin_logs').delete().eq('customer_id', id);
                 state.customers = state.customers.filter(x=>x.id!==id);
                 state.checkinLogs = state.checkinLogs.filter(l => l.customer_id !== id);
@@ -2961,6 +3025,269 @@
                 });
             };
             r.readAsText(f, 'utf-8');
+        };
+
+        /* ---------- 顧客服務 ---------- */
+        const SVC_DEFAULT_CFG = {
+            series: ['紐崔萊', '雅姿', '益之源', '逸新', '鍋具', '日用品', 'XS'],
+            seriesRules: { '紐崔萊': [{ label: '跟進使用心得', value: 7, unit: 'day', repeat: false, firstOnly: true }] },
+            items: [
+                { series: '益之源', name: '益之源', rules: [{ label: '更換濾芯', value: 12, unit: 'month', repeat: true }] },
+                { series: '益之源', name: '益之源 Pro', rules: [{ label: '更換濾芯', value: 12, unit: 'month', repeat: true }] },
+                { series: '逸新', name: '逸新 第二代 Atmosphere', rules: [{ label: '更換活性碳濾網', value: 12, unit: 'month', repeat: true }, { label: '更換 HEPA 濾網', value: 36, unit: 'month', repeat: true }] },
+                { series: '逸新', name: '逸新 第三代 SKY', rules: [{ label: '更換活性碳濾網', value: 12, unit: 'month', repeat: true }, { label: '更換 HEPA 濾網', value: 36, unit: 'month', repeat: true }] }
+            ]
+        };
+        const SVC_LOG_TYPES = ['關心', '送貨', '換耗材', '使用心得', '購買', '其他'];
+        function svcCfg() { return state.svcCfg || JSON.parse(JSON.stringify(SVC_DEFAULT_CFG)); }
+        function svcId(p) { return p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+        function svcAdd(dateStr, value, unit) {
+            const p = String(dateStr).split('-').map(Number), v = Number(value) || 0;
+            if (unit === 'month') { const t = new Date(p[0], p[1] - 1 + v, 1); const last = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate(); t.setDate(Math.min(p[2], last)); return getLocalDateString(t); }
+            return getLocalDateString(new Date(p[0], p[1] - 1, p[2] + v));
+        }
+        function isSvcCust(c) { return !!c && !c.isTrashed && (c.level === '顧客' || c.isCustomer === true); }
+        function svcCustomers() { return state.customers.filter(c => c.owner === sessionUser.email && isSvcCust(c)); }
+        function svcCust(id) { return state.customers.find(c => c.id === id); }
+        function svcRulesFor(series, product) {
+            const cfg = svcCfg(), it = (cfg.items || []).find(i => i.series === series && i.name === product);
+            return it ? (it.rules || []) : ((cfg.seriesRules || {})[series] || []);
+        }
+        function svcWhen(due) {
+            const d = daysUntil(due); if (d === null) return '';
+            return d < 0 ? `<span class="text-rose-500 font-bold">逾期 ${-d} 天</span>` : d === 0 ? '<span class="text-rose-500 font-bold">今天</span>' : d <= 7 ? `<span class="text-amber-600 font-bold">${d} 天後</span>` : `<span class="theme-muted">${esc(due)}</span>`;
+        }
+        function svcOpenReminders() { return (state.svcReminders || []).filter(r => r.status === 'open' && svcCust(r.customer_id)).sort((a, b) => String(a.due_date).localeCompare(String(b.due_date))); }
+        function svcBirthdays(days) {
+            const out = [], today = new Date(getLocalDateString() + 'T00:00:00');
+            svcCustomers().forEach(c => {
+                if (!c.birthday) return; const p = String(c.birthday).split('-').map(Number); if (p.length < 3) return;
+                let t = new Date(today.getFullYear(), p[1] - 1, p[2]); if (t < today) t = new Date(today.getFullYear() + 1, p[1] - 1, p[2]);
+                const d = Math.round((t - today) / 86400000); if (d <= days) out.push({ c, d, date: getLocalDateString(t) });
+            });
+            return out.sort((a, b) => a.d - b.d);
+        }
+        function svcLastLog(id) { const ds = (state.svcLogs || []).filter(l => l.customer_id === id).map(l => l.log_date || '').sort(); return ds.length ? ds[ds.length - 1] : ''; }
+
+        function renderSvcBanner() {
+            const box = document.getElementById('svc-banner-container'); if (!box) return;
+            const due = svcOpenReminders().filter(r => daysUntil(r.due_date) <= 0), bd = svcBirthdays(0);
+            const n = due.length + bd.length;
+            const dot = document.getElementById('tab-svc-dot'); if (dot) dot.classList.toggle('hidden', n === 0);
+            if (!n) { box.innerHTML = ''; return; }
+            const names = due.map(r => (svcCust(r.customer_id) || {}).name + '：' + r.label).concat(bd.map(b => b.c.name + '：🎂 生日')).slice(0, 2).map(esc).join('　｜　');
+            box.innerHTML = `<div onclick="window.switchTab('customers')" class="bg-amber-50 border border-amber-200 px-4 py-3 rounded-2xl flex justify-between items-center text-sm shadow-sm cursor-pointer hover:bg-amber-100 transition"><div class="min-w-0"><div class="text-amber-700 font-bold">🛎️ 顧客服務 ${n} 項待處理 - 點擊查看</div><div class="text-xs text-amber-700/80 truncate mt-0.5">${names}</div></div><span class="text-amber-600 text-xl font-bold">➔</span></div>`;
+        }
+        function renderSvc() {
+            renderSvcBanner();
+            const sect = document.getElementById('sect-customers'); if (!sect) return;
+            document.getElementById('svc-warn').innerHTML = state.svcReady === false ? '<div class="text-xs text-amber-600 font-bold p-2">⚠️ 資料庫尚未建立顧客服務資料表，請先執行 SQL（p6_customer_service.sql）</div>' : '';
+            // 本週要做
+            const rem = svcOpenReminders().filter(r => daysUntil(r.due_date) <= 7), bd = svcBirthdays(7);
+            let todo = '';
+            if (rem.length || bd.length) {
+                todo = `<div class="theme-subcard border-theme border rounded-xl p-3 space-y-2"><div class="font-bold theme-title text-sm">📌 本週要做（${rem.length + bd.length}）</div>` +
+                    rem.map(r => { const c = svcCust(r.customer_id); return `<div class="flex justify-between items-center gap-2 text-sm"><div class="min-w-0"><button onclick="window.svcOpen('${sid(c.id)}')" class="font-bold theme-title underline decoration-dotted">${esc(c.name)}</button> <span class="theme-muted">${esc(r.label)}${r.product ? ' · ' + esc(r.product) : ''}</span><div class="text-xs">${svcWhen(r.due_date)}</div></div><div class="flex gap-1 shrink-0"><button onclick="window.svcDone('${sid(r.id)}')" class="bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs">✅ 完成</button><button onclick="window.svcSnooze('${sid(r.id)}')" class="theme-card border-theme border theme-title font-bold px-2 py-1.5 rounded-lg text-xs">延後7天</button></div></div>`; }).join('') +
+                    bd.map(b => `<div class="flex justify-between items-center gap-2 text-sm"><div><button onclick="window.svcOpen('${sid(b.c.id)}')" class="font-bold theme-title underline decoration-dotted">${esc(b.c.name)}</button> <span class="theme-muted">🎂 生日 ${esc(b.date.substring(5))}</span></div><div class="text-xs">${b.d === 0 ? '<span class="text-rose-500 font-bold">今天</span>' : b.d + ' 天後'}</div></div>`).join('') + '</div>';
+            }
+            document.getElementById('svc-todo').innerHTML = todo;
+            // 篩選
+            const f = state.svcFilter || (state.svcFilter = { series: '', product: '' });
+            const cfg = svcCfg(), purchases = state.svcPurchases || [];
+            const chips = ['', ...cfg.series].map(s => `<button onclick="window.svcSetSeries('${sid(s)}')" class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border ${f.series === s ? 'bg-indigo-600 text-white border-indigo-600' : 'theme-subcard border-theme theme-title'}">${s ? esc(s) : '全部'}</button>`).join('');
+            document.getElementById('svc-chips').innerHTML = chips;
+            const kw = (document.getElementById('svc-search').value || '').toLowerCase();
+            let list = svcCustomers().filter(c => !kw || (c.name || '').toLowerCase().includes(kw) || (c.svcNote || '').toLowerCase().includes(kw) || (c.phone || '').includes(kw));
+            const prodSel = document.getElementById('svc-product');
+            if (f.series) {
+                const prods = [...new Set(purchases.filter(p => p.series === f.series).map(p => p.product))];
+                prodSel.classList.remove('hidden');
+                prodSel.innerHTML = '<option value="">這個系列全部產品</option>' + prods.map(p => `<option value="${esc(p)}" ${f.product === p ? 'selected' : ''}>${esc(p)}</option>`).join('');
+                list = list.filter(c => purchases.some(p => p.customer_id === c.id && p.series === f.series && (!f.product || p.product === f.product)));
+            } else prodSel.classList.add('hidden');
+            const nextDue = id => { const r = svcOpenReminders().filter(x => x.customer_id === id)[0]; return r || null; };
+            list.sort((a, b) => { const ra = nextDue(a.id), rb = nextDue(b.id); if (ra && rb) return String(ra.due_date).localeCompare(rb.due_date); if (ra) return -1; if (rb) return 1; return (a.name || '').localeCompare(b.name || '', 'zh-Hant'); });
+            const findBar = document.getElementById('svc-find-bar');
+            if (f.series) { findBar.classList.remove('hidden'); findBar.innerHTML = `<span class="text-sm theme-title">買過${esc(f.product || f.series)}的顧客：<b>${list.length}</b> 人</span><button onclick="window.svcCopyNames()" class="bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs">📋 複製名單</button>`; }
+            else findBar.classList.add('hidden');
+            document.getElementById('svc-list').innerHTML = list.length ? list.map(c => {
+                const ps = purchases.filter(p => p.customer_id === c.id), ss = [...new Set(ps.map(p => p.series).filter(Boolean))].slice(0, 4);
+                const r = nextDue(c.id), last = svcLastLog(c.id);
+                return `<div onclick="window.svcOpen('${sid(c.id)}')" class="theme-subcard border-theme border rounded-xl px-3 py-2.5 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center gap-2"><div class="font-bold theme-title text-base truncate">${esc(c.name)}</div><div class="text-xs shrink-0">${r ? '🔔 ' + svcWhen(r.due_date) : ''}</div></div><div class="flex justify-between items-center gap-2 mt-1 text-xs"><div class="flex flex-wrap gap-1">${ss.map(s => `<span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 font-bold">${esc(s)}</span>`).join('') || '<span class="theme-muted">尚無購買紀錄</span>'}</div><div class="theme-muted shrink-0">${last ? '最近服務 ' + esc(last.substring(5)) : ''}</div></div>${r ? `<div class="text-xs theme-muted mt-0.5 truncate">${esc(r.label)}${r.product ? ' · ' + esc(r.product) : ''}</div>` : ''}</div>`;
+            }).join('') : '<div class="text-center theme-muted py-6 text-sm">還沒有顧客。按右上角「＋從名單加入」，或把名單的等級設為「顧客」。</div>';
+        }
+        window.svcSetSeries = function(s) { state.svcFilter = { series: s, product: '' }; renderSvc(); };
+        window.svcSetProduct = function(p) { state.svcFilter.product = p; renderSvc(); };
+        window.svcCopyNames = function() {
+            const f = state.svcFilter || {}, purchases = state.svcPurchases || [];
+            const names = svcCustomers().filter(c => purchases.some(p => p.customer_id === c.id && p.series === f.series && (!f.product || p.product === f.product))).map(c => c.name).join('、');
+            const done = () => window.showToast('📋 已複製名單');
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(names).then(done, () => window.prompt('請手動複製：', names)); else window.prompt('請手動複製：', names);
+        };
+
+        // ---- 提醒動作 ----
+        async function svcLog(cid, type, note, date) {
+            const l = { id: svcId('sl'), owner: sessionUser.email, customer_id: cid, log_date: date || getLocalDateString(), type, note };
+            state.svcLogs = (state.svcLogs || []).concat([l]); await cloudUpsert('service_logs', l); return l;
+        }
+        window.svcDone = async function(id) {
+            const r = (state.svcReminders || []).find(x => x.id === id); if (!r) return;
+            const today = getLocalDateString(); r.status = 'done'; r.done_date = today;
+            await cloudUpsert('service_reminders', r);
+            await svcLog(r.customer_id, r.repeat ? '換耗材' : '使用心得', `${r.label}${r.product ? '：' + r.product : ''}`);
+            if (r.repeat && r.rule_value) {
+                const nx = { id: svcId('rm'), owner: sessionUser.email, customer_id: r.customer_id, purchase_id: r.purchase_id, label: r.label, product: r.product, due_date: svcAdd(today, r.rule_value, r.rule_unit), status: 'open', rule_value: r.rule_value, rule_unit: r.rule_unit, repeat: true };
+                state.svcReminders.push(nx); await cloudUpsert('service_reminders', nx);
+                window.showToast(`✅ 已完成，下次提醒 ${nx.due_date}`);
+            } else window.showToast('✅ 已完成');
+            renderSvc(); svcRefreshDetail();
+        };
+        window.svcSnooze = async function(id) {
+            const r = (state.svcReminders || []).find(x => x.id === id); if (!r) return;
+            const base = daysUntil(r.due_date) < 0 ? getLocalDateString() : r.due_date; r.due_date = svcAdd(base, 7, 'day');
+            await cloudUpsert('service_reminders', r); window.showToast('⏰ 已延後到 ' + r.due_date); renderSvc(); svcRefreshDetail();
+        };
+        window.svcSkip = async function(id) {
+            const r = (state.svcReminders || []).find(x => x.id === id); if (!r) return;
+            r.status = 'skipped'; await cloudUpsert('service_reminders', r); renderSvc(); svcRefreshDetail();
+        };
+
+        // ---- 顧客詳情 ----
+        window.svcOpen = function(id) { state.svcCur = id; svcRefreshDetail(); window.openModal('svc-modal'); };
+        function svcRefreshDetail() {
+            const box = document.getElementById('svc-detail-body'); const id = state.svcCur; if (!box) return;
+            const c = svcCust(id); if (!c) { box.innerHTML = ''; return; }
+            document.getElementById('svc-detail-title').textContent = '🛎️ ' + c.name;
+            const ps = (state.svcPurchases || []).filter(p => p.customer_id === id).sort((a, b) => String(b.purchase_date).localeCompare(a.purchase_date));
+            const rems = svcOpenReminders().filter(r => r.customer_id === id);
+            const logs = (state.svcLogs || []).filter(l => l.customer_id === id).sort((a, b) => String(b.log_date).localeCompare(a.log_date) || String(b.id).localeCompare(a.id));
+            const loy = (c.loyaltyItems || []).filter(i => !i.endDate).map(i => { const p = state.products.find(x => x.id === i.productId); return p ? `${esc(p.name)} ×${esc(i.qty)}` : ''; }).filter(Boolean);
+            const ig = igHref(c.ig), info = [];
+            if (c.phone) info.push(`📞 <a href="tel:${esc(c.phone)}" class="text-indigo-600 font-bold">${esc(c.phone)}</a>`);
+            if (c.birthday) info.push(`🎂 ${esc(c.birthday)}`);
+            if (c.address) info.push(`📍 ${esc(c.address)}`);
+            if (c.channels && c.channels.includes('LINE')) info.push('<span class="text-green-600 font-bold">LINE</span>');
+            if (ig) info.push(`<a href="${esc(ig)}" target="_blank" rel="noopener noreferrer" class="text-purple-600 font-bold">IG</a>`);
+            if (c.svcNote) info.push(`📝 ${esc(c.svcNote)}`);
+            const typeOpts = SVC_LOG_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
+            box.innerHTML = `
+                <div class="theme-subcard border-theme border rounded-xl p-3 space-y-1 text-sm"><div class="flex justify-between items-center"><b class="theme-title">基本資料</b><button onclick="window.svcEditCustomer()" class="text-indigo-600 font-bold text-xs">📝 編輯資料</button></div>${info.length ? info.map(x => `<div class="theme-title">${x}</div>`).join('') : '<div class="theme-muted text-xs">還沒有電話、生日、地址，按右上「編輯資料」補上。</div>'}</div>
+                <div class="theme-subcard border-theme border rounded-xl p-3 space-y-2"><div class="flex justify-between items-center"><b class="theme-title text-sm">🔔 待辦提醒</b></div>${rems.length ? rems.map(r => `<div class="flex justify-between items-center gap-2 text-sm"><div class="min-w-0"><div class="theme-title font-bold truncate">${esc(r.label)}${r.product ? ' · ' + esc(r.product) : ''}</div><div class="text-xs">${svcWhen(r.due_date)}</div></div><div class="flex gap-1 shrink-0"><button onclick="window.svcDone('${sid(r.id)}')" class="bg-emerald-600 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs">✅</button><button onclick="window.svcSnooze('${sid(r.id)}')" class="theme-card border-theme border theme-title font-bold px-2 py-1.5 rounded-lg text-xs">延後7天</button><button onclick="window.svcSkip('${sid(r.id)}')" class="theme-card border-theme border text-rose-500 font-bold px-2 py-1.5 rounded-lg text-xs">略過</button></div></div>`).join('') : '<div class="text-xs theme-muted">目前沒有待辦。記錄購買後會依產品設定自動產生。</div>'}</div>
+                <div class="theme-subcard border-theme border rounded-xl p-3 space-y-2"><div class="flex justify-between items-center"><b class="theme-title text-sm">🛒 購買紀錄</b><button onclick="window.svcOpenBuy()" class="bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs">＋ 購買</button></div>${ps.map(p => `<div class="flex justify-between items-center text-sm gap-2"><div class="min-w-0 truncate"><span class="theme-muted text-xs">${esc(String(p.purchase_date || '').substring(0, 10))}</span> <span class="theme-title font-bold">${esc(p.product)}</span> ×${esc(p.qty)} <span class="text-xs text-indigo-500">${esc(p.series || '')}</span></div><button onclick="window.svcDelPurchase('${sid(p.id)}')" class="text-rose-500 text-xs shrink-0">🗑️</button></div>`).join('') || '<div class="text-xs theme-muted">還沒有購買紀錄</div>'}${loy.length ? `<div class="text-xs pt-1 border-t border-theme"><span class="text-emerald-600 font-bold">📦 長客（自動續期，不提醒）</span> <span class="theme-title">${loy.join('、')}</span></div>` : ''}</div>
+                <div class="theme-subcard border-theme border rounded-xl p-3 space-y-2"><b class="theme-title text-sm">📓 服務日誌</b><div class="flex gap-2"><select id="svc-log-type" class="theme-card border-theme border rounded-lg px-2 py-2 text-sm theme-title">${typeOpts}</select><input id="svc-log-note" type="text" placeholder="記一筆（例如：問候、送貨）" class="flex-1 min-w-0 theme-card border-theme border rounded-lg px-2 py-2 text-sm theme-title"><button onclick="window.svcAddLog()" class="bg-indigo-600 text-white font-bold px-3 rounded-lg text-sm shrink-0">記錄</button></div>${logs.slice(0, 40).map(l => `<div class="flex justify-between items-start gap-2 text-sm border-t border-theme pt-1.5"><div class="min-w-0"><span class="theme-muted text-xs">${esc(String(l.log_date || '').substring(0, 10))}</span> <span class="text-xs px-1.5 py-0.5 rounded bg-slate-500/10 theme-title font-bold">${esc(l.type)}</span> <span class="theme-title break-words">${esc(l.note || '')}</span></div><button onclick="window.svcDelLog('${sid(l.id)}')" class="text-rose-500 text-xs shrink-0">🗑️</button></div>`).join('') || '<div class="text-xs theme-muted">還沒有服務紀錄</div>'}${logs.length > 40 ? `<div class="text-xs theme-muted">只顯示最近 40 筆（共 ${logs.length} 筆）</div>` : ''}</div>
+                ${(c.isCustomer && c.level !== '顧客') ? '<div class="text-right"><button onclick="window.svcUnflag()" class="text-xs theme-muted underline">移出顧客分頁</button></div>' : ''}`;
+        }
+        window.svcEditCustomer = function() { window.closeModal('svc-modal'); window.editCustomer(state.svcCur); };
+        window.svcUnflag = async function() {
+            const c = svcCust(state.svcCur); if (!c) return; c.isCustomer = false; await cloudUpsert('customers', c);
+            window.closeModal('svc-modal'); renderAll(); window.showToast('已移出顧客分頁（資料仍在名單）');
+        };
+        window.svcAddLog = async function() {
+            const note = document.getElementById('svc-log-note').value.trim(), type = document.getElementById('svc-log-type').value;
+            if (!note && type === '其他') return window.showToast('請寫一點內容');
+            await svcLog(state.svcCur, type, note || type); svcRefreshDetail(); renderSvc();
+        };
+        window.svcDelLog = async function(id) { state.svcLogs = (state.svcLogs || []).filter(l => l.id !== id); await cloudDelete('service_logs', id); svcRefreshDetail(); renderSvc(); };
+        window.svcDelPurchase = function(id) {
+            window.openConfirmModal('確定刪除這筆購買紀錄？（尚未完成的提醒也會一起移除）', async () => {
+                state.svcPurchases = (state.svcPurchases || []).filter(p => p.id !== id); await cloudDelete('customer_purchases', id);
+                const rs = (state.svcReminders || []).filter(r => r.purchase_id === id);
+                state.svcReminders = (state.svcReminders || []).filter(r => r.purchase_id !== id);
+                for (const r of rs) await cloudDelete('service_reminders', r.id);
+                svcRefreshDetail(); renderSvc();
+            });
+        };
+        async function svcCascadeDelete(cid) {
+            const ps = (state.svcPurchases || []).filter(x => x.customer_id === cid), ls = (state.svcLogs || []).filter(x => x.customer_id === cid), rs = (state.svcReminders || []).filter(x => x.customer_id === cid);
+            state.svcPurchases = (state.svcPurchases || []).filter(x => x.customer_id !== cid); state.svcLogs = (state.svcLogs || []).filter(x => x.customer_id !== cid); state.svcReminders = (state.svcReminders || []).filter(x => x.customer_id !== cid);
+            for (const x of ps) await cloudDelete('customer_purchases', x.id); for (const x of ls) await cloudDelete('service_logs', x.id); for (const x of rs) await cloudDelete('service_reminders', x.id);
+        }
+
+        // ---- 記錄購買 ----
+        window.svcOpenBuy = function() {
+            const cfg = svcCfg();
+            document.getElementById('svc-buy-series').innerHTML = cfg.series.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+            document.getElementById('svc-buy-date').value = getLocalDateString(); document.getElementById('svc-buy-qty').value = 1; document.getElementById('svc-buy-product').value = '';
+            window.svcBuyChange(); window.openModal('svc-buy-modal');
+        };
+        window.svcBuyChange = function() {
+            const cfg = svcCfg(), s = document.getElementById('svc-buy-series').value;
+            const names = [...new Set((cfg.items || []).filter(i => i.series === s).map(i => i.name).concat((state.svcPurchases || []).filter(p => p.series === s).map(p => p.product)))];
+            document.getElementById('svc-buy-list').innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
+            const prod = document.getElementById('svc-buy-product').value.trim(), date = document.getElementById('svc-buy-date').value;
+            const prod2 = prod || '';
+            const prior = (state.svcPurchases || []).some(p => p.customer_id === state.svcCur && p.product === prod2);
+            const rules = prod2 ? svcRulesFor(s, prod2).filter(r => !(r.firstOnly && prior)) : [];
+            document.getElementById('svc-buy-preview').innerHTML = rules.length && date ? '將自動建立提醒：' + rules.map(r => `<b>${esc(r.label)}</b>（${esc(svcNextDue(date, r))}）`).join('、') : (prod2 ? '這個產品沒有設定提醒（可到右上 ⚙️ 設定）' : '');
+        };
+        function svcNextDue(date, r) {
+            let d = svcAdd(date, r.value, r.unit); const today = getLocalDateString();
+            if (r.repeat && r.value) { let guard = 0; while (d < today && guard++ < 200) d = svcAdd(d, r.value, r.unit); }
+            return d;
+        }
+        window.svcSaveBuy = async function() {
+            const cid = state.svcCur, series = document.getElementById('svc-buy-series').value, product = document.getElementById('svc-buy-product').value.trim();
+            const date = document.getElementById('svc-buy-date').value, qty = Number(document.getElementById('svc-buy-qty').value) || 1;
+            if (!product) return window.showToast('請輸入或選擇產品'); if (!date) return window.showToast('請選擇購買日期');
+            const prior = (state.svcPurchases || []).some(p => p.customer_id === cid && p.product === product);
+            const pu = { id: svcId('pu'), owner: sessionUser.email, customer_id: cid, series, product, qty, purchase_date: date };
+            state.svcPurchases = (state.svcPurchases || []).concat([pu]); await cloudUpsert('customer_purchases', pu);
+            const rules = svcRulesFor(series, product).filter(r => !(r.firstOnly && prior)); const made = [];
+            for (const r of rules) {
+                const rm = { id: svcId('rm'), owner: sessionUser.email, customer_id: cid, purchase_id: pu.id, label: r.label, product, due_date: svcNextDue(date, r), status: 'open', rule_value: r.value, rule_unit: r.unit, repeat: !!r.repeat };
+                state.svcReminders = (state.svcReminders || []).concat([rm]); await cloudUpsert('service_reminders', rm); made.push(rm);
+            }
+            await svcLog(cid, '購買', `${product} ×${qty}`, date);
+            window.closeModal('svc-buy-modal'); svcRefreshDetail(); renderSvc();
+            window.showToast(made.length ? `🛒 已記錄，建立 ${made.length} 個提醒` : '🛒 已記錄');
+        };
+
+        // ---- 從名單加入 / 新增顧客 ----
+        window.svcOpenPick = function() { document.getElementById('svc-pick-search').value = ''; window.svcPickRender(); window.openModal('svc-pick-modal'); };
+        window.svcPickRender = function() {
+            const kw = (document.getElementById('svc-pick-search').value || '').toLowerCase();
+            const arr = state.customers.filter(c => c.owner === sessionUser.email && !c.isTrashed && !isSvcCust(c) && (!kw || (c.name || '').toLowerCase().includes(kw))).slice(0, 60);
+            document.getElementById('svc-pick-list').innerHTML = arr.map(c => `<div class="flex justify-between items-center p-2.5 rounded-xl theme-subcard border-theme border"><div class="min-w-0"><div class="font-bold theme-title truncate">${esc(c.name)}</div><div class="text-xs theme-muted">${esc(c.level || '')} ・ ${esc(c.progress || '')}</div></div><button onclick="window.svcAddFromList('${sid(c.id)}')" class="bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs shrink-0">加入</button></div>`).join('') || '<div class="text-center theme-muted py-6 text-sm">沒有符合的名單</div>';
+        };
+        window.svcAddFromList = async function(id) {
+            const c = svcCust(id) || state.customers.find(x => x.id === id); if (!c) return; c.isCustomer = true; await cloudUpsert('customers', c);
+            window.svcPickRender(); renderAll(); window.showToast('✅ 已加入顧客：' + c.name);
+        };
+        window.svcNew = function() {
+            window.openAddCustomerModal();
+            document.getElementById('field-level').value = '顧客'; document.getElementById('field-is-customer').checked = true;
+            document.getElementById('field-breakthrough').value = '已破題'; window.onBreakthroughChange(document.getElementById('field-breakthrough'), true);
+            document.getElementById('field-member-type').value = '生活會員';
+        };
+
+        // ---- 提醒設定 ----
+        window.svcOpenCfg = function() { state.svcCfg = svcCfg(); svcCfgRender(); window.openModal('svc-cfg-modal'); };
+        function svcRuleRow(scope, key, j, r) {
+            const k = esc(String(key)).replace(/'/g, '');
+            return `<div class="flex flex-wrap items-center gap-1.5 text-xs"><input value="${esc(r.label)}" oninput="window.svcCfgRule('${scope}','${k}',${j},'label',this.value)" class="theme-card border-theme border rounded-lg px-2 py-1.5 theme-title w-28" placeholder="提醒內容"><input type="number" min="1" value="${esc(r.value)}" oninput="window.svcCfgRule('${scope}','${k}',${j},'value',this.value)" class="theme-card border-theme border rounded-lg px-2 py-1.5 theme-title w-16"><select onchange="window.svcCfgRule('${scope}','${k}',${j},'unit',this.value)" class="theme-card border-theme border rounded-lg px-1 py-1.5 theme-title"><option value="day" ${r.unit === 'day' ? 'selected' : ''}>天後</option><option value="month" ${r.unit === 'month' ? 'selected' : ''}>個月後</option></select><label class="flex items-center gap-1 theme-title"><input type="checkbox" ${r.repeat ? 'checked' : ''} onchange="window.svcCfgRule('${scope}','${k}',${j},'repeat',this.checked)"> 重複</label><label class="flex items-center gap-1 theme-title"><input type="checkbox" ${r.firstOnly ? 'checked' : ''} onchange="window.svcCfgRule('${scope}','${k}',${j},'firstOnly',this.checked)"> 首購才提醒</label><button onclick="window.svcCfgDelRule('${scope}','${k}',${j})" class="text-rose-500 font-bold px-1">✕</button></div>`;
+        }
+        function svcCfgRulesOf(scope, key) { const cfg = state.svcCfg; if (scope === 'item') return cfg.items[Number(key)].rules || (cfg.items[Number(key)].rules = []); return (cfg.seriesRules[key] || (cfg.seriesRules[key] = [])); }
+        function svcCfgRender() {
+            const cfg = state.svcCfg; cfg.seriesRules = cfg.seriesRules || {};
+            document.getElementById('svc-cfg-body').innerHTML = cfg.series.map(s => {
+                const its = cfg.items.map((it, i) => ({ it, i })).filter(x => x.it.series === s);
+                const sr = cfg.seriesRules[s] || [];
+                return `<div class="theme-subcard border-theme border rounded-xl p-3 space-y-2"><div class="font-bold theme-title">${esc(s)}</div>
+                    <div class="text-xs theme-muted">此系列的預設提醒（產品沒有自己的設定時套用）</div>${sr.map((r, j) => svcRuleRow('series', s, j, r)).join('')}<button onclick="window.svcCfgAddRule('series','${esc(s)}')" class="text-xs text-indigo-600 font-bold">＋ 加提醒</button>
+                    ${its.map(x => `<div class="border-t border-theme pt-2 space-y-1.5"><div class="flex gap-2"><input value="${esc(x.it.name)}" oninput="window.svcCfgItemName(${x.i},this.value)" class="flex-1 min-w-0 theme-card border-theme border rounded-lg px-2 py-1.5 text-sm font-bold theme-title"><button onclick="window.svcCfgDelItem(${x.i})" class="text-rose-500 text-xs">刪除產品</button></div>${(x.it.rules || []).map((r, j) => svcRuleRow('item', x.i, j, r)).join('')}<button onclick="window.svcCfgAddRule('item',${x.i})" class="text-xs text-indigo-600 font-bold">＋ 加提醒</button></div>`).join('')}
+                    <button onclick="window.svcCfgAddItem('${esc(s)}')" class="text-xs theme-title font-bold border-theme border rounded-lg px-2 py-1">＋ 新增有提醒的產品</button></div>`;
+            }).join('');
+        }
+        window.svcCfgRule = function(scope, key, j, field, v) { const r = svcCfgRulesOf(scope, key)[j]; if (!r) return; r[field] = field === 'value' ? (Number(v) || 0) : v; };
+        window.svcCfgAddRule = function(scope, key) { svcCfgRulesOf(scope, key).push({ label: '提醒', value: 12, unit: 'month', repeat: true }); svcCfgRender(); };
+        window.svcCfgDelRule = function(scope, key, j) { svcCfgRulesOf(scope, key).splice(j, 1); svcCfgRender(); };
+        window.svcCfgItemName = function(i, v) { state.svcCfg.items[i].name = v; };
+        window.svcCfgAddItem = function(s) { state.svcCfg.items.push({ series: s, name: '新產品', rules: [{ label: '提醒', value: 12, unit: 'month', repeat: true }] }); svcCfgRender(); };
+        window.svcCfgDelItem = function(i) { state.svcCfg.items.splice(i, 1); svcCfgRender(); };
+        window.svcSaveCfg = async function() {
+            state.svcCfg.items = state.svcCfg.items.filter(i => String(i.name || '').trim());
+            await cloudUpsert('system_settings', { id: `svc_cfg_${sessionUser.email}`, setting_type: 'user', data: state.svcCfg });
+            window.closeModal('svc-cfg-modal'); window.showToast('💾 已儲存提醒設定（只影響之後新增的購買）'); renderSvc();
         };
 
         // 防連點：送出類函式執行中時，忽略重複觸發
