@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<!-- build: 2026-10-27b login-svc -->
+<!-- build: 2026-10-27d event-status -->
 <html lang="zh-TW" data-theme="blue-white" data-font-size="medium">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
-    <title>五心計畫 KPI - 雲端完全體</title>
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="五心爭霸">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <title>五心爭霸</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -91,7 +95,6 @@
     <script>
         const SUPABASE_URL = 'https://ojvzzhzrbvmdtogxokwr.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_Oy9tndWgGKhUXaL51fOvaQ_zmoUGdJI';
-        const TEAM_INVITE_CODE = 'kpimyself-336';
         const ADMIN_EMAIL = 'chengjhou.li@gmail.com'; // 僅用來決定是否顯示「帳號管理」按鈕；真正的權限由資料庫的 is_admin() 把關
     </script>
 
@@ -99,7 +102,7 @@
         <div id="login-card-box" class="theme-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
                 <div class="bg-sky-100 text-sky-600 p-3 rounded-2xl shadow-sm border border-sky-200 font-extrabold text-2xl inline-flex items-center justify-center w-14 h-14 mx-auto mb-2">💎</div>
-                <h1 class="text-2xl font-extrabold theme-title">五心計畫 KPI</h1>
+                <h1 class="text-2xl font-extrabold theme-title">五心爭霸</h1>
                 <p class="text-sm font-bold theme-muted">團隊專屬行動儀表板</p>
             </div>
             <form id="login-form" class="space-y-4" onsubmit="window.handleAuth(event)">
@@ -212,7 +215,7 @@
                 <div class="flex items-center justify-between gap-3 w-full sm:w-auto">
                     <div class="flex items-center gap-2 shrink-0 cursor-pointer hover:opacity-80 transition" onclick="window.toggleDrawer()">
                         <div class="bg-sky-100 text-sky-600 p-2 rounded-xl shadow-sm border border-sky-200 font-extrabold text-base flex items-center justify-center w-10 h-10">💎</div>
-                        <h1 class="app-brand-title text-lg sm:text-xl font-extrabold tracking-tight theme-title">五心計畫 KPI</h1>
+                        <h1 class="app-brand-title text-lg sm:text-xl font-extrabold tracking-tight theme-title">五心爭霸</h1>
                     </div>
                     <div onclick="window.openEditNicknameModal()" class="flex items-center bg-black/5 dark:bg-white/10 rounded-xl px-3 py-2 border border-theme shrink-0 cursor-pointer hover:border-indigo-500 transition" title="點擊修改暱稱">
                         <span class="text-sm font-bold theme-muted mr-2">👤</span>
@@ -885,7 +888,7 @@
                 if (password.length < 6) return alert('🚨 密碼長度至少需要 6 碼！');
                 if (password !== confPwd) return alert('🚨 兩次輸入的密碼不一致！');
                 const inviteCode = document.getElementById('auth-invite-code').value;
-                if (inviteCode !== TEAM_INVITE_CODE) return alert('🚨 團隊邀請碼錯誤！');
+                if (!inviteCode.trim()) return alert('🚨 請輸入團隊邀請碼！');
             }
 
             try {
@@ -902,9 +905,9 @@
             } else {
                 const nickname = document.getElementById('auth-nickname').value.trim();
                 // 暱稱同時存進 user_metadata，之後即使 profiles 寫入被擋（尚未驗證 Email），首次登入仍可預填
-                const { data, error } = await db.auth.signUp({ email, password, options: { data: { nickname } } });
+                const { data, error } = await db.auth.signUp({ email, password, options: { data: { nickname, invite_code: document.getElementById('auth-invite-code').value.trim() } } });
                 if (error) {
-                    alert('註冊失敗：' + error.message);
+                    alert(/invite|邀請碼|Database error/i.test(error.message) ? '🚨 團隊邀請碼錯誤，或註冊失敗，請向管理員確認邀請碼' : '註冊失敗：' + error.message);
                     document.getElementById('auth-screen').classList.remove('hidden');
                 } else {
                     if (data.user) { await db.from('profiles').upsert({ id: data.user.id, email: email, nickname: nickname }); }
@@ -1129,7 +1132,7 @@
               state.eventTypes = (et && Array.isArray(et.data) && et.data.length) ? et.data : DEFAULT_EVENT_TYPES.slice(); }
             try {
                 const evRes = await db.from('events').select('*').eq('owner', sessionUser.email);
-                state.eventsReady = !evRes.error; state.events = evRes.error ? [] : (evRes.data || []);
+                state.eventsReady = !evRes.error; state.events = evRes.error ? [] : (evRes.data || []); (state.events).forEach(e => (e.invitees || []).forEach(x => { if (LEGACY_INV[x.status]) x.status = LEGACY_INV[x.status]; }));
             } catch (e) { state.eventsReady = false; state.events = []; }
             try {
                 const scRes = await db.from('score_snapshots').select('*').eq('owner', sessionUser.email);
@@ -1350,13 +1353,14 @@
         window.evTypeDelete = async function(i) {
             const list = getEventTypes().slice(); list.splice(i, 1); state.eventTypes = list; await evTypesChanged();
         };
-        const INVITE_STATUSES = ['待邀約', '已邀約', '確定出席', '已到場', '婉拒', '沒到'];
-        const INVITED_SET = ['已邀約', '確定出席', '已到場', '婉拒', '沒到'];
-        const CONFIRMED_SET = ['確定出席', '已到場', '沒到'];
+        const INVITE_STATUSES = ['待邀約', '已邀約', '會來', '婉拒', '沒到'];
+        const INVITED_SET = ['已邀約', '會來', '婉拒', '沒到'];
+        const CONFIRMED_SET = ['會來', '沒到'];
+        const LEGACY_INV = { '確定出席': '會來', '已到場': '會來' };
         let editingEvent = null, editingEventSaved = false; const pickerSelected = new Set();
         function evCounts(ev) {
             const l = ev.invitees || [];
-            return { total: l.length, invited: l.filter(x => INVITED_SET.includes(x.status)).length, confirmed: l.filter(x => CONFIRMED_SET.includes(x.status)).length, attended: l.filter(x => x.status === '已到場').length };
+            return { total: l.length, invited: l.filter(x => INVITED_SET.includes(x.status)).length, confirmed: l.filter(x => CONFIRMED_SET.includes(x.status)).length, attended: l.filter(x => x.status === '會來').length };
         }
         function daysUntil(dateStr) { if (!dateStr) return null; return Math.round((new Date(dateStr + 'T00:00:00') - new Date(getLocalDateString() + 'T00:00:00')) / 86400000); }
         function myEvents() { return (state.events || []).filter(e => e.owner === sessionUser.email); }
@@ -1369,7 +1373,7 @@
             const row = e => {
                 const c = evCounts(e); const d = daysUntil(e.event_date);
                 const when = d === null ? '' : d === 0 ? '<span class="text-rose-500 font-bold">今天</span>' : d > 0 ? `${d} 天後` : `已過 ${-d} 天`;
-                return `<div onclick="window.openEventModal('${sid(e.id)}')" class="theme-subcard border-theme border rounded-xl p-3 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center gap-2"><div class="font-bold theme-title truncate">${esc(e.title)} <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 font-bold">${esc(e.type || '其他')}</span></div><div class="text-xs theme-muted shrink-0">${esc(e.event_date || '')}　${when}</div></div><div class="text-xs theme-muted mt-1">受邀 ${c.total} ｜ 已邀約 ${c.invited} ｜ 確定出席 ${c.confirmed} ｜ 已到場 ${c.attended}</div></div>`;
+                return `<div onclick="window.openEventModal('${sid(e.id)}')" class="theme-subcard border-theme border rounded-xl p-3 cursor-pointer hover:opacity-80"><div class="flex justify-between items-center gap-2"><div class="font-bold theme-title truncate">${esc(e.title)} <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 font-bold">${esc(e.type || '其他')}</span></div><div class="text-xs theme-muted shrink-0">${esc(e.event_date || '')}　${when}</div></div><div class="text-xs theme-muted mt-1">受邀 ${c.total} ｜ 已邀約 ${c.invited} ｜ 會來 ${c.attended}</div></div>`;
             };
             let html = open.length ? open.map(row).join('') : '<div class="text-sm theme-muted text-center py-3">還沒有進行中的活動，按右上角「＋ 新增活動」開始</div>';
             if (closed.length) html += `<details class="pt-2"><summary class="text-xs font-bold theme-muted cursor-pointer">已結案 (${closed.length})</summary><div class="space-y-2 pt-2">${closed.map(row).join('')}</div></details>`;
@@ -1439,7 +1443,7 @@
         function renderEventInvitees() {
             const list = editingEvent.invitees || [];
             const c = evCounts(editingEvent);
-            document.getElementById('event-summary').textContent = `受邀 ${c.total} 人 ｜ 已邀約 ${c.invited}（${c.total ? Math.round(c.invited / c.total * 100) : 0}%） ｜ 確定出席 ${c.confirmed} ｜ 已到場 ${c.attended}（占已邀約 ${c.invited ? Math.round(c.attended / c.invited * 100) : 0}%）`;
+            document.getElementById('event-summary').textContent = `受邀 ${c.total} 人 ｜ 已邀約 ${c.invited}（${c.total ? Math.round(c.invited / c.total * 100) : 0}%） ｜ 會來 ${c.attended}（占已邀約 ${c.invited ? Math.round(c.attended / c.invited * 100) : 0}%）`;
             document.getElementById('event-invitee-list').innerHTML = list.length ? list.map((inv, i) => {
                 const cust = inviteeCustomer(inv); const name = cust ? cust.name : inv.name;
                 const opts = INVITE_STATUSES.map(st => `<option value="${esc(st)}" ${st === inv.status ? 'selected' : ''}>${esc(st)}</option>`).join('');
